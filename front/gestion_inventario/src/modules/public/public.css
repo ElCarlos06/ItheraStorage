@@ -1,0 +1,67 @@
+html,
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu,
+    Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.bg-custom-layout {
+  background-color: rgba(52, 72, 240, 0.45);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.card-container {
+  width: 95vw;
+  height: 90vh;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgb(0, 0, 0, 0.2);
+  overflow: hidden;
+  border: none;
+  min-height: 75vh;
+  display: flex;
+}
+
+.card-container > .row {
+  flex: 1;
+}
+
+.open-box {
+  border-radius: 16px;
+  background-color: #a5b4fc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  height: 100%;
+  overflow: hidden;
+}
+
+.illustration-img {
+  width: auto;
+  max-width: 800px;
+  max-height: 65vh;
+  object-fit: contain;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+.ithera-progress-bar-color {
+  background-color: #4e46b4;
+  width: 50%;
+}
+
+.negative-space {
+  margin-top: -1rem;
+}
+
+@media (max-height: 768px) {
+  .illustration-img {
+    max-height: 57vh;
+  }
+}

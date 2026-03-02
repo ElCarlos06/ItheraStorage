@@ -137,8 +137,10 @@ public class UsuarioService {
         if (dto.getRol() != null)
             usuario.setRol(dto.getRol());
 
-        if (dto.getMatriculaEmpleado() != null)
-            usuario.setMatriculaEmpleado(dto.getMatriculaEmpleado());
+        if (dto.getMatriculaEmpleado() != null || dto.getMatriculaEmpleado().isEmpty()) {
+
+
+        }
 
         if (dto.getNombreCompleto() != null)
             usuario.setNombreCompleto(dto.getNombreCompleto());
