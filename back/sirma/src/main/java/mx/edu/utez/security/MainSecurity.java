@@ -2,9 +2,14 @@ package mx.edu.utez.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -25,7 +30,7 @@ public class MainSecurity {
 
     /**
      * Configura la cadena de filtros de seguridad para la aplicación.
-     * Deshabilita CSRF, configura CORS para permitir solicitudes desde cualquier origen y permite todas las solicitudes sin autenticación.
+     * Deshabilita CSRF, configura CORS y define rutas públicas/privadas.
      * @param http Objeto HttpSecurity para configurar las políticas de seguridad
      * @return SecurityFilterChain configurada para la aplicación
      * @throws Exception Si ocurre un error durante la configuración de seguridad
@@ -33,13 +38,12 @@ public class MainSecurity {
     @Bean
     public SecurityFilterChain filterInternal(HttpSecurity http) throws Exception {
 
-        // Bloquea solicitudes en las que se pueda interceptar la conexión y puedan enviar un suplente
-        // de la verdadera solicitud
-        http.csrf(AbstractHttpConfigurer::disable).
-                cors( c -> c.configurationSource(corsRegistry()) ).
-                authorizeHttpRequests(auth -> auth.
-                        requestMatchers("/**").permitAll().
-                        anyRequest().authenticated()
+        http.csrf(AbstractHttpConfigurer::disable)
+                .cors(c -> c.configurationSource(corsRegistry()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
@@ -66,4 +70,23 @@ public class MainSecurity {
         return src;
     }
 
+    /**
+     * Proveedor de codificador de contraseñas usando BCrypt.
+     * @return instancia de PasswordEncoder
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Expone el AuthenticationManager configurado por Spring Security.
+     * @param authenticationConfiguration configuración auto-provista
+     * @return AuthenticationManager para inyectar en servicios
+     * @throws Exception si falla la carga de la configuración
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 }
