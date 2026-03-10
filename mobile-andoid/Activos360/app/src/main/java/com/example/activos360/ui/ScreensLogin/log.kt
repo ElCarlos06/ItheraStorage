@@ -1,4 +1,4 @@
-package com.example.activos360.ui.Screens
+package com.example.activos360.ui.ScreensLogin
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.activos360.ui.components.Button
+import com.example.activos360.ui.components.Buttons
 
 @Composable
 fun LoginScreen() {
@@ -134,7 +134,10 @@ fun LoginScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- Botón Iniciar Sesión  HAY QUE TERMINAR EL COMPONENTE---
-            Button()
+            Buttons(
+                text = "Iniciar Sesión",
+                onClick = {}
+            )
         }
     }
 }

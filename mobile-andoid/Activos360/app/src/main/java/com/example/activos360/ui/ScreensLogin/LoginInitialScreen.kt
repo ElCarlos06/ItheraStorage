@@ -1,4 +1,4 @@
-package com.example.activos360.ui.Screens
+package com.example.activos360.ui.ScreensLogin
 
 
 import androidx.compose.foundation.background
@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,12 +14,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.activos360.R
@@ -59,21 +60,21 @@ fun LoginInitialScreen() {
             // Título
             Text(
                 text = "Control de activos\ninteligente",
-                style = androidx.compose.material3.MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineLarge,
                 color = Color.Black,
                 modifier = Modifier
                     .padding(top = 1.dp, bottom = 10.dp),
-                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                     textAlign = TextAlign.Center
             )
 
             // Subtítulo
             Text(
                 text = "Gestiona tus activos de forma fácil y rápida.\nEscanea, reporta y da seguimiento en un solo lugar",
-                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
                 modifier = Modifier
                     .padding(top = 1.dp, bottom = 10.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             // Botón Cambiar contraseña
