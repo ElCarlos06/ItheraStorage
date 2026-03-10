@@ -6,8 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
+/**
+ * Clase base para todas las entidades JPA en SIRMA.
+ * Proporciona campos comunes de auditoría: id, createdAt, updatedAt.
+ * Las subclases heredan estos campos automáticamente.
+ *
+ * @author Ithera Team
+ */
 @MappedSuperclass
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,19 +24,4 @@ public class BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

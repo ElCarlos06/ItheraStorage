@@ -5,153 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Bienvenido a Activos 360</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..14,100..1000;1,9..14,100..1000&display=swap" rel="stylesheet">
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;900&display=swap');
+
+    @media screen and (max-width: 500px) {
+      .password-box { padding: 30px 20px !important; }
+      .password-text { font-size: 28px !important; }
+      .stack-column { display: block !important; width: 100% !important; text-align: center !important; }
+      .stack-column img { margin-bottom: 20px !important; }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width: 100%; min-height: 100vh;">
-    
-    <!-- Header: full width, abarca todo -->
-    <tr>
-      <td style="background-color: #717ff5; padding: 32px 24px; text-align: center;" width="100%">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" align="center" style="max-width: 600px; margin: 0 auto;">
-          <tr>
-            <td align="center">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto;">
-                <tr>
-                  <td style="vertical-align: middle; padding-right: 8px;">
-                    <img src="{{logoUrl}}" alt="Activos 360" width="48" height="62" style="display: block; width: 48px; height: auto;" />
-                  </td>
-                  <td style="vertical-align: middle;">
-                    <span style="font-family: 'DM Sans', -apple-system, sans-serif; font-size: 24px; font-weight: 900; color: #ffffff; white-space: nowrap;">Activos 360</span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'DM Sans', Arial, sans-serif;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8fafc; padding: 20px 10px;">
+  <tr>
+    <td align="center">
 
-    <!-- Onda: full bleed, fuera de cualquier contenedor con max-width -->
-    <tr>
-      <td style="background-color: #717ff5; padding: 0; line-height: 0;" width="100%">
-        <img src="{{waveUrl}}" alt="" style="display: block; width: 100%; min-width: 100%; height: 100px; margin: 0; border: 0;" />
-      </td>
-    </tr>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
 
-    <!-- Contenido: full width -->
-    <tr>
-      <td style="background-color: #ffffff; padding: 40px 32px 48px;" width="100%">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" align="center" style="max-width: 600px; margin: 0 auto;">
-          
-          <!-- Banner hero: ilustración grande -->
-          <tr>
-            <td align="center" style="padding-bottom: 32px;">
-              <img src="{{baseUrl}}/email/caja.svg" alt="" width="280" height="251" style="display: block; width: 280px; max-width: 100%; height: auto; margin: 0 auto;" />
-            </td>
-          </tr>
+        <tr>
+          <td style="background-color: #717ff5; padding: 40px 20px;" align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center">
+                  <img src="cid:logo" alt="Activos 360" width="48" style="vertical-align: middle; margin-right: 10px;" />
+                  <span style="font-size: 24px; font-weight: 900; color: #ffffff; vertical-align: middle;">Activos 360</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-          <!-- Título -->
-          <tr>
-            <td align="center" style="padding-bottom: 12px;">
-              <h1 style="margin: 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 26px; font-weight: 700; color: #1e293b;">
-                ¡Bienvenido, {{nombre}}!
-              </h1>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding-bottom: 28px;">
-              <p style="margin: 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 15px; color: #64748b; line-height: 24px;">
-                Un administrador creó tu cuenta. Aquí tu contraseña para acceder:
-              </p>
-            </td>
-          </tr>
+        <tr>
+          <td style="line-height: 0; background-color: #717ff5;">
+            <img src="cid:onda" alt="" style="width: 100%; height: auto; display: block;" />
+          </td>
+        </tr>
 
-          <!-- Caja contraseña: marco, icono centrado, más grande -->
-          <tr>
-            <td style="padding-bottom: 28px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f0f4ff; border-radius: 24px; border: 2px solid #e0e7ff;">
-                <tr>
-                  <td style="padding: 56px 52px 64px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-                      <tr>
-                        <td style="width: 88px; vertical-align: middle;">
-                          <img src="{{baseUrl}}/email/credencial.svg" alt="" width="80" height="70" style="display: block; width: 80px; height: auto; margin: 0 auto;" />
-                        </td>
-                        <td style="vertical-align: middle;">
-                          <p style="margin: 0 0 14px 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 19px; font-weight: 700; color: #6366f1; line-height: 24px;">
-                            Contraseña temporal
-                          </p>
-                          <p style="margin: 0 0 28px 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 18px; color: #64748b; line-height: 28px;">
-                            Guarda esta contraseña de forma segura. La necesitarás para iniciar sesión en Activos 360 por primera vez.
-                          </p>
-                          <p style="margin: 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 34px; font-weight: 700; color: #1e293b; letter-spacing: 2px;">
-                            {{password}}
-                          </p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+        <tr>
+          <td style="padding: 40px 30px;">
 
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <p style="margin: 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 13px; color: #94a3b8; line-height: 20px;">
-                No compartas tu contraseña con nadie.
-              </p>
-            </td>
-          </tr>
+            <div align="center" style="padding-bottom: 30px;">
+              <img src="cid:caja" alt="Bienvenida" width="200" style="width: 200px; max-width: 100%;" />
+            </div>
 
-          <!-- CTA -->
-          <tr>
-            <td align="center" style="padding-bottom: 20px;">
-              <a href="{{loginUrl}}" style="display: inline-block; background-color: #3448f0; color: #ffffff; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 16px; font-weight: 700; text-decoration: none; min-width: 220px; height: 52px; padding: 0 28px; border-radius: 12px; line-height: 52px; text-align: center;">
-                Iniciar Sesión
+            <h1 style="margin: 0; font-size: 26px; font-weight: 700; color: #1e293b; text-align: center;">
+              ¡Bienvenido, <span style="color: #6366f1;">{{nombre}}</span>!
+            </h1>
+            <p style="margin: 16px 0 32px; font-size: 16px; color: #64748b; line-height: 24px; text-align: center;">
+              Un administrador ha creado tu cuenta en el sistema. Utiliza las siguientes credenciales para tu primer acceso.
+            </p>
+
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f0f4ff; border-radius: 20px; border: 1px dashed #6366f1;">
+              <tr>
+                <td class="password-box" style="padding: 40px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <td class="stack-column" width="80" style="vertical-align: middle;">
+                        <img src="cid:credencial" width="60" style="display: block; margin: 0 auto;" />
+                      </td>
+                      <td class="stack-column" style="vertical-align: middle; padding-left: 20px;">
+                        <p style="margin: 0; font-size: 14px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px;">Contraseña Temporal</p>
+                        <p class="password-text" style="margin: 8px 0 0; font-size: 32px; font-weight: 700; color: #1e293b; letter-spacing: 3px;">{{password}}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin: 24px 0; font-size: 13px; color: #94a3b8; text-align: center; font-style: italic;">
+              * Por seguridad, se te pedirá cambiarla al iniciar sesión.
+            </p>
+
+            <div align="center" style="margin-top: 32px;">
+              <a href="{{loginUrl}}" style="background-color: #3448f0; color: #ffffff; padding: 16px 32px; font-size: 16px; font-weight: 700; text-decoration: none; border-radius: 12px; display: inline-block;">
+                Acceder al Sistema
               </a>
-            </td>
-          </tr>
-          <tr>
-            <td align="center">
-              <p style="margin: 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 13px; color: #64748b; line-height: 18px;">
-                ¿No fuiste tú? Ignora este correo.
-              </p>
-            </td>
-          </tr>
+            </div>
 
-        </table>
-      </td>
-    </tr>
+          </td>
+        </tr>
 
-    <!-- Footer: full width -->
-    <tr>
-      <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 28px 24px;" width="100%">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" align="center" style="max-width: 600px; margin: 0 auto;">
-          <tr>
-            <td align="center">
-              <p style="margin: 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 12px; font-weight: 600; color: #94a3b8; letter-spacing: 1.2px;">
-                ITHERA SYSTEM
-              </p>
-              <p style="margin: 6px 0 0 0; font-family: 'DM Sans', -apple-system, sans-serif; font-size: 11px; color: #cbd5e1;">
-                © 2026 Ithera Inc.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+        <tr>
+          <td align="center" style="padding: 25px; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0; font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">ITHERA SYSTEM</p>
+            <p style="margin: 4px 0 0; font-size: 11px; color: #cbd5e1;">© 2026 Ithera Inc. • Activos 360</p>
+          </td>
+        </tr>
+      </table>
 
-  </table>
+    </td>
+  </tr>
+</table>
 </body>
 </html>
