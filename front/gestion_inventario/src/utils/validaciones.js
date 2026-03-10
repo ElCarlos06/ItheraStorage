@@ -103,3 +103,31 @@ export function validarArea(idArea) {
   }
   return null;
 }
+
+/**
+ * Valida correo en el formulario de inicio de sesión.
+ * Solo verifica presencia y formato básico.
+ * @returns {string|null} Mensaje de error o null si es válido
+ */
+export function validarCorreoLogin(correo) {
+  if (!correo || correo.trim().length === 0) {
+    return "El correo es obligatorio";
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(correo.trim())) {
+    return "Formato de correo no válido";
+  }
+  return null;
+}
+
+/**
+ * Valida contraseña en el formulario de inicio de sesión.
+ * Solo verifica que no esté vacía.
+ * @returns {string|null} Mensaje de error o null si es válido
+ */
+export function validarContrasenaLogin(contrasena) {
+  if (!contrasena || contrasena.trim().length === 0) {
+    return "La contraseña es obligatoria";
+  }
+  return null;
+}

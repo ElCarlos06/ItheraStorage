@@ -44,6 +44,28 @@ public class UserService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Busca un usuario por su correo electrónico.
+     * <p>
+     * Usado por el front para validar que el correo existe antes de continuar
+     * con un flujo (ej. recuperación de contraseña, pre-validación de registro).
+     * Si no existe, retorna 404 con un mensaje descriptivo para que la UI lo muestre
+     * directamente al usuario sin necesidad de parseo adicional.
+     * </p>
+     *
+     * @param correo correo institucional a buscar
+     * @return {@link ApiResponse} con el usuario encontrado o error descriptivo 404
+     */
+    @Transactional(readOnly = true)
+    public ApiResponse findByCorreo(String correo) {
+        Optional<User> found = userRepository.findByCorreo(correo.trim().toLowerCase());
+        if (found.isEmpty())
+            return new ApiResponse(
+                    "No existe ningún usuario registrado con el correo: " + correo,
+                    true, HttpStatus.NOT_FOUND);
+        return new ApiResponse("Usuario encontrado", found.get(), HttpStatus.OK);
+    }
+
     @Transactional
     public ApiResponse save(UserDTO dto) {
         if (userRepository.existsByCorreo(dto.getCorreo()))

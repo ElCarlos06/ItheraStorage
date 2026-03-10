@@ -17,9 +17,17 @@ const navItems = [
   { to: "/usuarios", label: "Usuarios", icon: GenericUsers },
   { to: "/solicitudes", label: "Solicitudes", icon: GenericSettings },
   { to: "/catalogos", label: "Catálogos", icon: FilesMagazine },
+  { to: "/ajustes", label: "Ajustes", icon: GenericSettings },
 ];
 
 export default function Sidebar() {
+  // Elimina el token de sesión y recarga la página para que App.jsx
+  // detecte la ausencia del token y monte PublicRouter con la pantalla de login
+  const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    window.location.replace("/");
+  };
+
   return (
     <aside className="admin-sidebar">
       <div className="admin-sidebar__header">
@@ -40,20 +48,32 @@ export default function Sidebar() {
               `admin-sidebar__item ${isActive ? "admin-sidebar__item--active" : ""}`
             }
           >
-            <Icon icon={item.icon} size={30} className="admin-sidebar__item-icon" />
+            <Icon
+              icon={item.icon}
+              size={30}
+              className="admin-sidebar__item-icon"
+            />
             <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
       <div className="admin-sidebar__footer">
-        <Link to="/ajustes" className="admin-sidebar__user" title="Ir a Ajustes">
+        <Link
+          to="/ajustes"
+          className="admin-sidebar__user"
+          title="Ir a Ajustes"
+        >
           <div className="admin-sidebar__avatar">A</div>
           <div className="admin-sidebar__user-info">
             <span className="admin-sidebar__user-name">Administrador</span>
             <span className="admin-sidebar__user-role">Admin</span>
           </div>
         </Link>
-        <button type="button" className="admin-sidebar__logout">
+        <button
+          onClick={handleLogout}
+          type="button"
+          className="admin-sidebar__logout"
+        >
           <Icon icon={SoftwareLogOut} size={30} />
           <span>Cerrar Sesión</span>
         </button>

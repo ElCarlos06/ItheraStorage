@@ -20,7 +20,7 @@ async function request(endpoint, options = {}) {
     throw new Error(
       err.message?.includes("Failed to fetch")
         ? `No se pudo conectar al servidor. ¿Está corriendo en ${API_BASE}?`
-        : err.message || "Error de conexión"
+        : err.message || "Error de conexión",
     );
   }
 
@@ -31,7 +31,12 @@ async function request(endpoint, options = {}) {
       data.error ||
       (Array.isArray(data.errors) && data.errors[0]?.defaultMessage) ||
       `Error ${res.status}: ${res.statusText}`;
-    throw new Error(msg);
+    // Se adjunta el cuerpo completo al error para que el llamador pueda
+    // inspeccionar campos adicionales como requiresPasswordChange
+    const err = new Error(msg);
+    err.data = data;
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
@@ -48,6 +53,26 @@ export const api = {
     request("/api/register", {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+
+  /** POST /api/login - Iniciar sesión */
+  login: (body) =>
+    request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  /** POST /api/auth/change-password - Cambiar contraseña */
+  passwordRecovery: (body) =>
+    request("/api/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  /** GET /api/users/correo/:correo - Obtener usuario por correo */
+  getUserByCorreo: (correo) =>
+    request(`/api/users/by-email?correo=${correo}`, {
+      method: "GET",
     }),
 
   /** GET /api/users - Listar usuarios (requiere auth) */

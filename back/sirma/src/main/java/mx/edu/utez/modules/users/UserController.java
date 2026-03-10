@@ -49,4 +49,23 @@ public class UserController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Busca un usuario por su correo electrónico.
+     * <p>
+     * Útil para que el front valide si un correo existe antes de continuar
+     * con cualquier flujo (recuperación de contraseña, asignaciones, etc.).
+     * Retorna 404 con mensaje descriptivo si no se encuentra, para que la UI
+     * lo muestre directamente sin parseo adicional.
+     * </p>
+     * Ejemplo: {@code GET /api/users/by-email?correo=usuario@utez.edu.mx}
+     *
+     * @param correo correo electrónico a buscar
+     * @return usuario encontrado o mensaje de error descriptivo
+     */
+    @GetMapping("/by-email")
+    public ResponseEntity<ApiResponse> findByCorreo(@RequestParam String correo) {
+        ApiResponse response = userService.findByCorreo(correo);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
 }
