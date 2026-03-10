@@ -1,0 +1,18 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 24px;
+}
+
+.modal-content {
+  background: var(--moon-goku);
+  border-radius: var(--moon-radius-s-lg);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  box-shadow: var(--moon-shadow-md);
+}

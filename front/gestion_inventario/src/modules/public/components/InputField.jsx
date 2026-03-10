@@ -1,17 +1,22 @@
+import Input from "../../../components/Input/Input";
+
 export default function InputField({
   label,
   type = "text",
   placeholder,
-  labelClassName = "form-label text-muted small fw-bolder",
+  labelClassName,
+  fullWidth,
+  ...props
 }) {
   return (
     <div className="mb-3">
-      <label className={labelClassName}>{label}</label>
-      <input
-        style={{ borderRadius: "12px" }}
+      <Input
+        label={label}
         type={type}
-        className="form-control fw-normal"
         placeholder={placeholder}
+        labelClassName={labelClassName}
+        fullWidth={fullWidth}
+        {...props}
       />
     </div>
   );

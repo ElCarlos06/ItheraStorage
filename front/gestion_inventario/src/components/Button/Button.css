@@ -1,0 +1,94 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--moon-font-sans);
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn--small {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.btn--medium {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.btn--large {
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+}
+
+.btn__icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn__icon--left {
+  margin-right: 4px;
+}
+
+.btn__icon--right {
+  margin-left: 4px;
+}
+
+.btn--primary {
+  background: var(--moon-btn-primary);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--moon-piccolo-60);
+  color: #fff;
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--moon-piccolo);
+  border: 1.5px solid var(--moon-piccolo);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--moon-piccolo-60);
+  border-color: var(--moon-piccolo-60);
+  color: #fff;
+}
+
+.btn--tertiary {
+  background: var(--moon-gohan);
+  color: var(--moon-bulma);
+}
+
+.btn--tertiary:hover:not(:disabled) {
+  background: var(--moon-beerus);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--moon-bulma);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--moon-gohan);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--full {
+  width: 100%;
+}

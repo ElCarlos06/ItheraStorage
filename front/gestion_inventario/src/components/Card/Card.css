@@ -1,0 +1,8 @@
+.moon-card {
+  background: var(--moon-goku);
+  border-radius: var(--moon-radius-s-lg);
+}
+
+.moon-card--padding-medium {
+  padding: 20px 24px;
+}

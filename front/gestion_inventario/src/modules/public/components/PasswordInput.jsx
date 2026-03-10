@@ -1,36 +1,36 @@
 import { useState } from "react";
+import Input from "../../../components/Input/Input";
 
 export default function PasswordInput({
   label = "Contraseña",
   placeholder = "Ingresa la contraseña",
-  labelClassName = "form-label text-muted small fw-bold",
+  labelClassName,
+  fullWidth,
+  ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
     <div className="mb-3">
-      <label className={labelClassName}>{label}</label>
-      <div className="position-relative">
-        <input
-          style={{ borderRadius: "12px" }}
-          type={showPassword ? "text" : "password"}
-          className="form-control fw-normal pe-5"
-          placeholder={placeholder}
-        />
-        <span
-          onClick={togglePasswordVisibility}
-          className="position-absolute end-0 top-50 translate-middle-y me-3"
-          style={{ cursor: "pointer", zIndex: 10 }}
-        >
-          <i
-            className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} text-muted`}
-          ></i>
-        </span>
-      </div>
+      <Input
+        label={label}
+        type={showPassword ? "text" : "password"}
+        placeholder={placeholder}
+        labelClassName={labelClassName}
+        fullWidth={fullWidth}
+        endAdornment={
+          <span
+            onClick={() => setShowPassword((v) => !v)}
+            onKeyDown={(e) => e.key === "Enter" && setShowPassword((v) => !v)}
+            role="button"
+            tabIndex={0}
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+          >
+            <i className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} text-muted`} aria-hidden />
+          </span>
+        }
+        {...props}
+      />
     </div>
   );
 }

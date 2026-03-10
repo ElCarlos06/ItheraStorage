@@ -1,5 +1,5 @@
-import InputField from "../InputField";
-import Button from "../Button";
+import InputField from "./InputField";
+import Button from "../../../components/Button/Button";
 import { Link } from "react-router-dom";
 
 export default function NewPasswordForm() {
@@ -24,7 +24,7 @@ export default function NewPasswordForm() {
           placeholder="Ingresa el código"
           labelClassName="form-label text-muted small fw-bolder"
         />
-        <Button text="Guardar contraseña" />
+        <Button text="Guardar contraseña" fullWidth />
       </div>
       <div className="text-start">
         <Link

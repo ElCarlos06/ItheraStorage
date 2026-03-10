@@ -1,0 +1,84 @@
+.reported-assets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reported-assets-list__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 17px;
+  background: var(--moon-gohan);
+  border: 1.337px solid var(--moon-beerus);
+  border-radius: var(--moon-radius-s-md);
+}
+
+.reported-assets-list__rank {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.reported-assets-list__rank--chichi {
+  background: var(--moon-chichi);
+}
+
+.reported-assets-list__rank--krillin {
+  background: var(--moon-krillin);
+}
+
+.reported-assets-list__rank--teal {
+  background: var(--moon-teal);
+}
+
+.reported-assets-list__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.reported-assets-list__name {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--moon-bulma);
+  margin: 0 0 4px 0;
+}
+
+.reported-assets-list__type {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--moon-trunks);
+  margin: 0;
+}
+
+.reported-assets-list__status {
+  margin-top: 6px;
+}
+
+.reported-assets-list__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.reported-assets-list__count {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--moon-chichi);
+}
+
+.reported-assets-list__label {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--moon-trunks);
+}

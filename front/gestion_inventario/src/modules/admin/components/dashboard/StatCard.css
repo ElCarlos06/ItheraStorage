@@ -1,0 +1,48 @@
+.stat-card {
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-beerus);
+  border-radius: var(--moon-radius-s-lg);
+  padding: 24px;
+  min-height: 162px;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+  box-shadow: var(--moon-shadow-md);
+}
+
+.stat-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.stat-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--moon-gohan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--moon-trunks);
+}
+
+.stat-card__value {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--moon-bulma);
+  margin: 0 0 8px 0;
+}
+
+.stat-card__label {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--moon-trunks);
+  margin: 0;
+}
