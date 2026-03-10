@@ -248,7 +248,7 @@ export default function NewUserModal({ open, onClose, onGuardar }) {
           </div>
 
           <footer className="nuevo-usuario-modal__footer">
-            <Button type="button" variant="secondary" size="small" onClick={handleClose}>
+            <Button type="button" variant="outline" size="small" onClick={handleClose}>
               Cancelar
             </Button>
             <Button

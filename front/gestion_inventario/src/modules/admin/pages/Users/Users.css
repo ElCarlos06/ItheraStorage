@@ -89,6 +89,7 @@
 }
 
 .users-view__card-wrap {
+  position: relative;
   transition: transform 0.2s ease;
 }
 
@@ -114,6 +115,18 @@
 }
 
 .users-view__card-body {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.users-view__card-body--clickable {
+  cursor: pointer;
+}
+
+.users-view__card-body-inner {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   overflow: hidden;

@@ -204,6 +204,36 @@ import Buscador from "../components/Buscador/Buscador";
 
 ---
 
+### Tooltip
+
+Tooltip reutilizable basado en Radix UI (Moon Design System). Ubicación: `src/components/Tooltip/Tooltip.jsx`
+
+```jsx
+import Tooltip from "../components/Tooltip/Tooltip";
+
+<Tooltip content="Clic para ver más">
+  <button>Hover aquí</button>
+</Tooltip>
+
+<Tooltip content="Información" placement="bottom" as="div" className="mi-clase">
+  <div>Área hover</div>
+</Tooltip>
+```
+
+| Prop | Tipo | Default | Descripción |
+|------|------|---------|-------------|
+| `content` | string | - | Texto del tooltip |
+| `children` | ReactNode | - | Elemento que activa el tooltip al hacer hover |
+| `placement` | `"top"` \| `"bottom"` \| `"left"` \| `"right"` | `"bottom"` | Posición del tooltip |
+| `sideOffset` | number | 8 | Distancia entre trigger y tooltip |
+| `delayDuration` | number | 400 | Delay (ms) antes de mostrar |
+| `className` | string | - | Clases para el wrapper |
+| `as` | string | `"div"` | Elemento raíz (div, span, etc.) |
+
+**Características:** Basado en Radix (accesible, colisiones inteligentes), animación entrada/salida suave, TooltipProvider en App.jsx.
+
+---
+
 ### Card
 
 Contenedor con borde y esquinas redondeadas. `src/components/Card/Card.jsx`

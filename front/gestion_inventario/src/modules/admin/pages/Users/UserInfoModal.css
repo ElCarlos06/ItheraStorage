@@ -1,0 +1,108 @@
+.user-info-modal .modal-content {
+  width: 640px;
+  max-width: calc(100vw - 48px);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.user-info-modal__inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: #fff;
+  border-bottom: 1.337px solid var(--moon-content-border);
+}
+
+.user-info-modal__title {
+  margin: 0;
+  font-family: var(--moon-font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--moon-content-text);
+}
+
+.user-info-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--moon-content-text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+
+.user-info-modal__close:hover {
+  background: rgba(211, 48, 74, 0.12);
+  color: var(--moon-dodoria);
+}
+
+.user-info-modal__close svg {
+  color: currentColor;
+}
+
+.user-info-modal__body {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  background: var(--moon-goku);
+}
+
+.user-info-modal__row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(226, 226, 226, 0.6);
+}
+
+.user-info-modal__row:last-child {
+  border-bottom: none;
+}
+
+.user-info-modal__label {
+  font-family: var(--moon-font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--moon-content-text-secondary);
+}
+
+.user-info-modal__value {
+  font-family: var(--moon-font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--moon-content-text);
+  word-break: break-word;
+}
+
+.user-info-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 24px 24px;
+  background: #fff;
+  border-top: 1.337px solid var(--moon-content-border);
+}
+
+.user-info-modal__footer .btn {
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+  border-radius: 16px;
+}
