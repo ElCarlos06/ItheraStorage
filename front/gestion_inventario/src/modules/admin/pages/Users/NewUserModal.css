@@ -217,3 +217,19 @@
   padding: 0 24px;
   font-size: 15px;
 }
+
+.nuevo-usuario-modal__error {
+  padding: 12px 16px;
+  background: rgba(211, 48, 74, 0.12);
+  color: var(--moon-dodoria);
+  font-size: 14px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.nuevo-usuario-modal__error-msg {
+  font-size: 12px;
+  color: var(--moon-dodoria);
+  margin-top: 4px;
+  display: block;
+}

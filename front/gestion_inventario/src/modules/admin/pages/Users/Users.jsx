@@ -1,8 +1,6 @@
-import { useState, useMemo } from "react";
-// import NewUserModal from "./NewUserModal";
+import { useState, useMemo, useEffect } from "react";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
-import Card from "../../../../components/Card/Card";
 import Buscador from "../../../../components/Buscador/Buscador";
 import UsersEmptyState from "./UsersEmptyState";
 import Button from "../../../../components/Button/Button";
@@ -16,30 +14,65 @@ import {
   GenericPlus,
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
+import { api } from "../../../../api/client";
 import "./Users.css";
 import NewUserModal from "./NewUserModal";
 
 const STAT_ICONS = [GenericUser, NotificationsBell, GenericSettings];
 
+function mapUser(u) {
+  if (!u || typeof u !== "object") return null;
+  const roleName = u.role?.nombre ?? u.rol ?? u.role;
+  const areaName = u.area?.nombre ?? u.area ?? u.areaNombre;
+  return {
+    id: u.id ?? u.id_usuario,
+    numeroEmpleado: u.numeroEmpleado ?? u.numero_empleado ?? "-",
+    nombre: u.nombreCompleto ?? u.nombre ?? u.nombre_completo ?? "-",
+    correo: u.correo ?? "-",
+    curp: u.curp ?? "-",
+    rol: typeof roleName === "string" ? roleName : "-",
+    area: typeof areaName === "string" ? areaName : "-",
+  };
+}
+
 export default function Users({
-  users: usersProp = [],
+  users: usersProp,
   stats: statsProp = [],
-  loading: loadingProp = false,
-  error: errorProp = null,
+  loading: loadingProp,
+  error: errorProp,
   onSearch,
   onNuevo,
   onEliminar,
   onEditar,
   onDetalles,
 }) {
-
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
-
-  const users = Array.isArray(usersProp) ? usersProp : [];
+  const [users, setUsers] = useState(Array.isArray(usersProp) ? usersProp : []);
+  const [loading, setLoading] = useState(loadingProp ?? false);
+  const [error, setError] = useState(errorProp ?? null);
   const stats = Array.isArray(statsProp) ? statsProp : [];
-  const loading = loadingProp;
-  const error = errorProp;
+
+  useEffect(() => {
+    if (usersProp !== undefined) return;
+    setLoading(true);
+    api
+      .getUsers()
+      .then((res) => setUsers((res.data ?? []).map(mapUser).filter(Boolean)))
+      .catch((err) => {
+        setError(err.message);
+        setUsers([]);
+      })
+      .finally(() => setLoading(false));
+  }, [usersProp]);
+
+  const refreshUsers = () => {
+    if (usersProp !== undefined) return;
+    api
+      .getUsers()
+      .then((res) => setUsers((res.data ?? []).map(mapUser).filter(Boolean)))
+      .catch(() => {});
+  };
 
   const filtered = useMemo(() => {
     let list = Array.isArray(users) ? users : [];
@@ -66,7 +99,6 @@ export default function Users({
 
   return (
     <div className={`users-page ${showEmptyState ? "users-page--empty" : ""}`}>
-      
       <PageHeader
         overline="PANEL DE CONTROL"
         title="Gestión de Usuarios"
@@ -74,8 +106,6 @@ export default function Users({
       />
 
       <section className="users-view" aria-label="Gestión de usuarios">
-
-        {/* STATS */}
         <div className="users-view__stats row g-3 mb-4">
           {stats.map((stat, i) => (
             <div key={i} className="col-12 col-sm-6 col-xl-3">
@@ -84,9 +114,7 @@ export default function Users({
           ))}
         </div>
 
-        {/* TOOLBAR */}
         <div className="users-view__toolbar">
-
           <div className="users-view__buscador">
             <Buscador
               placeholder="Buscar usuario por nombre..."
@@ -95,7 +123,6 @@ export default function Users({
               aria-label="Buscar usuarios"
             />
           </div>
-
           <div className="users-view__actions">
             <Button
               variant="primary"
@@ -105,7 +132,6 @@ export default function Users({
               Nuevo Usuario
             </Button>
           </div>
-
         </div>
 
         {error && (
@@ -120,93 +146,79 @@ export default function Users({
           </div>
         ) : (
           <div className="users-view__list">
-
             {showEmptyState ? (
               <UsersEmptyState hasSearch={!!search.trim()} />
             ) : (
-              filtered.map((user) => (
-
-                <div key={user.id} className="users-view__card-wrap">
-
-                  <Card padding="medium" className="users-view__card">
-
-                    <div className="users-view__content">
-
-                      <div className="users-view__row">
-
-                        <div className="users-view__col">
-                          <p className="users-view__label">Nombre</p>
-                          <p className="users-view__value">{user.nombre ?? "—"}</p>
+              filtered.map((user, idx) => (
+                <div key={user?.id ?? `user-${idx}`} className="users-view__card-wrap">
+                  <div className="users-view__card">
+                    <div className="users-view__card-inner">
+                      <div className="users-view__card-body">
+                        <p className="users-view__numero">{user.numeroEmpleado}</p>
+                        <div className="users-view__data-row">
+                          <div className="users-view__data-col">
+                            <p className="users-view__label">Rol</p>
+                            <p className="users-view__value">{user.rol ?? "—"}</p>
+                          </div>
+                          <div className="users-view__data-col">
+                            <p className="users-view__label">Nombre Completo</p>
+                            <p className="users-view__value">{user.nombre ?? "—"}</p>
+                          </div>
+                          <div className="users-view__data-col">
+                            <p className="users-view__label">Curp</p>
+                            <p className="users-view__value">{user.curp ?? "—"}</p>
+                          </div>
+                          <div className="users-view__data-col">
+                            <p className="users-view__label">Correo</p>
+                            <p className="users-view__value">{user.correo ?? "—"}</p>
+                          </div>
+                          <div className="users-view__data-col">
+                            <p className="users-view__label">Área</p>
+                            <p className="users-view__value">{user.area ?? "—"}</p>
+                          </div>
                         </div>
-
-                        <div className="users-view__col">
-                          <p className="users-view__label">Correo</p>
-                          <p className="users-view__value">{user.correo ?? "—"}</p>
-                        </div>
-
-                        <div className="users-view__col">
-                          <p className="users-view__label">Rol</p>
-                          <p className="users-view__value">{user.rol ?? "—"}</p>
-                        </div>
-
-                        <div className="users-view__col">
-                          <p className="users-view__label">Área</p>
-                          <p className="users-view__value">{user.area ?? "—"}</p>
-                        </div>
-
                       </div>
-
+                      <div className="users-view__card-actions">
+                        <button
+                          type="button"
+                          className="users-view__action-btn users-view__action-btn--delete"
+                          title="Eliminar"
+                          onClick={() => onEliminar?.(user)}
+                        >
+                          <Icon icon={GenericDelete} size={30} />
+                        </button>
+                        <button
+                          type="button"
+                          className="users-view__action-btn"
+                          title="Editar"
+                          onClick={() => onEditar?.(user)}
+                        >
+                          <Icon icon={GenericEdit} size={30} />
+                        </button>
+                        <button
+                          type="button"
+                          className="users-view__action-btn"
+                          title="Detalles"
+                          onClick={() => onDetalles?.(user)}
+                        >
+                          <Icon icon={SecurityPassport} size={30} />
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="users-view__actions">
-
-                      <button
-                        type="button"
-                        className="users-view__action-btn users-view__action-btn--delete"
-                        title="Eliminar"
-                        onClick={() => onEliminar?.(user)}
-                      >
-                        <Icon icon={GenericDelete} size={30} />
-                      </button>
-
-                      <button
-                        type="button"
-                        className="users-view__action-btn"
-                        title="Editar"
-                        onClick={() => onEditar?.(user)}
-                      >
-                        <Icon icon={GenericEdit} size={30} />
-                      </button>
-
-                      <button
-                        type="button"
-                        className="users-view__action-btn"
-                        title="Detalles"
-                        onClick={() => onDetalles?.(user)}
-                      >
-                        <Icon icon={SecurityPassport} size={30} />
-                      </button>
-
-                    </div>
-
-                  </Card>
-
+                  </div>
                 </div>
-
               ))
             )}
-
           </div>
         )}
-
       </section>
 
-      <NewUserModal 
-       open={modalNuevoOpen}
+      <NewUserModal
+        open={modalNuevoOpen}
         onClose={() => setModalNuevoOpen(false)}
-        onGuardar={(data) => {
-          onNuevo?.(data);
-          setModalNuevoOpen(false);
+        onGuardar={() => {
+          refreshUsers();
+          onNuevo?.();
         }}
       />
 
