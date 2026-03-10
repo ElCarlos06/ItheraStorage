@@ -63,9 +63,9 @@ public class MailService {
 
         // Adjuntar imágenes inline referenciadas en el HTML como src="cid:xxx"
         helper.addInline("logo",       new ClassPathResource("static/email/activos360_logo.png"));
-        helper.addInline("onda",       new ClassPathResource("static/email/onda.svg"));
-        helper.addInline("caja",       new ClassPathResource("static/email/caja.svg"));
-        helper.addInline("credencial", new ClassPathResource("static/email/credencial.svg"));
+        helper.addInline("onda",       new ClassPathResource("static/email/onda.png"));
+        helper.addInline("caja",       new ClassPathResource("static/email/caja.png"));
+        helper.addInline("credencial", new ClassPathResource("static/email/credencial.png"));
 
         // ── 3. Enviar ──────────────────────────────────────────────────────
         mailSender.send(message);
