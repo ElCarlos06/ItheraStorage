@@ -1,0 +1,142 @@
+.catalog-section__view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.catalog-section__toolbar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-content-border);
+  border-radius: var(--moon-radius-s-lg);
+}
+
+.catalog-section__buscador {
+  flex: 1;
+  min-width: 260px;
+  max-width: 540px;
+}
+
+.catalog-section__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.catalog-section__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catalog-section__card-wrap {
+  cursor: pointer;
+}
+
+.catalog-section__card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 21px;
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-content-border);
+  border-radius: var(--moon-radius-s-lg);
+  transition: box-shadow 0.2s ease;
+}
+
+.catalog-section__card-wrap:hover .catalog-section__card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.catalog-section__card-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--moon-piccolo-60);
+  color: #fff;
+  border-radius: 12px;
+}
+
+.catalog-section__card-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.catalog-section__card-title {
+  font-family: var(--moon-font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--moon-content-text);
+  margin: 0;
+}
+
+.catalog-section__card-subtitle {
+  font-family: var(--moon-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--moon-content-text-secondary);
+  margin: 0;
+}
+
+.catalog-section__card-cantidad {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.catalog-section__card-cantidad-label {
+  font-family: var(--moon-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--moon-content-text-secondary);
+  margin: 0;
+}
+
+.catalog-section__card-cantidad-value {
+  font-family: var(--moon-font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--moon-content-text);
+  margin: 0;
+}
+
+.catalog-section__card-chevron {
+  flex-shrink: 0;
+  opacity: 0.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalog-section--empty .catalog-section__list {
+  flex: 1;
+  min-height: 200px;
+}
+
+.catalog-section__list:has(.catalog-empty) {
+  flex: 1;
+}
+
+.catalog-section__list:has(.catalog-empty) .catalog-empty {
+  align-self: stretch;
+  flex: 1;
+  min-height: 200px;
+}

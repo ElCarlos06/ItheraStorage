@@ -1,8 +1,4 @@
-# Guía de componentes y diseño
-
-Documentación para desarrolladores sobre cómo usar los componentes globales, tokens de color e iconos del proyecto.
-
----
+# Guía de componentes y diseño para tontos xd
 
 ## 1. Tema y colores (`src/styles/theme.css`)
 
@@ -90,7 +86,7 @@ import {
   FilesImport,
   FilesSave,
   ControlsChevronDown,
-  // ... más iconos desde @heathmont/moon-icons
+  // ... más iconos desde @heathmont/moon-icons o desde el figma donde tenemos los iconos buscas y le picas y ahí dice el nombre xd
 } from "@heathmont/moon-icons";
 ```
 
