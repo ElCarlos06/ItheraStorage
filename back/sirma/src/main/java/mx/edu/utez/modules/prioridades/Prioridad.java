@@ -1,0 +1,29 @@
+package mx.edu.utez.modules.prioridades;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import mx.edu.utez.kernel.BaseEntity;
+
+/**
+ * Entidad JPA que representa una prioridad de reporte en SIRMA.
+ * Mapea a la tabla PRIORIDAD con niveles como Baja, Media, Alta.
+ *
+ * @author Ithera Team
+ */
+@Entity
+@Table(name = "PRIORIDAD")
+@AttributeOverride(name = "id", column = @Column(name = "id_prioridad"))
+@Getter
+@Setter
+@NoArgsConstructor
+public class Prioridad extends BaseEntity {
+
+    @Column(name = "nivel", nullable = false, length = 50, unique = true)
+    private String nivel;
+
+    @Column(name = "tiempo_respuesta_horas")
+    private Integer tiempoRespuestaHoras;
+
+}

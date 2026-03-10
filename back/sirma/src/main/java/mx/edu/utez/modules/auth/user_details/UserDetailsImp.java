@@ -12,18 +12,22 @@ import java.util.Collections;
 
 /**
  * Implementación de UserDetails que adapta la entidad User al contexto de Spring Security.
+ * Proporciona los detalles necesarios para autenticación y autorización.
+ *
+ * @author Ithera Team
  */
 public class UserDetailsImp implements UserDetails {
 
     private final String email;
     private final String password;
+    private final boolean enabled;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImp(User user) {
         this.email = user.getCorreo();
-        this.password = user.getPassword();
-
-        this.authorities = Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName()));
+        this.password = user.getPasswordHash();
+        this.enabled = user.getEsActivo() != null && user.getEsActivo();
+        this.authorities = Collections.singleton(new SimpleGrantedAuthority(user.getRole().getNombre()));
     }
 
     @Override
@@ -58,6 +62,6 @@ public class UserDetailsImp implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }

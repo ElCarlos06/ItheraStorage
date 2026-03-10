@@ -61,9 +61,9 @@
 }
 
 .btn--secondary:hover:not(:disabled) {
-  background: var(--moon-piccolo-60);
-  border-color: var(--moon-piccolo-60);
-  color: #fff;
+  background: var(--moon-piccolo-10);
+  border-color: var(--moon-piccolo);
+  color: var(--moon-piccolo);
 }
 
 .btn--tertiary {
@@ -73,6 +73,20 @@
 
 .btn--tertiary:hover:not(:disabled) {
   background: var(--moon-beerus);
+}
+
+.btn--outline {
+  background: transparent;
+  color: #1e2939;
+  border: 1.337px solid #e2e2e2;
+  border-radius: 16px;
+  font-weight: 600;
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: var(--moon-piccolo-10);
+  border-color: var(--moon-beerus);
+  color: var(--moon-content-text);
 }
 
 .btn--ghost {

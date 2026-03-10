@@ -10,6 +10,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Servicio de carga de usuarios para Spring Security.
+ * Implementa UserDetailsService para integrar con JPA y la base de datos.
+ *
+ * @author Ithera Team
+ */
 @Service
 @AllArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {

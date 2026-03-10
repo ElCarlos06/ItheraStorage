@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controlador REST para operaciones de autenticación.
+ * Controlador REST para operaciones de autenticación en SIRMA.
+ * Maneja el login de usuarios y generación de tokens JWT.
+ *
+ * @author Ithera Team
  */
 @RestController
 @RequestMapping("/api/auth")

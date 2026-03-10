@@ -1,0 +1,174 @@
+.modal-content.form-modal {
+  width: 100%;
+  max-width: min(672px, calc(100vw - 48px));
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.form-modal__inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--moon-goku);
+}
+
+.form-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1.337px solid var(--moon-content-border);
+}
+
+.form-modal__header-text {
+  flex: 1;
+}
+
+.form-modal__title {
+  font-family: var(--moon-font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--moon-content-text);
+  margin: 0 0 4px 0;
+}
+
+.form-modal__subtitle {
+  font-family: var(--moon-font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--moon-content-text-secondary);
+  margin: 0;
+}
+
+.form-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--moon-content-text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+
+.form-modal__close:hover {
+  background: var(--moon-beerus);
+  color: var(--moon-content-text);
+}
+
+.form-modal__close svg {
+  color: currentColor;
+}
+
+.form-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 24px 32px 32px;
+  flex: 1;
+}
+
+.form-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-modal__field--flex {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-modal__label {
+  font-family: var(--moon-font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--moon-content-text-secondary);
+}
+
+.form-modal .input-wrap {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.form-modal input,
+.form-modal select,
+.form-modal textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.form-modal__input {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 12px 16px !important;
+  font-size: 15px !important;
+  border-radius: 12px !important;
+  border: 1.337px solid var(--moon-content-border) !important;
+}
+
+.form-modal__input::placeholder {
+  color: rgba(30, 41, 57, 0.5);
+}
+
+.form-modal__row {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+}
+
+.form-modal__row > * {
+  min-width: 0;
+}
+
+.form-modal__textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 12px 16px;
+  font-family: var(--moon-font-sans);
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--moon-content-text);
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-content-border);
+  border-radius: 12px;
+  resize: vertical;
+}
+
+.form-modal__textarea::placeholder {
+  color: rgba(30, 41, 57, 0.5);
+}
+
+.form-modal__textarea:focus {
+  outline: none;
+  border-color: var(--moon-piccolo);
+  box-shadow: 0 0 0 3px var(--moon-piccolo-10);
+}
+
+.form-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin: 0 -32px -32px -32px;
+  padding: 24px 32px 32px;
+  border-top: 1.337px solid var(--moon-content-border);
+}
+
+.form-modal__footer .btn {
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+  border-radius: 16px;
+}

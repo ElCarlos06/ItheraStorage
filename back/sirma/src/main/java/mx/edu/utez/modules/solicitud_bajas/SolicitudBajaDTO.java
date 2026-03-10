@@ -1,0 +1,27 @@
+package mx.edu.utez.modules.solicitud_bajas;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class SolicitudBajaDTO {
+
+    private Long id;
+
+    @NotNull
+    private Long idActivo;
+
+    @NotNull
+    private Long idMantenimiento;
+
+    private Long idUsuarioAdmin;
+    private String estado;
+    private String justificacion;
+    private String observacionesAdmin;
+
+}
+

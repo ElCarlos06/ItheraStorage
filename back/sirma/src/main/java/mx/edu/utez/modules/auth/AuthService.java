@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 /**
  * Servicio de autenticación que maneja el proceso de login y generación de tokens JWT.
+ * Utiliza Spring Security para validar credenciales contra la base de datos.
+ *
+ * @author Ithera Team
  */
 @Service
 @AllArgsConstructor

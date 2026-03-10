@@ -1,14 +1,52 @@
 package mx.edu.utez.modules.users;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controlador REST para gestión de usuarios en SIRMA.
+ * Proporciona endpoints para operaciones CRUD de usuarios.
+ *
+ * @author Ithera Team
+ */
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse> findAll() {
+        ApiResponse response = userService.findAll();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> findById(@PathVariable Long id) {
+        ApiResponse response = userService.findById(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse> save(@Valid @RequestBody UserDTO dto) {
+        ApiResponse response = userService.save(dto);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse> update(@PathVariable Long id, @Valid @RequestBody UserDTO dto) {
+        ApiResponse response = userService.update(id, dto);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ApiResponse> toggleStatus(@PathVariable Long id) {
+        ApiResponse response = userService.toggleStatus(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
 
 }

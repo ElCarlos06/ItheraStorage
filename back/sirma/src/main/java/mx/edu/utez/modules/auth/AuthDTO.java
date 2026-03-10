@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * DTO de entrada para realizar login.
+ * DTO de entrada para realizar login en SIRMA.
+ * Contiene las credenciales necesarias para autenticación.
+ *
+ * @author Ithera Team
  */
 @Getter
 @Setter

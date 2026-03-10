@@ -33,6 +33,11 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
+  min-height: 88px;
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-content-border);
+  border-radius: var(--moon-radius-s-lg);
+  padding: 20px 24px;
 }
 
 .activos-view__buscador {

@@ -4,6 +4,7 @@ import "./Button.css";
 const VARIANTS = {
   primary: "btn--primary",
   secondary: "btn--secondary",
+  outline: "btn--outline",
   tertiary: "btn--tertiary",
   ghost: "btn--ghost",
 };
