@@ -7,6 +7,7 @@ const Activos = lazy(() => import("../modules/admin/pages/Activos/Activos"));
 const Users = lazy(() => import("../modules/admin/pages/Users/Users"));
 const Requests = lazy(() => import("../modules/admin/pages/Requests/Requests"));
 const Catalogs = lazy(() => import("../modules/admin/pages/Catalogs/Catalogs"));
+const Settings = lazy(() => import("../modules/admin/pages/Settings/Settings"));
 
 function PageLoader() {
   return (
@@ -27,6 +28,7 @@ export default function AdminRouter() {
           <Route path="/usuarios" element={<Users />} />
           <Route path="/solicitudes" element={<Requests />} />
           <Route path="/catalogos" element={<Catalogs />} />
+          <Route path="/ajustes" element={<Settings />} />
         </Route>
       </Routes>
     </Suspense>

@@ -63,8 +63,10 @@ export default function Activos({
     return labels[s] ?? s;
   };
 
+  const showEmptyState = filtered.length === 0;
+
   return (
-    <>
+    <div className={`activos-page ${showEmptyState ? "activos-page--empty" : ""}`}>
       <PageHeader
         overline="GESTIÓN DE INVENTARIO"
         title="Inventario de Activos"
@@ -109,7 +111,7 @@ export default function Activos({
           <div className="activos-view__loading">Cargando activos…</div>
         ) : (
           <div className="activos-view__list">
-            {filtered.length === 0 ? (
+            {showEmptyState ? (
               <ActivosEmptyState hasSearch={!!search.trim()} />
             ) : (
               filtered.map((item) => (
@@ -182,6 +184,6 @@ export default function Activos({
         onClose={() => setModalNuevoOpen(false)}
         onGuardar={(data) => { onNuevo?.(data); setModalNuevoOpen(false); }}
       />
-    </>
+    </div>
   );
 }

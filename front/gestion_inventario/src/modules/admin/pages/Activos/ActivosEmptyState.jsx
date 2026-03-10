@@ -7,7 +7,7 @@ export default function ActivosEmptyState({ message = "No hay activos para mostr
     <div className="activos-empty" role="status" aria-live="polite">
       <p className="activos-empty__text">{texto}</p>
       <div className="activos-empty__illustration">
-        <img src={fantasmitaSvg} alt="" width={160} height={160} aria-hidden />
+        <img src={fantasmitaSvg} alt="" width={190} height={190} aria-hidden />
       </div>
     </div>
   );

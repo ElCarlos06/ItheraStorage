@@ -92,8 +92,19 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--moon-gohan);
+  background: var(--moon-goku);
   border-radius: var(--moon-radius-s-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-sidebar__user:hover {
+  background: var(--moon-piccolo-10);
+}
+
+.admin-sidebar__user:hover .admin-sidebar__user-name {
+  color: var(--moon-piccolo-60);
 }
 
 .admin-sidebar__avatar {

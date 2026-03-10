@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import "./Sidebar.css";
 import {
   GenericHome,
@@ -46,13 +46,13 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="admin-sidebar__footer">
-        <div className="admin-sidebar__user">
+        <Link to="/ajustes" className="admin-sidebar__user" title="Ir a Ajustes">
           <div className="admin-sidebar__avatar">A</div>
           <div className="admin-sidebar__user-info">
             <span className="admin-sidebar__user-name">Administrador</span>
             <span className="admin-sidebar__user-role">Admin</span>
           </div>
-        </div>
+        </Link>
         <button type="button" className="admin-sidebar__logout">
           <Icon icon={SoftwareLogOut} size={30} />
           <span>Cerrar Sesión</span>
