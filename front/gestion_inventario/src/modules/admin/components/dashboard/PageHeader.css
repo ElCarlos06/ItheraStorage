@@ -1,0 +1,28 @@
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header__overline {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--moon-piccolo-60);
+  margin: 0 0 12px 0;
+}
+
+.page-header__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--moon-content-text);
+  margin: 0 0 8px 0;
+}
+
+.page-header__subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--moon-content-text-secondary);
+  margin: 0;
+}

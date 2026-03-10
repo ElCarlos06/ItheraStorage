@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import "./public.css";
-import Button from "./components/Button";
-import InputField from "./components/InputField";
-import PasswordInput from "./components/PasswordInput";
-import LogoHeader from "./components/LogoHeader";
-import ProgressBar from "./components/ProgressBar";
+import Button from "../../../components/Button/Button";
+import InputField from "../components/InputField";
+import PasswordInput from "../components/PasswordInput";
+import LogoHeader from "../components/LogoHeader";
+import ProgressBar from "../components/ProgressBar";
+import "../styles/public.css";
 
 export default function Login() {
   return (
@@ -40,13 +40,13 @@ export default function Login() {
                     <InputField
                       label="Email"
                       type="email"
-                      placeholder="Ingresa tu email"
-                      labelClassName="form-label text-muted small fw-bolder"
+                      placeholder="Ej: usuario@ejemplo.com"
+                      fullWidth
                     />
                     <PasswordInput
                       label="Contraseña"
                       placeholder="Ingresa la contraseña"
-                      labelClassName="form-label text-muted small fw-bold"
+                      fullWidth
                     />
                     <div className="text-end mb-3">
                       <Link
@@ -56,7 +56,7 @@ export default function Login() {
                         ¿Olvidaste tu contraseña?
                       </Link>
                     </div>
-                    <Button text="Iniciar sesión" />
+                    <Button text="Iniciar sesión" fullWidth />
                   </div>
                 </form>
               </div>

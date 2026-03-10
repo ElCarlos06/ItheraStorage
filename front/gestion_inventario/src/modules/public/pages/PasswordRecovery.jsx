@@ -1,11 +1,9 @@
 import { useState } from "react";
-
-import LogoHeader from "./components/LogoHeader";
-import ProgressBar from "./components/ProgressBar";
-import EmailForm from "./components/ui/EmailForm";
-import NewPasswordForm from "./components/ui/NewPasswordForm";
-
-import "./public.css";
+import LogoHeader from "../components/LogoHeader";
+import ProgressBar from "../components/ProgressBar";
+import EmailForm from "../components/EmailForm";
+import NewPasswordForm from "../components/NewPasswordForm";
+import "../styles/public.css";
 
 export default function PasswordRecovery() {
   const [validate, setValidate] = useState(false);

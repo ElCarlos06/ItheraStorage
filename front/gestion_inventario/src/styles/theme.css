@@ -1,0 +1,50 @@
+
+:root {
+  /* Backgrounds */
+  --moon-content-bg: #f5f6f8;
+  --moon-goku: #ffffff;
+  --moon-gohan: #efefef;
+
+  /* Borders */
+  --moon-content-border: #d6d6d6;
+  --moon-beerus: #d6d6d6;
+
+  /* Text */
+  --moon-content-text: #232222;
+  --moon-content-text-secondary: #898989;
+  --moon-bulma: #232222;
+  --moon-trunks: #898989;
+
+  /* Primary / accent */
+  --moon-content-focus: #4f46e5;
+  --moon-piccolo: #4f46e5;
+  --moon-piccolo-10: rgba(79, 70, 229, 0.1);
+  --moon-piccolo-60: #6366f1;
+  --moon-btn-primary: rgba(52, 72, 240, 0.6);
+
+  /* Status */
+  --moon-dodoria: #d3304a;
+  --moon-dodoria-10: rgba(211, 48, 74, 0.1);
+  --moon-chichi: #ff4e64;
+  --moon-chichi-10: rgba(255, 78, 100, 0.1);
+  --moon-chichi-90: rgba(255, 78, 100, 0.9);
+  --moon-teal: #0d9488;
+  --moon-teal-10: rgba(13, 148, 136, 0.1);
+  --moon-teal-90: rgba(13, 148, 136, 0.9);
+  --moon-krillin: #ffb319;
+  --moon-krillin-70: rgba(255, 179, 25, 0.7);
+  --moon-roshi-70: rgba(46, 125, 50, 0.7);
+  --moon-purple-10: rgba(92, 51, 207, 0.1);
+
+  /* Radius */
+  --moon-radius-s-sm: 8px;
+  --moon-radius-s-md: 12px;
+  --moon-radius-s-lg: 16px;
+
+  /* Shadows */
+  --moon-shadow-sm: 0 6px 6px -6px rgb(0 0 0 / 0.16), 0 0 1px rgb(0 0 0 / 0.4);
+  --moon-shadow-md: 0 12px 12px -6px rgb(0 0 0 / 0.16), 0 0 1px rgb(0 0 0 / 0.4);
+
+  /* Typography */
+  --moon-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}

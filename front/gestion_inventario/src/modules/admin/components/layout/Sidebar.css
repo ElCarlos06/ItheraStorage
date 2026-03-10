@@ -1,0 +1,162 @@
+.admin-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 240px;
+  height: 100vh;
+  background: var(--moon-goku);
+  border-right: 1.337px solid var(--moon-beerus);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.admin-sidebar__header {
+  padding: 27px 24px;
+  border-bottom: 1.466px solid var(--moon-beerus);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-sidebar__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.admin-sidebar__logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.admin-sidebar__logo-text {
+  font-family: var(--moon-font-sans);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 24px;
+  color: var(--moon-piccolo-60);
+}
+
+.admin-sidebar__nav {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 16px;
+  border-radius: var(--moon-radius-s-md);
+  color: var(--moon-trunks);
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-sidebar__item:hover {
+  background: var(--moon-gohan);
+  color: var(--moon-bulma);
+}
+
+.admin-sidebar__item--active {
+  background: var(--moon-piccolo-10);
+  color: var(--moon-piccolo-60);
+}
+
+.admin-sidebar__item-icon {
+  flex-shrink: 0;
+}
+
+.admin-sidebar__footer {
+  padding: 17px 16px;
+  border-top: 1.337px solid var(--moon-beerus);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--moon-goku);
+  border-radius: var(--moon-radius-s-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-sidebar__user:hover {
+  background: var(--moon-piccolo-10);
+}
+
+.admin-sidebar__user:hover .admin-sidebar__user-name {
+  color: var(--moon-piccolo-60);
+}
+
+.admin-sidebar__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--moon-piccolo-60);
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--moon-shadow-sm);
+}
+
+.admin-sidebar__user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-sidebar__user-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--moon-bulma);
+}
+
+.admin-sidebar__user-role {
+  font-size: 14px;
+  color: var(--moon-trunks);
+  margin-top: 2px;
+}
+
+.admin-sidebar__logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
+  color: var(--moon-trunks);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--moon-radius-s-md);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.admin-sidebar__logout:hover {
+  background: var(--moon-dodoria-10);
+  color: var(--moon-dodoria);
+}

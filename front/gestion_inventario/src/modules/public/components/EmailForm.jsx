@@ -1,5 +1,5 @@
-import InputField from "../InputField";
-import Button from "../Button";
+import InputField from "./InputField";
+import Button from "../../../components/Button/Button";
 import { Link } from "react-router-dom";
 
 export default function EmailForm({ handleValidate }) {
@@ -12,7 +12,7 @@ export default function EmailForm({ handleValidate }) {
           placeholder="Ingresa tu email"
           labelClassName="form-label text-muted small fw-bolder"
         />
-        <Button text="Recuperar contraseña" onClick={handleValidate} />
+        <Button text="Recuperar contraseña" onClick={handleValidate} fullWidth />
       </div>
       <div className="text-start">
         <Link

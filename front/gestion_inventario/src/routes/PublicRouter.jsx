@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Login from "../modules/public/Login";
-import PasswordRecovery from "../modules/public/PasswordRecovery";
+import Login from "../modules/public/pages/Login";
+import PasswordRecovery from "../modules/public/pages/PasswordRecovery";
 
 /**
  * Rutas publicas de la aplicación en las que se definen las rutas que no requieren autenticación
