@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
@@ -48,10 +48,30 @@ export default function Users({
 }) {
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
+  const [tooltipUser, setTooltipUser] = useState(null);
+  const tooltipRef = useRef(null);
   const [users, setUsers] = useState(Array.isArray(usersProp) ? usersProp : []);
   const [loading, setLoading] = useState(loadingProp ?? false);
   const [error, setError] = useState(errorProp ?? null);
   const stats = Array.isArray(statsProp) ? statsProp : [];
+
+  useEffect(() => {
+    if (!tooltipUser) return;
+    const handleClickOutside = (e) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target)) {
+        setTooltipUser(null);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setTooltipUser(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [tooltipUser]);
 
   useEffect(() => {
     if (usersProp !== undefined) return;
@@ -166,11 +186,11 @@ export default function Users({
                           </div>
                           <div className="users-view__data-col">
                             <p className="users-view__label">Curp</p>
-                            <p className="users-view__value">{user.curp ?? "—"}</p>
+                            <p className="users-view__value" title={user.curp ?? undefined}>{user.curp ?? "—"}</p>
                           </div>
                           <div className="users-view__data-col">
                             <p className="users-view__label">Correo</p>
-                            <p className="users-view__value">{user.correo ?? "—"}</p>
+                            <p className="users-view__value" title={user.correo ?? undefined}>{user.correo ?? "—"}</p>
                           </div>
                           <div className="users-view__data-col">
                             <p className="users-view__label">Área</p>
