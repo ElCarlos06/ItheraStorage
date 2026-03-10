@@ -32,16 +32,16 @@ export default function Sidebar() {
         </div>
       </div>
       <nav className="admin-sidebar__nav">
-        {navItems.map(({ to, label, icon: NavIcon }) => (
+        {navItems.map((item) => (
           <NavLink
-            key={to}
-            to={to}
+            key={item.to}
+            to={item.to}
             className={({ isActive }) =>
               `admin-sidebar__item ${isActive ? "admin-sidebar__item--active" : ""}`
             }
           >
-            <Icon icon={NavIcon} size={30} className="admin-sidebar__item-icon" />
-            <span>{label}</span>
+            <Icon icon={item.icon} size={30} className="admin-sidebar__item-icon" />
+            <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>

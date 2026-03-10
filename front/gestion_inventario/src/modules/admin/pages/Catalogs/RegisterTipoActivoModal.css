@@ -1,0 +1,31 @@
+.registrar-tipo-activo-modal__tipo-bien {
+  display: flex;
+  gap: 12px;
+}
+
+.registrar-tipo-activo-modal__tipo-btn {
+  flex: 1;
+  height: 47px;
+  padding: 0 16px;
+  font-family: var(--moon-font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--moon-content-text-secondary);
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-content-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.registrar-tipo-activo-modal__tipo-btn:hover {
+  background: var(--moon-beerus);
+  color: var(--moon-content-text);
+}
+
+.registrar-tipo-activo-modal__tipo-btn--active {
+  background: var(--moon-gohan);
+  color: var(--moon-content-text);
+  border-color: var(--moon-content-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
