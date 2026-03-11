@@ -20,8 +20,17 @@ public class ImagenReporte extends BaseEntity {
     @JoinColumn(name = "id_reporte", nullable = false)
     private Reporte reporte;
 
-    @Column(name = "ruta_archivo", nullable = false, length = 255)
-    private String rutaArchivo;
+    /** URL pública de la imagen en Cloudinary. */
+    @Column(name = "url_cloudinary", nullable = false, length = 500)
+    private String urlCloudinary;
+
+    /** Public ID asignado por Cloudinary (necesario para eliminar/transformar). */
+    @Column(name = "public_id_cloudinary", nullable = false, length = 255)
+    private String publicIdCloudinary;
+
+    /** Nombre original del archivo subido por el usuario. */
+    @Column(name = "nombre_archivo", length = 255)
+    private String nombreArchivo;
 
     @Column(name = "fecha_subida", insertable = false, updatable = false)
     private LocalDateTime fechaSubida;

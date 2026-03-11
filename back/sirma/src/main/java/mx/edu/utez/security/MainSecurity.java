@@ -43,7 +43,7 @@ public class MainSecurity {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/error", "/email/**", "/preview/**").permitAll()
-                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**").permitAll()
+                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/qr/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 );
@@ -62,7 +62,7 @@ public class MainSecurity {
 
         config.setAllowedOrigins(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowedMethods(List.of("GET",  "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET",  "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowCredentials(false); // si está en 1 allowedOrigins no puede ser asterisco, ya que debe de especificar desde que ip's se puede entrar
 
         // Configura la fuente de configuración de CORS para aplicar las políticas a todas las rutas

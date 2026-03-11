@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/mantenimientos")
@@ -46,6 +47,27 @@ public class MantenimientoController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> update(@PathVariable Long id, @Valid @RequestBody MantenimientoDTO dto) {
         ApiResponse response = mantenimientoService.update(id, dto);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    // ────────── IMÁGENES ──────────
+
+    @PostMapping("/{id}/imagenes")
+    public ResponseEntity<ApiResponse> subirImagen(@PathVariable Long id,
+                                                   @RequestParam("file") MultipartFile file) {
+        ApiResponse response = mantenimientoService.subirImagen(id, file);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/{id}/imagenes")
+    public ResponseEntity<ApiResponse> listarImagenes(@PathVariable Long id) {
+        ApiResponse response = mantenimientoService.listarImagenes(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @DeleteMapping("/imagenes/{imagenId}")
+    public ResponseEntity<ApiResponse> eliminarImagen(@PathVariable Long imagenId) {
+        ApiResponse response = mantenimientoService.eliminarImagen(imagenId);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
