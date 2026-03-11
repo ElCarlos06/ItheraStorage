@@ -76,9 +76,9 @@ export default function NewPasswordForm({ correo }) {
       <form onSubmit={handleSubmit}>
         <div className="container me-5 p-4">
           {errores._form && (
-            <div className="alert alert-danger py-2 mb-3" role="alert">
+            <p className="form-message form-message--error mb-3" role="alert">
               {errores._form}
-            </div>
+            </p>
           )}
 
           <PasswordInput

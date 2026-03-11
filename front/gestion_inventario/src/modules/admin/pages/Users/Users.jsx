@@ -3,6 +3,7 @@ import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
 import UsersEmptyState from "./UsersEmptyState";
+import LoadingState from "../../../../components/LoadingState/LoadingState";
 import Button from "../../../../components/Button/Button";
 import {
   GenericUser,
@@ -19,6 +20,10 @@ import { api } from "../../../../api/client";
 import "./Users.css";
 import NewUserModal from "./NewUserModal";
 import UserInfoModal from "./UserInfoModal";
+import { toast } from "../../../../utils/toast.jsx";
+import { getCurrentUserCorreo, logout } from "../../../../utils/auth";
+import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
+import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 
 const STAT_ICONS = [GenericUser, NotificationsBell, GenericSettings];
 
@@ -55,10 +60,13 @@ export default function Users({
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
   const [modalEditUser, setModalEditUser] = useState(null);
   const [modalUser, setModalUser] = useState(null);
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
   const [users, setUsers] = useState(Array.isArray(usersProp) ? usersProp : []);
   const [loading, setLoading] = useState(loadingProp ?? false);
   const [error, setError] = useState(errorProp ?? null);
   const stats = Array.isArray(statsProp) ? statsProp : [];
+
+  const currentUserCorreo = getCurrentUserCorreo();
 
   useEffect(() => {
     if (usersProp !== undefined) return;
@@ -71,6 +79,13 @@ export default function Users({
         setUsers([]);
       })
       .finally(() => setLoading(false));
+    const interval = setInterval(() => {
+      api
+        .getUsers()
+        .then((res) => setUsers((res.data ?? []).map(mapUser).filter(Boolean)))
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
   }, [usersProp]);
 
   const refreshUsers = () => {
@@ -83,6 +98,11 @@ export default function Users({
 
   const filtered = useMemo(() => {
     let list = Array.isArray(users) ? users : [];
+    if (currentUserCorreo) {
+      list = list.filter(
+        (u) => (u.correo ?? "").toLowerCase() !== currentUserCorreo.toLowerCase()
+      );
+    }
     const q = search.trim().toLowerCase();
 
     if (q) {
@@ -94,7 +114,7 @@ export default function Users({
     }
 
     return list;
-  }, [users, search]);
+  }, [users, search, currentUserCorreo]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -105,7 +125,9 @@ export default function Users({
   const showEmptyState = filtered.length === 0;
 
   return (
-    <div className={`users-page ${showEmptyState ? "users-page--empty" : ""}`}>
+    <div
+      className={`users-page ${showEmptyState ? "users-page--empty" : ""} ${loading ? "users-page--loading" : ""}`}
+    >
       <PageHeader
         overline="PANEL DE CONTROL"
         title="Gestión de Usuarios"
@@ -143,14 +165,15 @@ export default function Users({
         </div>
 
         {error && (
-          <div className="users-view__error" role="alert">
-            {error}
-          </div>
+          <ErrorBanner
+            message={error}
+            onDismiss={() => setError(null)}
+          />
         )}
 
         {loading ? (
-          <div className="users-view__loading">
-            Cargando usuarios…
+          <div className="users-view__list users-view__list--loading">
+            <LoadingState message="Cargando usuarios…" />
           </div>
         ) : (
           <div className="users-view__list">
@@ -201,7 +224,7 @@ export default function Users({
                           type="button"
                           className="users-view__action-btn users-view__action-btn--delete"
                           title="Eliminar"
-                          onClick={() => onEliminar?.(user)}
+                          onClick={() => setConfirmDeleteUser(user)}
                         >
                           <Icon icon={GenericDelete} size={30} />
                         </button>
@@ -241,6 +264,7 @@ export default function Users({
         onGuardar={() => {
           refreshUsers();
           onNuevo?.();
+          toast.success("Usuario guardado correctamente");
         }}
       />
       <NewUserModal
@@ -251,7 +275,35 @@ export default function Users({
           refreshUsers();
           onEditar?.(modalEditUser);
           setModalEditUser(null);
+          toast.success("Usuario actualizado correctamente");
         }}
+      />
+
+      <ConfirmDeleteModal
+        open={!!confirmDeleteUser}
+        onClose={() => setConfirmDeleteUser(null)}
+        onConfirm={async () => {
+          if (!confirmDeleteUser?.id) return;
+          try {
+            await api.toggleStatusUser(confirmDeleteUser.id);
+            setError(null);
+            setConfirmDeleteUser(null);
+            onEliminar?.(confirmDeleteUser);
+            const deletedCorreo = (confirmDeleteUser.correo ?? "").toLowerCase();
+            if (currentUserCorreo && deletedCorreo === currentUserCorreo.toLowerCase()) {
+              toast.success("Tu cuenta fue eliminada");
+              logout();
+            } else {
+              refreshUsers();
+              toast.success("Usuario eliminado correctamente");
+            }
+          } catch (err) {
+            setError(err.message);
+            toast.error(err.message);
+          }
+        }}
+        title="¿Confirmar eliminación?"
+        message={`Se eliminará a ${confirmDeleteUser?.nombre ?? "este usuario"}. Esta acción no se puede deshacer.`}
       />
 
       <UserInfoModal

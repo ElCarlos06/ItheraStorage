@@ -1,0 +1,47 @@
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 32px 48px;
+  width: 100%;
+  background: var(--moon-goku);
+  border: 0.8px solid var(--moon-content-border);
+  border-radius: var(--moon-radius-s-lg);
+  text-align: center;
+}
+
+.loading-state__text {
+  font-family: var(--moon-font-sans);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 26px;
+  color: var(--moon-content-text-secondary);
+  text-align: center;
+  margin: 0;
+  max-width: 400px;
+  order: 1;
+}
+
+.loading-state__illustration {
+  flex-shrink: 0;
+  width: 190px;
+  height: 190px;
+  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-state__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

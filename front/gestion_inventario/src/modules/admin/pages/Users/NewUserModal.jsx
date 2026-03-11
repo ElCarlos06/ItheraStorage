@@ -14,6 +14,7 @@ import {
   validarRol,
   validarArea,
 } from "../../../../utils/validaciones";
+import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./NewUserModal.css";
 
 export default function NewUserModal({ open, onClose, onGuardar, initialData }) {
@@ -144,9 +145,11 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
 
         <form onSubmit={handleSubmit} className="nuevo-usuario-modal__form">
           {errores._form && (
-            <div className="nuevo-usuario-modal__error" role="alert">
-              {errores._form}
-            </div>
+            <ErrorBanner
+              message={errores._form}
+              onDismiss={() => setErrores((p) => ({ ...p, _form: null }))}
+              className="nuevo-usuario-modal__error-banner"
+            />
           )}
 
           {/* Nombre */}

@@ -8,7 +8,7 @@ import mx.edu.utez.kernel.BaseEntity;
 import mx.edu.utez.modules.campus.Campus;
 
 @Entity
-@Table(name = "EDIFICIO", uniqueConstraints = @UniqueConstraint(columnNames = {"id_campus", "nombre"}))
+@Table(name = "EDIFICIO")
 @AttributeOverride(name = "id", column = @Column(name = "id_edificio"))
 @Getter
 @Setter

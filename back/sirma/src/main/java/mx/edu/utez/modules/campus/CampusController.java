@@ -49,4 +49,10 @@ public class CampusController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteById(@PathVariable Long id) {
+        ApiResponse response = campusService.deleteById(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
 }

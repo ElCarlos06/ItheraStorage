@@ -11,5 +11,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CampusRepository extends JpaRepository<Campus, Long> {
-    boolean existsByNombre(String nombre);
+    boolean existsByNombreAndEsActivoTrue(String nombre);
+    boolean existsByNombreAndEsActivoTrueAndIdNot(String nombre, Long id);
 }

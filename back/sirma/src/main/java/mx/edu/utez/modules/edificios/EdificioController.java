@@ -49,5 +49,11 @@ public class EdificioController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteById(@PathVariable Long id) {
+        ApiResponse response = edificioService.deleteById(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
 }
 

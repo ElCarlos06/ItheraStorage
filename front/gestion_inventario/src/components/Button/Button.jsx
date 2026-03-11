@@ -21,6 +21,7 @@ export default function Button({
   iconSize = 30,
   disabled,
   fullWidth,
+  className = "",
 }) {
   const content = children ?? text;
   const variantClass = VARIANTS[variant] ?? VARIANTS.primary;
@@ -30,7 +31,7 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`btn btn--${size} ${variantClass} ${fullWidth ? "btn--full" : ""}`}
+      className={`btn btn--${size} ${variantClass} ${fullWidth ? "btn--full" : ""} ${className}`.trim()}
     >
       {iconLeft && (
         <span className="btn__icon btn__icon--left">

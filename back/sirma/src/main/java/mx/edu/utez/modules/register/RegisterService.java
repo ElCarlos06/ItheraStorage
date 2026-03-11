@@ -72,7 +72,17 @@ public class RegisterService {
      */
     @Transactional
     public ApiResponse register(RegisterDTO dto) {
+        try {
+            return doRegister(dto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiResponse(
+                    "Error al registrar: " + (e.getMessage() != null ? e.getMessage() : "Intenta más tarde."),
+                    true, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
+    private ApiResponse doRegister(RegisterDTO dto) {
         // ── 1. Validar estándares de escritura del nombre ──────────────────
         String nombre = dto.getNombreCompleto().trim();
         if (!NOMBRE_PATTERN.matcher(nombre).matches()) {
@@ -165,7 +175,7 @@ public class RegisterService {
     }
 
     // ======================================================================
-    // MÉTODOS PRIVADOS
+    // MÉTODOS PRIVADOS (helpers de doRegister)
     // ======================================================================
 
     /**

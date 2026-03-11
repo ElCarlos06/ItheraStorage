@@ -7,14 +7,18 @@ const API_BASE = import.meta.env.VITE_API_URL || "";
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const token = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("token") : null;
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   let res;
   try {
     res = await fetch(url, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
     });
   } catch (err) {
     throw new Error(
@@ -53,6 +57,18 @@ export const api = {
     request("/api/register", {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+
+  /** DELETE /api/users/:id - Eliminar usuario (usa toggle status en backend) */
+  deleteUser: (id) =>
+    request(`/api/users/${id}`, {
+      method: "DELETE",
+    }),
+
+  /** PATCH /api/users/:id/status - Cambiar estado activo/inactivo (soft delete) */
+  toggleStatusUser: (id) =>
+    request(`/api/users/${id}/status`, {
+      method: "PATCH",
     }),
 
   /** PUT /api/users/:id - Actualizar usuario */
@@ -95,4 +111,20 @@ export const api = {
 
   /** GET /api/users - Listar usuarios (requiere auth) */
   getUsers: () => request("/api/users"),
+
+  /** Ubicaciones: Campus, Edificios, Espacios (Aulas) */
+  getCampus: () => request("/api/campus"),
+  getEdificios: () => request("/api/edificios"),
+  getEdificiosByCampus: (campusId) => request(`/api/edificios/campus/${campusId}`),
+  getEspacios: () => request("/api/espacios"),
+  getEspaciosByEdificio: (edificioId) => request(`/api/espacios/edificio/${edificioId}`),
+  createCampus: (body) => request("/api/campus", { method: "POST", body: JSON.stringify(body) }),
+  updateCampus: (id, body) => request(`/api/campus/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  toggleStatusCampus: (id) => request(`/api/campus/${id}/status`, { method: "PATCH" }),
+  createEdificio: (body) => request("/api/edificios", { method: "POST", body: JSON.stringify(body) }),
+  updateEdificio: (id, body) => request(`/api/edificios/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  toggleStatusEdificio: (id) => request(`/api/edificios/${id}/status`, { method: "PATCH" }),
+  createEspacio: (body) => request("/api/espacios", { method: "POST", body: JSON.stringify(body) }),
+  updateEspacio: (id, body) => request(`/api/espacios/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  toggleStatusEspacio: (id) => request(`/api/espacios/${id}/status`, { method: "PATCH" }),
 };

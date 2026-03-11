@@ -155,12 +155,13 @@
 }
 
 .activos-view__action-btn--delete {
-  background: rgba(78, 47, 235, 0.25);
+  background: var(--moon-dodoria-10);
+  color: var(--moon-dodoria);
   padding: 4px;
 }
 
 .activos-view__action-btn--delete:hover {
-  background: rgba(78, 47, 235, 0.5);
+  background: var(--moon-dodoria);
   color: #fff;
 }
 

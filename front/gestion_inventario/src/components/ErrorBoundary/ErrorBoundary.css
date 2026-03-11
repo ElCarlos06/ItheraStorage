@@ -1,0 +1,47 @@
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--moon-gohan);
+}
+
+.error-boundary__card {
+  max-width: 420px;
+  width: 100%;
+  padding: 40px 32px;
+  background: var(--moon-goku);
+  border-radius: var(--moon-radius-s-lg);
+  box-shadow: var(--moon-shadow-md);
+  text-align: center;
+}
+
+.error-boundary__icon {
+  margin-bottom: 24px;
+  color: var(--moon-dodoria);
+  opacity: 0.9;
+}
+
+.error-boundary__title {
+  margin: 0 0 12px 0;
+  font-family: var(--moon-font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--moon-content-text);
+}
+
+.error-boundary__message {
+  margin: 0 0 28px 0;
+  font-family: var(--moon-font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--moon-content-text-secondary);
+}
+
+.error-boundary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}

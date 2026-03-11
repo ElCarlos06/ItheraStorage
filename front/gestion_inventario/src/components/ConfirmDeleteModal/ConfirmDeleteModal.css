@@ -1,0 +1,109 @@
+.confirm-delete-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  animation: confirm-delete-overlay-in 0.2s ease-out;
+}
+
+.confirm-delete-modal__content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1001;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  max-width: 680px;
+  padding: 0;
+  background: var(--moon-goku);
+  border-radius: var(--moon-radius-s-lg);
+  box-shadow: var(--moon-shadow-md);
+  outline: none;
+  animation: confirm-delete-content-in 0.2s ease-out;
+}
+
+.confirm-delete-modal__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  padding: 52px 48px;
+}
+
+.confirm-delete-modal__icon {
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.confirm-delete-modal__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.confirm-delete-modal__title {
+  font-family: var(--moon-font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--moon-content-text);
+  margin: 0;
+}
+
+.confirm-delete-modal__message {
+  font-family: var(--moon-font-sans);
+  font-size: 15px;
+  color: var(--moon-content-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-delete-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.confirm-delete-modal__actions .btn {
+  min-height: 48px;
+  min-width: 120px;
+  font-size: 15px;
+}
+
+.confirm-delete-modal__btn-delete {
+  background: #eb6b7e !important;
+  border-color: #eb6b7e !important;
+}
+
+.confirm-delete-modal__btn-delete:hover {
+  background: #f08a99 !important;
+  border-color: #f08a99 !important;
+}
+
+@keyframes confirm-delete-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes confirm-delete-content-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}

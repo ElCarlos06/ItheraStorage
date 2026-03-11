@@ -14,16 +14,22 @@ export default function RegisterLocationModal({ open, onClose, onGuardar }) {
     aula: "",
     descripcion: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onGuardar?.(form);
-    setForm({ campus: "", edificio: "", aula: "", descripcion: "" });
-    onClose?.();
+    setLoading(true);
+    try {
+      await onGuardar?.(form);
+      setForm({ campus: "", edificio: "", aula: "", descripcion: "" });
+      onClose?.();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -41,6 +47,7 @@ export default function RegisterLocationModal({ open, onClose, onGuardar }) {
       submitLabel="Guardar Ubicación"
       submitIcon={FilesSave}
       submitIconSize={30}
+      loading={loading}
       onSubmit={handleSubmit}
     >
       <div className="form-modal__field">

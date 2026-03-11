@@ -1,5 +1,5 @@
-.user-info-modal .modal-content {
-  width: 640px;
+.modal-content.user-info-modal {
+  width: 700px;
   max-width: calc(100vw - 48px);
   border-radius: 16px;
   overflow: hidden;

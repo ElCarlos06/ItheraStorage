@@ -20,7 +20,7 @@ import mx.edu.utez.kernel.BaseEntity;
 @NoArgsConstructor
 public class Campus extends BaseEntity {
 
-    @Column(name = "nombre", nullable = false, length = 100, unique = true)
+    @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
     @Column(name = "descripcion", columnDefinition = "TEXT")

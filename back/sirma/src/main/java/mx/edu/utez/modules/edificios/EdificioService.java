@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.campus.Campus;
 import mx.edu.utez.modules.campus.CampusRepository;
+import mx.edu.utez.modules.espacios.EspacioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ public class EdificioService {
 
     private final EdificioRepository edificioRepository;
     private final CampusRepository campusRepository;
+    private final EspacioRepository espacioRepository;
 
     @Transactional(readOnly = true)
     public ApiResponse findAll() {
@@ -43,8 +45,8 @@ public class EdificioService {
         Optional<Campus> campus = campusRepository.findById(dto.getIdCampus());
         if (campus.isEmpty())
             return new ApiResponse("Campus no encontrado", true, HttpStatus.NOT_FOUND);
-        if (edificioRepository.existsByCampusIdAndNombre(dto.getIdCampus(), dto.getNombre()))
-            return new ApiResponse("Ya existe un edificio con ese nombre en ese campus", true, HttpStatus.CONFLICT);
+        if (edificioRepository.existsByCampusIdAndNombreAndEsActivoTrue(dto.getIdCampus(), dto.getNombre()))
+            return new ApiResponse("Ya existe un edificio activo con ese nombre en ese campus. Desactive el existente si desea reutilizarlo.", true, HttpStatus.CONFLICT);
         Edificio entity = new Edificio();
         entity.setCampus(campus.get());
         entity.setNombre(dto.getNombre());
@@ -61,6 +63,8 @@ public class EdificioService {
         Optional<Campus> campus = campusRepository.findById(dto.getIdCampus());
         if (campus.isEmpty())
             return new ApiResponse("Campus no encontrado", true, HttpStatus.NOT_FOUND);
+        if (edificioRepository.existsByCampusIdAndNombreAndEsActivoTrueAndIdNot(dto.getIdCampus(), dto.getNombre(), id))
+            return new ApiResponse("Ya existe otro edificio activo con ese nombre en ese campus. Desactive el existente si desea reutilizarlo.", true, HttpStatus.CONFLICT);
         Edificio entity = found.get();
         entity.setCampus(campus.get());
         entity.setNombre(dto.getNombre());
@@ -75,9 +79,26 @@ public class EdificioService {
         if (found.isEmpty())
             return new ApiResponse("Edificio no encontrado", true, HttpStatus.NOT_FOUND);
         Edificio entity = found.get();
-        entity.setEsActivo(!entity.getEsActivo());
+        boolean nuevoEstado = !entity.getEsActivo();
+        entity.setEsActivo(nuevoEstado);
         edificioRepository.save(entity);
+        if (!nuevoEstado) {
+            espacioRepository.findByEdificioId(id).forEach(esp -> {
+                esp.setEsActivo(false);
+                espacioRepository.save(esp);
+            });
+        }
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
+    }
+
+    @Transactional
+    public ApiResponse deleteById(Long id) {
+        Optional<Edificio> found = edificioRepository.findById(id);
+        if (found.isEmpty())
+            return new ApiResponse("Edificio no encontrado", true, HttpStatus.NOT_FOUND);
+        espacioRepository.findByEdificioId(id).forEach(espacioRepository::delete);
+        edificioRepository.deleteById(id);
+        return new ApiResponse("Edificio eliminado", null, HttpStatus.OK);
     }
 
 }

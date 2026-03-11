@@ -8,6 +8,7 @@ import java.util.List;
 @Repository
 public interface EdificioRepository extends JpaRepository<Edificio, Long> {
     List<Edificio> findByCampusId(Long campusId);
-    boolean existsByCampusIdAndNombre(Long campusId, String nombre);
+    boolean existsByCampusIdAndNombreAndEsActivoTrue(Long campusId, String nombre);
+    boolean existsByCampusIdAndNombreAndEsActivoTrueAndIdNot(Long campusId, String nombre, Long id);
 }
 

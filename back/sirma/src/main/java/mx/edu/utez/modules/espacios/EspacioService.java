@@ -43,8 +43,8 @@ public class EspacioService {
         Optional<Edificio> edificio = edificioRepository.findById(dto.getIdEdificio());
         if (edificio.isEmpty())
             return new ApiResponse("Edificio no encontrado", true, HttpStatus.NOT_FOUND);
-        if (espacioRepository.existsByEdificioIdAndNombreEspacio(dto.getIdEdificio(), dto.getNombreEspacio()))
-            return new ApiResponse("Ya existe un espacio con ese nombre en ese edificio", true, HttpStatus.CONFLICT);
+        if (espacioRepository.existsByEdificioIdAndNombreEspacioAndEsActivoTrue(dto.getIdEdificio(), dto.getNombreEspacio()))
+            return new ApiResponse("Ya existe un aula activa con ese nombre en ese edificio. Desactive la existente si desea reutilizarla.", true, HttpStatus.CONFLICT);
         Espacio entity = new Espacio();
         entity.setEdificio(edificio.get());
         entity.setNombreEspacio(dto.getNombreEspacio());
@@ -63,6 +63,8 @@ public class EspacioService {
         Optional<Edificio> edificio = edificioRepository.findById(dto.getIdEdificio());
         if (edificio.isEmpty())
             return new ApiResponse("Edificio no encontrado", true, HttpStatus.NOT_FOUND);
+        if (espacioRepository.existsByEdificioIdAndNombreEspacioAndEsActivoTrueAndIdNot(dto.getIdEdificio(), dto.getNombreEspacio(), id))
+            return new ApiResponse("Ya existe otra aula activa con ese nombre en ese edificio. Desactive la existente si desea reutilizarla.", true, HttpStatus.CONFLICT);
         Espacio entity = found.get();
         entity.setEdificio(edificio.get());
         entity.setNombreEspacio(dto.getNombreEspacio());
@@ -82,6 +84,15 @@ public class EspacioService {
         entity.setEsActivo(!entity.getEsActivo());
         espacioRepository.save(entity);
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
+    }
+
+    @Transactional
+    public ApiResponse deleteById(Long id) {
+        Optional<Espacio> found = espacioRepository.findById(id);
+        if (found.isEmpty())
+            return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
+        espacioRepository.deleteById(id);
+        return new ApiResponse("Espacio eliminado", null, HttpStatus.OK);
     }
 
 }

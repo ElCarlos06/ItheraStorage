@@ -6,6 +6,7 @@ import mx.edu.utez.modules.areas.Area;
 import mx.edu.utez.modules.areas.AreaRepository;
 import mx.edu.utez.modules.roles.Role;
 import mx.edu.utez.modules.roles.RoleRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -82,7 +83,10 @@ public class UserService {
         entity.setCorreo(dto.getCorreo());
         entity.setCurp(dto.getCurp());
         entity.setFechaNacimiento(LocalDate.parse(dto.getFechaNacimiento()));
-        entity.setNumeroEmpleado(dto.getNumeroEmpleado());
+        String numeroEmpleado = (dto.getNumeroEmpleado() != null && !dto.getNumeroEmpleado().isBlank())
+                ? dto.getNumeroEmpleado()
+                : generarNumeroEmpleado(dto.getCurp(), role.get());
+        entity.setNumeroEmpleado(numeroEmpleado);
         entity.setRole(role.get());
         entity.setArea(area.get());
         entity.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
@@ -109,7 +113,12 @@ public class UserService {
         entity.setCorreo(dto.getCorreo());
         entity.setCurp(dto.getCurp());
         entity.setFechaNacimiento(LocalDate.parse(dto.getFechaNacimiento()));
-        entity.setNumeroEmpleado(dto.getNumeroEmpleado());
+        String numeroEmpleado = (dto.getNumeroEmpleado() != null && !dto.getNumeroEmpleado().isBlank())
+                ? dto.getNumeroEmpleado()
+                : entity.getNumeroEmpleado();
+        if (numeroEmpleado == null || numeroEmpleado.isBlank())
+            numeroEmpleado = generarNumeroEmpleado(entity.getCurp(), role.get());
+        entity.setNumeroEmpleado(numeroEmpleado);
         entity.setRole(role.get());
         entity.setArea(area.get());
         if (dto.getPassword() != null && !dto.getPassword().isBlank())
@@ -129,6 +138,41 @@ public class UserService {
         entity.setEsActivo(!entity.getEsActivo());
         userRepository.save(entity);
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
+    }
+
+    @Transactional
+    public ApiResponse delete(Long id) {
+        Optional<User> found = userRepository.findById(id);
+        if (found.isEmpty())
+            return new ApiResponse("Usuario no encontrado", true, HttpStatus.NOT_FOUND);
+        try {
+            userRepository.delete(found.get());
+            return new ApiResponse("Usuario eliminado", null, HttpStatus.OK);
+        } catch (DataIntegrityViolationException e) {
+            return new ApiResponse(
+                    "No se puede eliminar: el usuario tiene registros asociados (mantenimientos, reportes, resguardos, etc.)",
+                    true, HttpStatus.CONFLICT);
+        }
+    }
+
+    private String generarNumeroEmpleado(String curp, Role role) {
+        String sufijoCurp = curp != null && curp.length() >= 18 ? curp.substring(16) : "00";
+        String prefijoRol = obtenerPrefijoRol(role.getNombre());
+        long consecutivo = userRepository.countByRoleId(role.getId()) + 1;
+        String numeroEmpleado;
+        do {
+            numeroEmpleado = sufijoCurp + prefijoRol + String.format("%04d", consecutivo);
+            consecutivo++;
+        } while (userRepository.existsByNumeroEmpleado(numeroEmpleado));
+        return numeroEmpleado;
+    }
+
+    private String obtenerPrefijoRol(String nombreRol) {
+        if (nombreRol == null) return "EMP";
+        String rolUpper = nombreRol.toUpperCase();
+        if (rolUpper.contains("ADMIN")) return "ADM";
+        if (rolUpper.contains("TECN") || rolUpper.contains("TÉC")) return "TEC";
+        return "EMP";
     }
 
 }

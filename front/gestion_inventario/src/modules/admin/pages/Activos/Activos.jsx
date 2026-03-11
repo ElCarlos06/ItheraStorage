@@ -20,6 +20,9 @@ import {
   FilesImport,
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
+import { toast } from "../../../../utils/toast.jsx";
+import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
+import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./Activos.css";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
@@ -40,6 +43,7 @@ export default function Activos({
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
   const [modalEditAsset, setModalEditAsset] = useState(null);
+  const [confirmDeleteAsset, setConfirmDeleteAsset] = useState(null);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
@@ -102,11 +106,7 @@ export default function Activos({
           </div>
         </div>
 
-        {error && (
-          <div className="activos-view__error" role="alert">
-            {error}
-          </div>
-        )}
+        {error && <ErrorBanner message={error} />}
 
         {loading ? (
           <div className="activos-view__loading">Cargando activos…</div>
@@ -159,7 +159,7 @@ export default function Activos({
                   </div>
                     </div>
                     <div className="activos-view__asset-actions" aria-label="Acciones del activo">
-                      <button type="button" className="activos-view__action-btn activos-view__action-btn--delete" title="Eliminar" aria-label="Eliminar" onClick={() => onEliminar?.(item)}>
+                      <button type="button" className="activos-view__action-btn activos-view__action-btn--delete" title="Eliminar" aria-label="Eliminar" onClick={() => setConfirmDeleteAsset(item)}>
                         <Icon icon={GenericDelete} size={30} />
                       </button>
                       <button type="button" className="activos-view__action-btn" title="Editar" aria-label="Editar" onClick={() => setModalEditAsset(item)}>
@@ -186,6 +186,7 @@ export default function Activos({
         onGuardar={(data) => {
           onNuevo?.(data);
           setModalNuevoOpen(false);
+          toast.success("Activo guardado correctamente");
         }}
       />
       <NewAssetModal
@@ -195,7 +196,19 @@ export default function Activos({
         onGuardar={(data) => {
           onEditar?.(modalEditAsset, data);
           setModalEditAsset(null);
+          toast.success("Activo actualizado correctamente");
         }}
+      />
+
+      <ConfirmDeleteModal
+        open={!!confirmDeleteAsset}
+        onClose={() => setConfirmDeleteAsset(null)}
+        onConfirm={() => {
+          onEliminar?.(confirmDeleteAsset);
+          toast.success("Activo eliminado correctamente");
+        }}
+        title="¿Confirmar eliminación?"
+        message={`Se eliminará el activo "${confirmDeleteAsset?.nombre ?? confirmDeleteAsset?.codigo ?? "este elemento"}". Esta acción no se puede deshacer.`}
       />
     </div>
   );

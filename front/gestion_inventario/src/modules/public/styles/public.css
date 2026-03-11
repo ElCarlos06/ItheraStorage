@@ -93,20 +93,38 @@ body {
   opacity: 0.9;
 }
 
-/* Mensajes de formulario (sin cajas de alerta) */
+/* Mensajes de formulario */
 .form-message {
   font-size: 0.875rem;
   margin: 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 500;
 }
 
 .form-message--error {
-  color: #dc3545;
+  color: #b91c3c;
+  background: rgba(211, 48, 74, 0.1);
+  border: 1px solid rgba(211, 48, 74, 0.2);
 }
 
 .form-message--success {
-  color: #198754;
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.1);
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .form-message--warning {
-  color: #856404;
+  color: #a16207;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+/* Error inline en campos de formulario */
+.form-text.text-danger,
+.form-field-error {
+  font-size: 0.8125rem;
+  color: #b91c3c;
+  margin-top: 4px;
+  display: block;
 }

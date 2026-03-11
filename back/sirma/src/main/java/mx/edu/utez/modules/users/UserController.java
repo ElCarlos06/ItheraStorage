@@ -49,6 +49,12 @@ public class UserController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
+        ApiResponse response = userService.delete(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     /**
      * Busca un usuario por su correo electrónico.
      * <p>

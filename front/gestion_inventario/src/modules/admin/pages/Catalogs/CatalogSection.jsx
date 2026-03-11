@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import Buscador from "../../../../components/Buscador/Buscador";
 import Button from "../../../../components/Button/Button";
 import Icon from "../../../../components/Icon/Icon";
-import { GenericPlus, TravelHotel, ControlsChevronRight } from "@heathmont/moon-icons";
+import { GenericPlus, TravelHotel, ControlsChevronRight, GenericDelete, GenericEdit } from "@heathmont/moon-icons";
 import CatalogEmptyState from "./CatalogEmptyState";
 import "./CatalogSection.css";
 
@@ -20,6 +20,7 @@ export default function CatalogSection({
   emptyActionLabel,
   onEmptyAction,
   onEdit,
+  onDelete,
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = onSearchChange ? (searchProp ?? "") : internalSearch;
@@ -73,17 +74,50 @@ export default function CatalogSection({
           ) : (
             filtered.map((item) => {
               const nombre = item.nombre ?? item.name ?? "—";
-              const cantidad = item.cantidad ?? item.count ?? item.edificios ?? item.aulas ?? 0;
-              const subtitle = `${cantidad} ${countLabel}`;
+              const edificiosCount = item.edificios ?? 0;
+              const aulasCount = item.aulas ?? 0;
+              const campus = item.campus ?? "—";
+              const edificio = item.edificio ?? "—";
+
+              let subtitle;
+              let col1Label, col1Value, col2Label, col2Value;
+              if (sectionKey === "campus") {
+                subtitle = item.descripcion ?? "—";
+                col1Label = "Edificios";
+                col1Value = edificiosCount;
+                col2Label = "Aulas";
+                col2Value = aulasCount;
+              } else if (sectionKey === "edificios") {
+                subtitle = campus;
+                col1Label = "Aulas";
+                col1Value = aulasCount;
+                col2Label = "Campus";
+                col2Value = campus;
+              } else if (sectionKey === "aulas") {
+                subtitle = edificio;
+                col1Label = "Edificio";
+                col1Value = edificio;
+                col2Label = "Campus";
+                col2Value = campus;
+              } else {
+                subtitle = `${item.cantidad ?? item.count ?? 0} ${countLabel}`;
+                col1Label = "Cantidad";
+                col1Value = item.cantidad ?? item.count ?? 0;
+                col2Label = null;
+                col2Value = null;
+              }
+
+              const hasActions = (onEdit || onDelete) && (sectionKey === "campus" || sectionKey === "edificios" || sectionKey === "aulas");
+
               return (
-<div key={item.id ?? nombre} className="catalog-section__card-wrap">
-                <div
-                  className="catalog-section__card"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onEdit?.(item)}
-                  onKeyDown={(e) => e.key === "Enter" && onEdit?.(item)}
-                >
+                <div key={item.id ?? nombre} className="catalog-section__card-wrap">
+                  <div
+                    className="catalog-section__card"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onEdit?.(item)}
+                    onKeyDown={(e) => e.key === "Enter" && onEdit?.(item)}
+                  >
                     <div className="catalog-section__card-icon">
                       <Icon icon={TravelHotel} size={32} />
                     </div>
@@ -91,13 +125,49 @@ export default function CatalogSection({
                       <p className="catalog-section__card-title">{nombre}</p>
                       <p className="catalog-section__card-subtitle">{subtitle}</p>
                     </div>
-                    <div className="catalog-section__card-cantidad">
-                      <p className="catalog-section__card-cantidad-label">Cantidad</p>
-                      <p className="catalog-section__card-cantidad-value">{cantidad}</p>
+                    <div className="catalog-section__card-columns">
+                      <div className="catalog-section__card-cantidad">
+                        <p className="catalog-section__card-cantidad-label">{col1Label}</p>
+                        <p className="catalog-section__card-cantidad-value">{col1Value}</p>
+                      </div>
+                      {col2Label != null && (
+                        <div className="catalog-section__card-cantidad">
+                          <p className="catalog-section__card-cantidad-label">{col2Label}</p>
+                          <p className="catalog-section__card-cantidad-value">{col2Value}</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="catalog-section__card-chevron" aria-hidden>
-                      <Icon icon={ControlsChevronRight} size={20} />
-                    </div>
+                    {hasActions ? (
+                      <div className="catalog-section__card-actions" onClick={(e) => e.stopPropagation()}>
+                        {onDelete && (
+                          <button
+                            type="button"
+                            className="catalog-section__action-btn catalog-section__action-btn--delete"
+                            title="Eliminar"
+                            aria-label="Eliminar"
+                            onClick={() => onDelete(item)}
+                          >
+                            <Icon icon={GenericDelete} size={30} />
+                          </button>
+                        )}
+                        {onEdit && (
+                          <button
+                            type="button"
+                            className="catalog-section__action-btn catalog-section__action-btn--edit"
+                            title="Editar"
+                            aria-label="Editar"
+                            onClick={() => onEdit(item)}
+                          >
+                            <Icon icon={GenericEdit} size={30} />
+                          </button>
+                        )}
+                      </div>
+                    ) : null}
+                    {!hasActions && (
+                      <div className="catalog-section__card-chevron" aria-hidden>
+                        <Icon icon={ControlsChevronRight} size={20} />
+                      </div>
+                    )}
                   </div>
                 </div>
               );

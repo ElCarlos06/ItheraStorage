@@ -1,5 +1,6 @@
 
-.users-page--empty {
+.users-page--empty,
+.users-page--loading {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 64px);
@@ -7,8 +8,16 @@
   overflow: hidden;
 }
 
-.users-page--empty .page-header {
+.users-page--empty .page-header,
+.users-page--loading .page-header {
   flex-shrink: 0;
+}
+
+.users-page--loading .users-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .users-view {
@@ -63,11 +72,16 @@
   font-size: 14px;
 }
 
-.users-view__loading {
-  padding: 32px;
-  text-align: center;
-  color: var(--moon-content-text-secondary);
-  font-size: 16px;
+.users-view__list--loading {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.users-view__list--loading .loading-state {
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 .users-view__list {
@@ -208,24 +222,26 @@
   padding: 8px;
   border: none;
   border-radius: 8px;
-  background: rgba(194, 194, 194, 0.45);
-  color: #1e2939;
+  background: var(--moon-purple-10);
+  color: #5c33cf;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .users-view__action-btn:hover {
-  background: rgba(194, 194, 194, 0.65);
+  background: rgba(92, 51, 207, 0.25);
+  color: #4c1d95;
 }
 
 .users-view__action-btn--delete {
-  background: rgba(78, 47, 235, 0.25);
-  padding: 4px;
+  background: var(--moon-dodoria-10);
+  color: var(--moon-dodoria);
+  padding: 8px;
 }
 
 .users-view__action-btn--delete:hover {
-  background: rgba(78, 47, 235, 0.5);
-  color: #fff;
+  background: rgba(211, 48, 74, 0.25);
+  color: #b91c3c;
 }
 
 @media (max-width: 900px) {

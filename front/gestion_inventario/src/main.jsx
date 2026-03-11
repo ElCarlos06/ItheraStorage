@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 import { TooltipProvider } from "./components/Tooltip/Tooltip";
 
 import "./styles/theme.css";
@@ -13,6 +14,7 @@ createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <TooltipProvider>
       <App />
+      <Toaster position="bottom-right" closeButton={false} />
     </TooltipProvider>
   </BrowserRouter>,
 );

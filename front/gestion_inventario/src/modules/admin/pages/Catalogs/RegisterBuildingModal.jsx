@@ -8,32 +8,19 @@ import Select from "../../../../components/Select/Select";
 import { FilesSave } from "@heathmont/moon-icons";
 import "./RegisterLocationModal.css";
 
-export default function RegisterBuildingModal({
-  open,
-  onClose,
-  onGuardar,
-  campus = [],
-  aulas = [],
-  initialData,
-}) {
+export default function RegisterBuildingModal({ open, onClose, onGuardar, campus = [], initialData }) {
   const isEdit = !!initialData;
-  const [form, setForm] = useState({
-    edificio: "",
-    campus: "",
-    aula: "",
-    descripcion: "",
-  });
+  const [form, setForm] = useState({ nombre: "", idCampus: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open && initialData) {
       setForm({
-        edificio: initialData.edificio ?? initialData.nombre ?? "",
-        campus: initialData.campus ?? initialData.idCampus ?? "",
-        aula: initialData.aula ?? initialData.idAula ?? "",
-        descripcion: initialData.descripcion ?? "",
+        nombre: initialData.nombre ?? initialData.name ?? "",
+        idCampus: String(initialData.campus?.id ?? initialData.idCampus ?? ""),
       });
     } else if (open) {
-      setForm({ edificio: "", campus: "", aula: "", descripcion: "" });
+      setForm({ nombre: "", idCampus: "" });
     }
   }, [open, initialData]);
 
@@ -45,15 +32,22 @@ export default function RegisterBuildingModal({
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onGuardar?.(form);
-    setForm({ edificio: "", campus: "", aula: "", descripcion: "" });
-    onClose?.();
+    const idCampus = form.idCampus ? Number(form.idCampus) : null;
+    if (!idCampus) return;
+    setLoading(true);
+    try {
+      await onGuardar?.({ nombre: form.nombre.trim(), idCampus });
+      setForm({ nombre: "", idCampus: "" });
+      onClose?.();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
-    setForm({ edificio: "", campus: "", aula: "", descripcion: "" });
+    setForm({ nombre: "", idCampus: "" });
     onClose?.();
   };
 
@@ -63,57 +57,34 @@ export default function RegisterBuildingModal({
       onClose={handleClose}
       className="register-location-modal"
       title={isEdit ? "Editar Edificio" : "Registrar Edificio"}
-      subtitle="Define la ubicación física para los activos"
-      submitLabel={isEdit ? "Guardar cambios" : "Guardar Ubicación"}
+      subtitle="Define el edificio dentro de un campus"
+      submitLabel={isEdit ? "Guardar cambios" : "Guardar Edificio"}
       submitIcon={FilesSave}
       submitIconSize={30}
+      loading={loading}
       onSubmit={handleSubmit}
     >
       <div className="form-modal__field">
-        <Input
-          label="Edificio*"
+        <Select
+          label="Campus*"
           labelClassName="form-modal__label"
-          placeholder="Ej: Centro de desarrollo, Torre 1"
-          value={form.edificio}
-          onChange={handleChange("edificio")}
-          className="form-modal__input"
+          value={form.idCampus}
+          onChange={handleSelect("idCampus")}
+          options={campus.map((c) => ({ value: String(c.id), label: c.nombre ?? c.name }))}
+          placeholder="Seleccionar campus..."
+          variant="ghost"
           required
         />
       </div>
-
-      <div className="form-modal__row">
-        <div className="form-modal__field form-modal__field--flex">
-          <Select
-            label="Campus*"
-            labelClassName="form-modal__label"
-            value={form.campus}
-            onChange={handleSelect("campus")}
-            options={campus.map((c) => ({ value: String(c.id), label: c.nombre ?? c.name }))}
-            placeholder="Seleccionar..."
-            variant="ghost"
-          />
-        </div>
-        <div className="form-modal__field form-modal__field--flex">
-          <Select
-            label="Aula / Laboratorio*"
-            labelClassName="form-modal__label"
-            value={form.aula}
-            onChange={handleSelect("aula")}
-            options={aulas.map((a) => ({ value: String(a.id), label: a.nombre ?? a.name }))}
-            placeholder="Seleccionar..."
-            variant="ghost"
-          />
-        </div>
-      </div>
-
       <div className="form-modal__field">
-        <label className="form-modal__label">Descripción</label>
-        <textarea
-          className="form-modal__textarea"
-          placeholder="Describe detalles adicionales de la ubicación"
-          value={form.descripcion}
-          onChange={handleChange("descripcion")}
-          rows={4}
+        <Input
+          label="Nombre del edificio*"
+          labelClassName="form-modal__label"
+          placeholder="Ej: Torre 1, Edificio D1, Centro de desarrollo"
+          value={form.nombre}
+          onChange={handleChange("nombre")}
+          className="form-modal__input"
+          required
         />
       </div>
     </FormModal>

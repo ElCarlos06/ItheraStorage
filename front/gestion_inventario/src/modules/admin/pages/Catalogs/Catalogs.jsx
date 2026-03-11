@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { toast } from "../../../../utils/toast.jsx";
 import PageHeader from "../../components/dashboard/PageHeader";
 import Buscador from "../../../../components/Buscador/Buscador";
 import Button from "../../../../components/Button/Button";
 import Select from "../../../../components/Select/Select";
 import CatalogSection from "./CatalogSection";
-import CatalogEmptyState from "./CatalogEmptyState";
 import RegisterTipoActivoModal from "./RegisterTipoActivoModal";
 import RegisterLocationModal from "./RegisterLocationModal";
 import RegisterCampusModal from "./RegisterCampusModal";
 import RegisterBuildingModal from "./RegisterBuildingModal";
 import RegisterClassroomModal from "./RegisterClassroomModal";
+import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
+import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import { GenericPlus } from "@heathmont/moon-icons";
+import { api } from "../../../../api/client";
 import "./Catalogs.css";
 
 const MAIN_TABS = [
@@ -51,6 +54,53 @@ const SECTIONS = {
   },
 };
 
+const isActive = (x) => x?.esActivo !== false;
+
+function mapCampusItems(campus = [], edificios = [], espacios = []) {
+  return (campus ?? []).filter(isActive).map((c) => {
+    const edificiosDelCampus = (edificios ?? []).filter(
+      (e) => isActive(e) && (e.campus?.id ?? e.idCampus) === c.id
+    );
+    const aulasCount = edificiosDelCampus.reduce((sum, ed) => {
+      return sum + (espacios ?? []).filter(
+        (s) => isActive(s) && (s.edificio?.id ?? s.idEdificio) === ed.id
+      ).length;
+    }, 0);
+    return {
+      id: c.id,
+      nombre: c.nombre ?? c.name,
+      descripcion: c.descripcion,
+      edificios: edificiosDelCampus.length,
+      aulas: aulasCount,
+    };
+  });
+}
+
+function mapEdificioItems(edificios = [], espacios = []) {
+  return (edificios ?? []).filter(isActive).map((e) => {
+    const aulasCount = (espacios ?? []).filter(
+      (s) => isActive(s) && (s.edificio?.id ?? s.idEdificio) === e.id
+    ).length;
+    return {
+      id: e.id,
+      nombre: e.nombre ?? e.name,
+      campus: e.campus?.nombre,
+      edificios: aulasCount,
+      aulas: aulasCount,
+    };
+  });
+}
+
+function mapAulaItems(espacios = []) {
+  return (espacios ?? []).filter(isActive).map((s) => ({
+    id: s.id,
+    nombre: s.nombreEspacio ?? s.nombre,
+    edificio: s.edificio?.nombre,
+    campus: s.edificio?.campus?.nombre,
+    aulas: 0,
+  }));
+}
+
 export default function Catalogs() {
   const [mainTab, setMainTab] = useState("tipos-activos");
   const [subTab, setSubTab] = useState("muebles");
@@ -61,13 +111,47 @@ export default function Catalogs() {
   const [modalBuildingOpen, setModalBuildingOpen] = useState(false);
   const [modalClassroomOpen, setModalClassroomOpen] = useState(false);
   const [editLocation, setEditLocation] = useState(null);
+  const [confirmDeleteLocation, setConfirmDeleteLocation] = useState(null);
+  const [campus, setCampus] = useState([]);
+  const [edificios, setEdificios] = useState([]);
+  const [espacios, setEspacios] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const currentMain = MAIN_TABS.find((t) => t.id === mainTab);
   const currentSection = subTab;
   const config = SECTIONS[currentSection];
   const isLocations = mainTab === "ubicaciones";
-  const locationItems = []; // TODO: conectar con API
+
+  const locationItems = useMemo(() => {
+    if (subTab === "campus") return mapCampusItems(campus, edificios, espacios);
+    if (subTab === "edificios") return mapEdificioItems(edificios, espacios);
+    if (subTab === "aulas") return mapAulaItems(espacios);
+    return [];
+  }, [subTab, campus, edificios, espacios]);
+
   const hasLocations = locationItems.length > 0;
+
+  useEffect(() => {
+    if (!isLocations) return;
+    setLoading(true);
+    setError(null);
+    Promise.all([api.getCampus(), api.getEdificios(), api.getEspacios()])
+      .then(([r1, r2, r3]) => {
+        setCampus(r1?.data ?? []);
+        setEdificios(r2?.data ?? []);
+        setEspacios(r3?.data ?? []);
+      })
+      .catch((err) => setError(err?.message ?? "Error al cargar ubicaciones"))
+      .finally(() => setLoading(false));
+  }, [isLocations]);
+
+  const refreshLocations = () => {
+    if (!isLocations) return;
+    api.getCampus().then((r) => setCampus(r.data ?? [])).catch(() => {});
+    api.getEdificios().then((r) => setEdificios(r.data ?? [])).catch(() => {});
+    api.getEspacios().then((r) => setEspacios(r.data ?? [])).catch(() => {});
+  };
 
   const handleMainTab = (id) => {
     setMainTab(id);
@@ -89,6 +173,85 @@ export default function Catalogs() {
     if (subTab === "campus") setModalCampusOpen(true);
     else if (subTab === "edificios") setModalBuildingOpen(true);
     else if (subTab === "aulas") setModalClassroomOpen(true);
+  };
+
+  const handleGuardarCampus = async (data) => {
+    try {
+      if (editLocation?.id) {
+        await api.updateCampus(editLocation.id, data);
+        toast.success("Campus actualizado correctamente");
+      } else {
+        await api.createCampus(data);
+        toast.success("Campus registrado correctamente");
+      }
+      refreshLocations();
+    } catch (err) {
+      toast.error(err?.message ?? "Error al guardar");
+      throw err;
+    }
+  };
+
+  const handleGuardarEdificio = async (data) => {
+    try {
+      if (editLocation?.id) {
+        await api.updateEdificio(editLocation.id, data);
+        toast.success("Edificio actualizado correctamente");
+      } else {
+        await api.createEdificio(data);
+        toast.success("Edificio registrado correctamente");
+      }
+      refreshLocations();
+    } catch (err) {
+      toast.error(err?.message ?? "Error al guardar");
+      throw err;
+    }
+  };
+
+  const handleDeleteLocation = (item) => setConfirmDeleteLocation(item);
+
+  const handleConfirmDeleteLocation = async () => {
+    if (!confirmDeleteLocation?.id) return;
+    try {
+      if (subTab === "campus") {
+        await api.toggleStatusCampus(confirmDeleteLocation.id);
+        toast.success("Campus eliminado correctamente");
+      } else if (subTab === "edificios") {
+        await api.toggleStatusEdificio(confirmDeleteLocation.id);
+        toast.success("Edificio eliminado correctamente");
+      } else if (subTab === "aulas") {
+        await api.toggleStatusEspacio(confirmDeleteLocation.id);
+        toast.success("Aula eliminada correctamente");
+      }
+      setConfirmDeleteLocation(null);
+      refreshLocations();
+    } catch (err) {
+      toast.error(err?.message ?? "Error al eliminar");
+    }
+  };
+
+  const getDeleteMessage = () => {
+    if (!confirmDeleteLocation) return "";
+    const nombre = confirmDeleteLocation.nombre ?? "este elemento";
+    if (subTab === "campus") return `Se eliminará el campus "${nombre}". Esta acción no se puede deshacer.`;
+    if (subTab === "edificios") return `Se eliminará el edificio "${nombre}". Esta acción no se puede deshacer.`;
+    if (subTab === "aulas") return `Se eliminará el aula "${nombre}". Esta acción no se puede deshacer.`;
+    return `Se eliminará ${nombre}. Esta acción no se puede deshacer.`;
+  };
+
+  const handleGuardarAula = async (data) => {
+    try {
+      if (editLocation?.id) {
+        await api.updateEspacio(editLocation.id, data);
+        toast.success("Aula actualizada correctamente");
+      } else {
+        await api.createEspacio(data);
+        toast.success("Aula registrada correctamente");
+      }
+      refreshLocations();
+    } catch (err) {
+      toast.error(err?.message ?? "Error al guardar");
+      throw err;
+    }
   };
 
   return (
@@ -161,13 +324,28 @@ export default function Catalogs() {
         onClose={() => setModalTipoActivoOpen(false)}
         onGuardar={(data) => {
           setModalTipoActivoOpen(false);
+          toast.success("Guardado correctamente");
         }}
       />
 
       <RegisterLocationModal
         open={modalLocationOpen}
         onClose={() => setModalLocationOpen(false)}
-        onGuardar={(data) => {
+        onGuardar={async (data) => {
+          try {
+            const campusRes = await api.createCampus({ nombre: data.campus.trim(), descripcion: data.descripcion?.trim() || null });
+            const campusId = campusRes?.data?.id;
+            if (!campusId) throw new Error("No se obtuvo el campus creado");
+            const edificioRes = await api.createEdificio({ idCampus: campusId, nombre: data.edificio.trim() });
+            const edificioId = edificioRes?.data?.id;
+            if (!edificioId) throw new Error("No se obtuvo el edificio creado");
+            await api.createEspacio({ idEdificio: edificioId, nombreEspacio: data.aula.trim() });
+            toast.success("Ubicación registrada correctamente");
+            refreshLocations();
+          } catch (err) {
+            toast.error(err?.message ?? "Error al guardar");
+            throw err;
+          }
           setModalLocationOpen(false);
         }}
       />
@@ -177,10 +355,9 @@ export default function Catalogs() {
           setModalCampusOpen(false);
           setEditLocation(null);
         }}
-        edificios={[]}
-        aulas={[]}
         initialData={subTab === "campus" ? editLocation : undefined}
-        onGuardar={(data) => {
+        onGuardar={async (data) => {
+          await handleGuardarCampus(data);
           setModalCampusOpen(false);
           setEditLocation(null);
         }}
@@ -191,10 +368,10 @@ export default function Catalogs() {
           setModalBuildingOpen(false);
           setEditLocation(null);
         }}
-        campus={[]}
-        aulas={[]}
-        initialData={subTab === "edificios" ? editLocation : undefined}
-        onGuardar={(data) => {
+        campus={campus.filter(isActive)}
+        initialData={subTab === "edificios" ? (edificios.find((e) => e.id === editLocation?.id) ?? editLocation) : undefined}
+        onGuardar={async (data) => {
+          await handleGuardarEdificio(data);
           setModalBuildingOpen(false);
           setEditLocation(null);
         }}
@@ -205,14 +382,23 @@ export default function Catalogs() {
           setModalClassroomOpen(false);
           setEditLocation(null);
         }}
-        campus={[]}
-        edificios={[]}
-        initialData={subTab === "aulas" ? editLocation : undefined}
-        onGuardar={(data) => {
+        edificios={edificios.filter(isActive)}
+        initialData={subTab === "aulas" ? (espacios.find((s) => s.id === editLocation?.id) ?? editLocation) : undefined}
+        onGuardar={async (data) => {
+          await handleGuardarAula(data);
           setModalClassroomOpen(false);
           setEditLocation(null);
         }}
       />
+
+      <ConfirmDeleteModal
+        open={!!confirmDeleteLocation}
+        onClose={() => setConfirmDeleteLocation(null)}
+        onConfirm={handleConfirmDeleteLocation}
+        message={getDeleteMessage()}
+      />
+
+      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
       <CatalogSection
         showToolbar={false}
@@ -224,6 +410,7 @@ export default function Catalogs() {
         onSearchChange={setSearch}
         countLabel={config.countLabel}
         onEdit={isLocations && hasLocations ? handleEditLocation : undefined}
+        onDelete={isLocations && hasLocations ? handleDeleteLocation : undefined}
       />
     </div>
   );

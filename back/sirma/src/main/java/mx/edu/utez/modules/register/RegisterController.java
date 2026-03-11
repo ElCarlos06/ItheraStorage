@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,7 +27,8 @@ public class RegisterController {
      * @param dto datos de registro con validaciones básicas de Bean Validation
      * @return respuesta con el resultado del registro
      */
-    @PostMapping("/")
+    @PostMapping(value = {"", "/"})
+    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegisterDTO dto) {
         ApiResponse response = registerService.register(dto);
         return new ResponseEntity<>(response, response.getStatus());

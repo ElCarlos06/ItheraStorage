@@ -1,5 +1,5 @@
 /**
- * Modal para registrar/editar Aula.
+ * Modal para registrar/editar Aula (Espacio).
  */
 import { useState, useEffect } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
@@ -12,28 +12,21 @@ export default function RegisterClassroomModal({
   open,
   onClose,
   onGuardar,
-  campus = [],
   edificios = [],
   initialData,
 }) {
   const isEdit = !!initialData;
-  const [form, setForm] = useState({
-    aula: "",
-    campus: "",
-    edificio: "",
-    descripcion: "",
-  });
+  const [form, setForm] = useState({ nombreEspacio: "", idEdificio: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open && initialData) {
       setForm({
-        aula: initialData.aula ?? initialData.nombre ?? "",
-        campus: initialData.campus ?? initialData.idCampus ?? "",
-        edificio: initialData.edificio ?? initialData.idEdificio ?? "",
-        descripcion: initialData.descripcion ?? "",
+        nombreEspacio: initialData.nombreEspacio ?? initialData.nombre ?? initialData.aula ?? "",
+        idEdificio: String(initialData.edificio?.id ?? initialData.idEdificio ?? ""),
       });
     } else if (open) {
-      setForm({ aula: "", campus: "", edificio: "", descripcion: "" });
+      setForm({ nombreEspacio: "", idEdificio: "" });
     }
   }, [open, initialData]);
 
@@ -45,15 +38,22 @@ export default function RegisterClassroomModal({
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onGuardar?.(form);
-    setForm({ aula: "", campus: "", edificio: "", descripcion: "" });
-    onClose?.();
+    const idEdificio = form.idEdificio ? Number(form.idEdificio) : null;
+    if (!idEdificio) return;
+    setLoading(true);
+    try {
+      await onGuardar?.({ nombreEspacio: form.nombreEspacio.trim(), idEdificio });
+      setForm({ nombreEspacio: "", idEdificio: "" });
+      onClose?.();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
-    setForm({ aula: "", campus: "", edificio: "", descripcion: "" });
+    setForm({ nombreEspacio: "", idEdificio: "" });
     onClose?.();
   };
 
@@ -63,57 +63,37 @@ export default function RegisterClassroomModal({
       onClose={handleClose}
       className="register-location-modal"
       title={isEdit ? "Editar Aula" : "Registrar Aula"}
-      subtitle="Define la ubicación física para los activos"
-      submitLabel={isEdit ? "Guardar cambios" : "Guardar Ubicación"}
+      subtitle="Define el aula o espacio dentro de un edificio"
+      submitLabel={isEdit ? "Guardar cambios" : "Guardar Aula"}
       submitIcon={FilesSave}
       submitIconSize={30}
+      loading={loading}
       onSubmit={handleSubmit}
     >
       <div className="form-modal__field">
-        <Input
-          label="Aula*"
+        <Select
+          label="Edificio*"
           labelClassName="form-modal__label"
-          placeholder="Ej: Aula de cómputo, Sala 101"
-          value={form.aula}
-          onChange={handleChange("aula")}
-          className="form-modal__input"
+          value={form.idEdificio}
+          onChange={handleSelect("idEdificio")}
+          options={edificios.map((e) => ({
+            value: String(e.id),
+            label: `${e.nombre ?? e.name} ${e.campus ? `(${e.campus.nombre})` : ""}`.trim(),
+          }))}
+          placeholder="Seleccionar edificio..."
+          variant="ghost"
           required
         />
       </div>
-
-      <div className="form-modal__row">
-        <div className="form-modal__field form-modal__field--flex">
-          <Select
-            label="Campus*"
-            labelClassName="form-modal__label"
-            value={form.campus}
-            onChange={handleSelect("campus")}
-            options={campus.map((c) => ({ value: String(c.id), label: c.nombre ?? c.name }))}
-            placeholder="Seleccionar..."
-            variant="ghost"
-          />
-        </div>
-        <div className="form-modal__field form-modal__field--flex">
-          <Select
-            label="Edificio*"
-            labelClassName="form-modal__label"
-            value={form.edificio}
-            onChange={handleSelect("edificio")}
-            options={edificios.map((e) => ({ value: String(e.id), label: e.nombre ?? e.name }))}
-            placeholder="Seleccionar..."
-            variant="ghost"
-          />
-        </div>
-      </div>
-
       <div className="form-modal__field">
-        <label className="form-modal__label">Descripción</label>
-        <textarea
-          className="form-modal__textarea"
-          placeholder="Describe detalles adicionales de la ubicación"
-          value={form.descripcion}
-          onChange={handleChange("descripcion")}
-          rows={4}
+        <Input
+          label="Nombre del aula / espacio*"
+          labelClassName="form-modal__label"
+          placeholder="Ej: Aula 101, Lab. Computación, Sala 2"
+          value={form.nombreEspacio}
+          onChange={handleChange("nombreEspacio")}
+          className="form-modal__input"
+          required
         />
       </div>
     </FormModal>

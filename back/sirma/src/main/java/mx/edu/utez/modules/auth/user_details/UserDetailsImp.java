@@ -27,7 +27,9 @@ public class UserDetailsImp implements UserDetails {
         this.email = user.getCorreo();
         this.password = user.getPasswordHash();
         this.enabled = user.getEsActivo() != null && user.getEsActivo();
-        this.authorities = Collections.singleton(new SimpleGrantedAuthority(user.getRole().getNombre()));
+        String roleName = user.getRole().getNombre();
+        this.authorities = Collections.singleton(
+                new SimpleGrantedAuthority(roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName));
     }
 
     @Override

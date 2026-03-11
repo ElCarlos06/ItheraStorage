@@ -33,7 +33,7 @@ export default function PasswordInput({
         {...props}
       />
       {error && (
-        <div className="form-text text-danger small mt-1">{error}</div>
+        <span className="form-field-error" role="alert">{error}</span>
       )}
     </div>
   );
