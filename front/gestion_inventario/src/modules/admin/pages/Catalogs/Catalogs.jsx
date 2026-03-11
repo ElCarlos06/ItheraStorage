@@ -406,6 +406,7 @@ export default function Catalogs() {
         emptyMessage={config.emptyMessage}
         sectionKey={currentSection}
         items={isLocations ? locationItems : []}
+        loading={isLocations && loading}
         search={search}
         onSearchChange={setSearch}
         countLabel={config.countLabel}

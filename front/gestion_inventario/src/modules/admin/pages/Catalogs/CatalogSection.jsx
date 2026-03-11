@@ -4,6 +4,7 @@ import Button from "../../../../components/Button/Button";
 import Icon from "../../../../components/Icon/Icon";
 import { GenericPlus, TravelHotel, ControlsChevronRight, GenericDelete, GenericEdit } from "@heathmont/moon-icons";
 import CatalogEmptyState from "./CatalogEmptyState";
+import LoadingState from "../../../../components/LoadingState/LoadingState";
 import "./CatalogSection.css";
 
 export default function CatalogSection({
@@ -13,6 +14,7 @@ export default function CatalogSection({
   emptyMessage = "No hay elementos para mostrar",
   sectionKey = "campus",
   items = [],
+  loading = false,
   search: searchProp = "",
   onSearchChange,
   countLabel = "registros",
@@ -43,7 +45,7 @@ export default function CatalogSection({
   const showEmptyState = filtered.length === 0;
 
   return (
-    <div className={`catalog-section ${showEmptyState ? "catalog-section--empty" : ""}`}>
+    <div className={`catalog-section ${showEmptyState && !loading ? "catalog-section--empty" : ""} ${loading ? "catalog-section--loading" : ""}`}>
       <section className="catalog-section__view" aria-label={title}>
         {showToolbar && (
           <div className="catalog-section__toolbar">
@@ -64,7 +66,11 @@ export default function CatalogSection({
         )}
 
         <div className="catalog-section__list">
-          {showEmptyState ? (
+          {loading ? (
+            <div className="catalog-section__list-loading">
+              <LoadingState message="Cargando ubicaciones…" />
+            </div>
+          ) : showEmptyState ? (
             <CatalogEmptyState
               message={emptyMessage}
               hasSearch={!!(search ?? "").trim()}
