@@ -15,5 +15,5 @@ export default function App() {
   }
 
   // Sin token se muestran únicamente las rutas públicas
-  return <PublicRouter />;
+  return <AdminRouter />;
 }

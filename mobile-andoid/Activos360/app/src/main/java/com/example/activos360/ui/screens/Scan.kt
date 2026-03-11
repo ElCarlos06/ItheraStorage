@@ -1,4 +1,4 @@
-package com.example.activos360.ui.Screens/*package com.example.activos360.ui.Screens
+package com.example.activos360.ui.screens/*package com.example.activos360.ui.Screens
 
 import android.Manifest
 import android.content.Context

@@ -1,5 +1,4 @@
-package com.example.activos360.ui.ScreensLogin
-
+package com.example.activos360.ui.screens_login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
