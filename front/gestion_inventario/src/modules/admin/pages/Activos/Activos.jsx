@@ -39,6 +39,7 @@ export default function Activos({
 }) {
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
+  const [modalEditAsset, setModalEditAsset] = useState(null);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
@@ -95,7 +96,7 @@ export default function Activos({
             <Button variant="secondary" iconLeft={FilesImport} iconSize={30} onClick={() => onImportExcel?.()}>
               Importar Excel
             </Button>
-            <Button variant="primary" iconLeft={GenericPlus} onClick={() => setModalNuevoOpen(true)}>
+            <Button variant="primary" iconLeft={GenericPlus} iconSize={30} onClick={() => setModalNuevoOpen(true)}>
               Nuevo
             </Button>
           </div>
@@ -161,7 +162,7 @@ export default function Activos({
                       <button type="button" className="activos-view__action-btn activos-view__action-btn--delete" title="Eliminar" aria-label="Eliminar" onClick={() => onEliminar?.(item)}>
                         <Icon icon={GenericDelete} size={30} />
                       </button>
-                      <button type="button" className="activos-view__action-btn" title="Editar" aria-label="Editar" onClick={() => onEditar?.(item)}>
+                      <button type="button" className="activos-view__action-btn" title="Editar" aria-label="Editar" onClick={() => setModalEditAsset(item)}>
                         <Icon icon={GenericEdit} size={30} />
                       </button>
                       <button type="button" className="activos-view__action-btn" title="Historial" aria-label="Historial" onClick={() => onHistorial?.(item)}>
@@ -182,7 +183,19 @@ export default function Activos({
       <NewAssetModal
         open={modalNuevoOpen}
         onClose={() => setModalNuevoOpen(false)}
-        onGuardar={(data) => { onNuevo?.(data); setModalNuevoOpen(false); }}
+        onGuardar={(data) => {
+          onNuevo?.(data);
+          setModalNuevoOpen(false);
+        }}
+      />
+      <NewAssetModal
+        open={!!modalEditAsset}
+        onClose={() => setModalEditAsset(null)}
+        initialData={modalEditAsset}
+        onGuardar={(data) => {
+          onEditar?.(modalEditAsset, data);
+          setModalEditAsset(null);
+        }}
       />
     </div>
   );

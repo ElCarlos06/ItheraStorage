@@ -65,4 +65,23 @@ public class JwtProvider {
         }
     }
 
+    /** Expiración para token de restablecimiento: 1 hora */
+    private static final int RESET_EXPIRATION_MS = 3600 * 1000;
+
+    /**
+     * Genera un token JWT para restablecimiento de contraseña.
+     * El subject contiene el correo del usuario.
+     *
+     * @param correo correo del usuario que solicita el restablecimiento
+     * @return token JWT con expiración de 1 hora
+     */
+    public String generateResetToken(String correo) {
+        return Jwts.builder()
+                .setSubject(correo)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + RESET_EXPIRATION_MS))
+                .signWith(getSecretKey())
+                .compact();
+    }
+
 }

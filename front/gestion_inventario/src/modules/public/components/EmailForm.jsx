@@ -1,19 +1,20 @@
 import { useState } from "react";
 import InputField from "./InputField";
 import Button from "../../../components/Button/Button";
-import { Link } from "react-router-dom";
+import BackToLogin from "./BackToLogin";
 import { api } from "../../../api/client";
 import { validarCorreoLogin } from "../../../utils/validaciones";
 
 /**
- * Primer paso del flujo de recuperacion/cambio de contrasena.
- * Busca al usuario por correo en el backend y, si existe, avanza al siguiente paso.
- * @param {function} onVerificado - Callback que recibe el correo verificado
+ * Flujo "¿Olvidaste tu contraseña?".
+ * Envía una nueva contraseña temporal al correo. El usuario la usa para iniciar sesión
+ * y luego se le pedirá cambiarla (primera vez).
  */
-export default function EmailForm({ onVerificado }) {
+export default function EmailForm() {
   const [correo, setCorreo] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     setCorreo(e.target.value);
@@ -23,7 +24,6 @@ export default function EmailForm({ onVerificado }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validacion del formato del correo antes de llamar al backend
     const errorFormato = validarCorreoLogin(correo);
     if (errorFormato) {
       setError(errorFormato);
@@ -31,29 +31,41 @@ export default function EmailForm({ onVerificado }) {
     }
 
     setLoading(true);
+    setError(null);
     try {
-      // Verifica que el correo pertenece a un usuario registrado
-      await api.getUserByCorreo(correo.trim().toLowerCase());
-
-      // Si el usuario existe, avanza al paso de nueva contrasena
-      onVerificado(correo.trim().toLowerCase());
+      await api.requestPasswordReset(correo.trim().toLowerCase());
+      setSuccess(true);
     } catch (err) {
-      // El backend devuelve 404 si el correo no esta registrado
       setError(err.message || "No se encontro una cuenta con ese correo");
     } finally {
       setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <div className="container me-5 p-4">
+        <div className="form-message form-message--success py-3 mb-3">
+          <p className="mb-0">
+            Revisa tu correo <strong>{correo}</strong>.
+          </p>
+          <p className="mb-0 mt-2 small">
+            Te enviamos un enlace para restablecer tu contraseña. Haz clic en él y elige la contraseña que desees.
+          </p>
+        </div>
+        <BackToLogin />
+      </div>
+    );
+  }
+
   return (
     <>
       <form onSubmit={handleSubmit}>
         <div className="container me-5 p-4">
-          {/* Error devuelto por el backend (correo no encontrado u otro) */}
           {error && (
-            <div className="alert alert-danger py-2 mb-3 text-center" role="alert">
+            <p className="form-message form-message--error mb-3 text-center">
               {error}
-            </div>
+            </p>
           )}
           <InputField
             label="Email"
@@ -64,21 +76,14 @@ export default function EmailForm({ onVerificado }) {
             onChange={handleChange}
           />
           <Button
-            text={loading ? "Verificando..." : "Recuperar contraseña"}
+            text={loading ? "Enviando..." : "Enviar enlace al correo"}
             fullWidth
             type="submit"
             disabled={loading}
           />
         </div>
       </form>
-      <div className="text-start">
-        <Link
-          to="/login"
-          className="btn btn-link text-decoration-none small text-muted"
-        >
-          <i className="bi bi-arrow-left"></i> Regresar al Login
-        </Link>
-      </div>
+      <BackToLogin />
     </>
   );
 }

@@ -6,6 +6,7 @@ export default function PasswordInput({
   placeholder = "Ingresa la contraseña",
   labelClassName,
   fullWidth,
+  error,
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +32,9 @@ export default function PasswordInput({
         }
         {...props}
       />
+      {error && (
+        <div className="form-text text-danger small mt-1">{error}</div>
+      )}
     </div>
   );
 }

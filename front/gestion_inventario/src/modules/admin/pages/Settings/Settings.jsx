@@ -114,7 +114,7 @@ export default function Settings({ profile: profileProp, onSaveProfile, onUpload
             </div>
             {onSaveProfile && (
               <div className="settings-card__footer">
-                <Button variant="primary" iconLeft={FilesSave} onClick={() => onSaveProfile?.(profile)}>
+                <Button variant="primary" size="small" iconLeft={FilesSave} iconSize={30} onClick={() => onSaveProfile?.(profile)}>
                   Guardar Cambios
                 </Button>
               </div>

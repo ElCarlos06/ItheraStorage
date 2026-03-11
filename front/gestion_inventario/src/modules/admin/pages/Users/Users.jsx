@@ -32,8 +32,11 @@ function mapUser(u) {
     nombre: u.nombreCompleto ?? u.nombre ?? u.nombre_completo ?? "-",
     correo: u.correo ?? "-",
     curp: u.curp ?? "-",
-    rol: typeof roleName === "string" ? roleName : "-",
-    area: typeof areaName === "string" ? areaName : "-",
+    nacimiento: u.fechaNacimiento ?? u.fecha_nacimiento,
+    idRol: u.role?.id ?? u.idRol ?? u.id_rol,
+    idArea: u.area?.id ?? u.idArea ?? u.id_area,
+    rol: typeof roleName === "string" ? roleName : roleName?.nombre ?? "-",
+    area: typeof areaName === "string" ? areaName : areaName?.nombre ?? "-",
   };
 }
 
@@ -50,6 +53,7 @@ export default function Users({
 }) {
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
+  const [modalEditUser, setModalEditUser] = useState(null);
   const [modalUser, setModalUser] = useState(null);
   const [users, setUsers] = useState(Array.isArray(usersProp) ? usersProp : []);
   const [loading, setLoading] = useState(loadingProp ?? false);
@@ -130,9 +134,10 @@ export default function Users({
             <Button
               variant="primary"
               iconLeft={GenericPlus}
+              iconSize={30}
               onClick={() => setModalNuevoOpen(true)}
             >
-              Nuevo Usuario
+              Nuevo
             </Button>
           </div>
         </div>
@@ -209,7 +214,10 @@ export default function Users({
                           type="button"
                           className="users-view__action-btn"
                           title="Editar"
-                          onClick={() => onEditar?.(user)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalEditUser(user);
+                          }}
                         >
                           <Icon icon={GenericEdit} size={30} />
                         </button>
@@ -237,6 +245,16 @@ export default function Users({
         onGuardar={() => {
           refreshUsers();
           onNuevo?.();
+        }}
+      />
+      <NewUserModal
+        open={!!modalEditUser}
+        onClose={() => setModalEditUser(null)}
+        initialData={modalEditUser}
+        onGuardar={() => {
+          refreshUsers();
+          onEditar?.(modalEditUser);
+          setModalEditUser(null);
         }}
       />
 

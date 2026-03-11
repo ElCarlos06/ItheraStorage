@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import Modal from "../../../../components/Modal/Modal";
 import Input from "../../../../components/Input/Input";
 import Button from "../../../../components/Button/Button";
+import Select from "../../../../components/Select/Select";
 import { X } from "lucide-react";
-import { ControlsChevronDown, FilesSave } from "@heathmont/moon-icons";
-import Icon from "../../../../components/Icon/Icon";
+import { FilesSave } from "@heathmont/moon-icons";
 import { api } from "../../../../api/client";
 import {
   validarCurp,
@@ -16,7 +16,8 @@ import {
 } from "../../../../utils/validaciones";
 import "./NewUserModal.css";
 
-export default function NewUserModal({ open, onClose, onGuardar }) {
+export default function NewUserModal({ open, onClose, onGuardar, initialData }) {
+  const isEdit = !!initialData;
   const [form, setForm] = useState({
     nombre: "",
     correo: "",
@@ -43,8 +44,28 @@ export default function NewUserModal({ open, onClose, onGuardar }) {
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open && initialData) {
+      setForm({
+        nombre: initialData.nombre ?? initialData.nombreCompleto ?? "",
+        correo: initialData.correo ?? "",
+        nacimiento: initialData.nacimiento ?? initialData.fechaNacimiento ?? "",
+        curp: initialData.curp ?? "",
+        rol: String(initialData.idRol ?? initialData.rol ?? ""),
+        area: String(initialData.idArea ?? initialData.area ?? ""),
+      });
+    } else if (open) {
+      setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
+    }
+  }, [open, initialData]);
+
   const handleChange = (field) => (e) => {
     const value = e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrores((prev) => ({ ...prev, [field]: null }));
+  };
+
+  const handleSelect = (field) => (value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrores((prev) => ({ ...prev, [field]: null }));
   };
@@ -67,14 +88,19 @@ export default function NewUserModal({ open, onClose, onGuardar }) {
 
     setLoading(true);
     try {
-      await api.register({
+      const payload = {
         nombreCompleto: form.nombre.trim(),
         correo: form.correo.trim().toLowerCase(),
         fechaNacimiento: form.nacimiento,
         curp: form.curp.trim().toUpperCase(),
         idRol: Number(form.rol),
         idArea: Number(form.area),
-      });
+      };
+      if (isEdit && initialData?.id) {
+        await api.updateUser(initialData.id, payload);
+      } else {
+        await api.register(payload);
+      }
       setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
       setErrores({});
       onGuardar?.();
@@ -97,9 +123,13 @@ export default function NewUserModal({ open, onClose, onGuardar }) {
       <div className="nuevo-usuario-modal__inner">
         <header className="nuevo-usuario-modal__header">
           <div>
-            <h2 className="nuevo-usuario-modal__title">Registrar Nuevo Usuario</h2>
+            <h2 className="nuevo-usuario-modal__title">
+              {isEdit ? "Editar Usuario" : "Registrar Nuevo Usuario"}
+            </h2>
             <p className="nuevo-usuario-modal__subtitle">
-              Crea una nueva cuenta de acceso y perfil de empleado
+              {isEdit
+                ? "Actualiza la información del empleado"
+                : "Crea una nueva cuenta de acceso y perfil de empleado"}
             </p>
           </div>
           <button
@@ -190,57 +220,33 @@ export default function NewUserModal({ open, onClose, onGuardar }) {
           {/* Rol + Área */}
           <div className="nuevo-usuario-modal__row">
             <div className="nuevo-usuario-modal__field nuevo-usuario-modal__field--flex">
-              <label className="nuevo-usuario-modal__label">Rol*</label>
-              <div className="nuevo-usuario-modal__select-wrap">
-                <select
-                  value={form.rol}
-                  onChange={handleChange("rol")}
-                  className="nuevo-usuario-modal__select"
-                  required
-                  aria-invalid={!!errores.rol}
-                >
-                  <option value="">Seleccionar...</option>
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.nombre}
-                    </option>
-                  ))}
-                </select>
-                <Icon
-                  icon={ControlsChevronDown}
-                  size={30}
-                  className="nuevo-usuario-modal__select-icon"
-                  aria-hidden
-                />
-              </div>
+              <Select
+                label="Rol"
+                labelClassName="nuevo-usuario-modal__label"
+                value={form.rol}
+                onChange={handleSelect("rol")}
+                options={roles.map((r) => ({ value: String(r.id), label: r.nombre }))}
+                placeholder="Seleccionar..."
+                required
+                aria-invalid={!!errores.rol}
+                variant="ghost"
+              />
               {errores.rol && (
                 <span className="nuevo-usuario-modal__error-msg">{errores.rol}</span>
               )}
             </div>
             <div className="nuevo-usuario-modal__field nuevo-usuario-modal__field--flex">
-              <label className="nuevo-usuario-modal__label">Área*</label>
-              <div className="nuevo-usuario-modal__select-wrap">
-                <select
-                  value={form.area}
-                  onChange={handleChange("area")}
-                  className="nuevo-usuario-modal__select"
-                  required
-                  aria-invalid={!!errores.area}
-                >
-                  <option value="">Seleccionar...</option>
-                  {areas.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.nombre}
-                    </option>
-                  ))}
-                </select>
-                <Icon
-                  icon={ControlsChevronDown}
-                  size={30}
-                  className="nuevo-usuario-modal__select-icon"
-                  aria-hidden
-                />
-              </div>
+              <Select
+                label="Área"
+                labelClassName="nuevo-usuario-modal__label"
+                value={form.area}
+                onChange={handleSelect("area")}
+                options={areas.map((a) => ({ value: String(a.id), label: a.nombre }))}
+                placeholder="Seleccionar..."
+                required
+                aria-invalid={!!errores.area}
+                variant="ghost"
+              />
               {errores.area && (
                 <span className="nuevo-usuario-modal__error-msg">{errores.area}</span>
               )}
@@ -256,9 +262,10 @@ export default function NewUserModal({ open, onClose, onGuardar }) {
               variant="primary"
               size="small"
               iconLeft={FilesSave}
+              iconSize={30}
               disabled={loading}
             >
-              {loading ? "Guardando…" : "Guardar Usuario"}
+              {loading ? "Guardando…" : isEdit ? "Guardar cambios" : "Guardar Usuario"}
             </Button>
           </footer>
         </form>

@@ -65,3 +65,48 @@ body {
     max-height: 57vh;
   }
 }
+
+.back-to-login {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.back-to-login__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #4e46b4;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.back-to-login__link:hover {
+  color: #3730a3;
+  background-color: rgba(78, 70, 180, 0.08);
+}
+
+.back-to-login__icon {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* Mensajes de formulario (sin cajas de alerta) */
+.form-message {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.form-message--error {
+  color: #dc3545;
+}
+
+.form-message--success {
+  color: #198754;
+}
+
+.form-message--warning {
+  color: #856404;
+}

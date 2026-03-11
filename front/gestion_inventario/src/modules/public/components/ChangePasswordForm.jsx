@@ -1,17 +1,21 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PasswordInput from "./PasswordInput";
 import Button from "../../../components/Button/Button";
-import { useNavigate } from "react-router-dom";
-import { api } from "../../../api/client";
 import BackToLogin from "./BackToLogin";
+import { api } from "../../../api/client";
+import "../styles/public.css";
 
 /**
- * Formulario para el cambio de contraseña cuando el usuario ya tiene una contraseña establecida.
- * Usado en el flujo "¿Olvidaste tu contraseña?" cuando el usuario recuerda su contraseña actual.
- * @param {string} correo - Correo verificado en el paso anterior
+ * Formulario unificado de cambio de contraseña.
+ * Oculta el input de contraseña actual cuando viene del enlace (token).
+ * @param {string} [correo] - Correo (primer acceso, requiere contraseña temporal)
+ * @param {string} [token] - Token del enlace (olvidé contraseña, no requiere actual)
+ * @param {function} [onSuccess] - Callback al completar
  */
-export default function NewPasswordForm({ correo }) {
+export default function ChangePasswordForm({ correo, token, onSuccess }) {
   const navigate = useNavigate();
+  const requiereActual = !!correo && !token;
 
   const [form, setForm] = useState({
     contrasenaActual: "",
@@ -28,8 +32,8 @@ export default function NewPasswordForm({ correo }) {
 
   const validarTodo = () => {
     const e = {};
-    if (!form.contrasenaActual.trim()) {
-      e.contrasenaActual = "La contraseña actual es obligatoria";
+    if (requiereActual && !form.contrasenaActual.trim()) {
+      e.contrasenaActual = "Ingresa la contraseña temporal que recibiste por correo";
     }
     if (!form.nueva.trim()) {
       e.nueva = "La nueva contraseña es obligatoria";
@@ -44,7 +48,7 @@ export default function NewPasswordForm({ correo }) {
       }
     }
     if (!form.confirmar.trim()) {
-      e.confirmar = "Debes confirmar la nueva contraseña";
+      e.confirmar = "Confirma tu nueva contraseña";
     } else if (form.nueva !== form.confirmar) {
       e.confirmar = "Las contraseñas no coinciden";
     }
@@ -58,12 +62,18 @@ export default function NewPasswordForm({ correo }) {
 
     setLoading(true);
     try {
-      await api.changePassword({
-        correo,
-        passwordActual: form.contrasenaActual,
-        passwordNueva: form.nueva,
-      });
-      navigate("/login", { state: { success: "Contraseña actualizada. Ya puedes iniciar sesión." } });
+      const body = token
+        ? { token, passwordNueva: form.nueva }
+        : { correo, passwordActual: form.contrasenaActual, passwordNueva: form.nueva };
+      await api.changePassword(body);
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate("/login", {
+          state: { success: "Contraseña actualizada. Ya puedes iniciar sesión." },
+        });
+      }
     } catch (err) {
       setErrores((prev) => ({ ...prev, _form: err.message }));
     } finally {
@@ -76,23 +86,30 @@ export default function NewPasswordForm({ correo }) {
       <form onSubmit={handleSubmit}>
         <div className="container me-5 p-4">
           {errores._form && (
-            <div className="alert alert-danger py-2 mb-3" role="alert">
-              {errores._form}
-            </div>
+            <p className="form-message form-message--error mb-3">{errores._form}</p>
+          )}
+
+          {requiereActual && (
+            <>
+              <div className="mb-3">
+                <p className="text-muted small mb-2">
+                  Revisa tu correo <strong>{correo}</strong> para obtener la contraseña temporal.
+                </p>
+              </div>
+              <PasswordInput
+                label="Contraseña temporal"
+                placeholder="Pega la contraseña que recibiste por correo"
+                labelClassName="form-label text-muted small fw-bolder"
+                value={form.contrasenaActual}
+                onChange={handleChange("contrasenaActual")}
+                error={errores.contrasenaActual}
+              />
+            </>
           )}
 
           <PasswordInput
-            label="Contraseña actual"
-            placeholder="Ingresa tu contraseña actual"
-            labelClassName="form-label text-muted small fw-bolder"
-            value={form.contrasenaActual}
-            onChange={handleChange("contrasenaActual")}
-            error={errores.contrasenaActual}
-          />
-
-          <PasswordInput
             label="Nueva contraseña"
-            placeholder="Ingresa tu nueva contraseña"
+            placeholder="Crea una contraseña segura (mín. 8 caracteres, mayúscula, número y @#$%&*!)"
             labelClassName="form-label text-muted small fw-bolder"
             value={form.nueva}
             onChange={handleChange("nueva")}
@@ -109,7 +126,7 @@ export default function NewPasswordForm({ correo }) {
           />
 
           <Button
-            text={loading ? "Guardando..." : "Guardar contraseña"}
+            text={loading ? "Guardando..." : requiereActual ? "Crear contraseña" : "Guardar contraseña"}
             fullWidth
             type="submit"
             disabled={loading}

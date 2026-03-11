@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Button from "../../../components/Button/Button";
 import InputField from "../components/InputField";
 import PasswordInput from "../components/PasswordInput";
@@ -23,6 +23,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.success;
 
   // Actualiza el valor del campo y limpia su error al escribir
   const handleChange = (field) => (e) => {
@@ -50,7 +52,7 @@ export default function Login() {
     try {
       const data = await api.login({
         correo: form.correo.trim().toLowerCase(),
-        contrasena: form.contrasena,
+        password: form.contrasena,
       });
 
       // Guarda el token recibido del backend en sessionStorage
@@ -117,14 +119,15 @@ export default function Login() {
 
                 <form onSubmit={handleSubmit}>
                   <div className="container me-5 p-4">
-                    {/* Error general devuelto por el servidor */}
+                    {successMessage && (
+                      <p className="form-message form-message--success mb-3 text-center">
+                        {successMessage}
+                      </p>
+                    )}
                     {errores._form && (
-                      <div
-                        className="alert alert-danger py-2 mb-3 text-center"
-                        role="alert"
-                      >
+                      <p className="form-message form-message--error mb-3 text-center">
                         {errores._form}
-                      </div>
+                      </p>
                     )}
 
                     <InputField

@@ -2,8 +2,14 @@ import { useState } from "react";
 import PageHeader from "../../components/dashboard/PageHeader";
 import Buscador from "../../../../components/Buscador/Buscador";
 import Button from "../../../../components/Button/Button";
+import Select from "../../../../components/Select/Select";
 import CatalogSection from "./CatalogSection";
+import CatalogEmptyState from "./CatalogEmptyState";
 import RegisterTipoActivoModal from "./RegisterTipoActivoModal";
+import RegisterLocationModal from "./RegisterLocationModal";
+import RegisterCampusModal from "./RegisterCampusModal";
+import RegisterBuildingModal from "./RegisterBuildingModal";
+import RegisterClassroomModal from "./RegisterClassroomModal";
 import { GenericPlus } from "@heathmont/moon-icons";
 import "./Catalogs.css";
 
@@ -50,15 +56,39 @@ export default function Catalogs() {
   const [subTab, setSubTab] = useState("muebles");
   const [search, setSearch] = useState("");
   const [modalTipoActivoOpen, setModalTipoActivoOpen] = useState(false);
+  const [modalLocationOpen, setModalLocationOpen] = useState(false);
+  const [modalCampusOpen, setModalCampusOpen] = useState(false);
+  const [modalBuildingOpen, setModalBuildingOpen] = useState(false);
+  const [modalClassroomOpen, setModalClassroomOpen] = useState(false);
+  const [editLocation, setEditLocation] = useState(null);
 
   const currentMain = MAIN_TABS.find((t) => t.id === mainTab);
   const currentSection = subTab;
   const config = SECTIONS[currentSection];
+  const isLocations = mainTab === "ubicaciones";
+  const locationItems = []; // TODO: conectar con API
+  const hasLocations = locationItems.length > 0;
 
   const handleMainTab = (id) => {
     setMainTab(id);
     const tab = MAIN_TABS.find((t) => t.id === id);
     if (tab?.sub?.[0]) setSubTab(tab.sub[0]);
+  };
+
+  const handleNewLocation = () => {
+    setEditLocation(null);
+    if (!hasLocations) setModalLocationOpen(true);
+    else if (subTab === "campus") setModalCampusOpen(true);
+    else if (subTab === "edificios") setModalBuildingOpen(true);
+    else if (subTab === "aulas") setModalClassroomOpen(true);
+  };
+
+  const handleEditLocation = (item) => {
+    if (!item) return;
+    setEditLocation(item);
+    if (subTab === "campus") setModalCampusOpen(true);
+    else if (subTab === "edificios") setModalBuildingOpen(true);
+    else if (subTab === "aulas") setModalClassroomOpen(true);
   };
 
   return (
@@ -70,7 +100,7 @@ export default function Catalogs() {
       />
 
       <div className="catalogs-card">
-        <div className="catalogs-card__tabs">
+        <div className="catalogs-card__header">
           <div className="catalogs-tabs__main">
             {MAIN_TABS.map((tab) => (
               <button
@@ -80,18 +110,6 @@ export default function Catalogs() {
                 onClick={() => handleMainTab(tab.id)}
               >
                 {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="catalogs-tabs__sub">
-            {currentMain?.sub?.map((subId) => (
-              <button
-                key={subId}
-                type="button"
-                className={`catalogs-tabs__sub-btn ${subTab === subId ? "catalogs-tabs__sub-btn--active" : ""}`}
-                onClick={() => setSubTab(subId)}
-              >
-                {SECTIONS[subId]?.title ?? subId}
               </button>
             ))}
           </div>
@@ -105,11 +123,32 @@ export default function Catalogs() {
               aria-label={`Buscar ${currentSection}`}
             />
           </div>
+          <div className="catalogs-card__selector-wrap">
+            <Select
+              value={subTab}
+              onChange={setSubTab}
+              options={(currentMain?.sub ?? []).map((subId) => ({
+                value: subId,
+                label: SECTIONS[subId]?.title ?? subId,
+              }))}
+              placeholder="Seleccionar categoría"
+              variant="ghost"
+              size="sm"
+              className="catalogs-card__selector"
+            />
+          </div>
           <div className="catalogs-card__actions">
             <Button
               variant="primary"
               iconLeft={GenericPlus}
-              onClick={() => mainTab === "tipos-activos" && setModalTipoActivoOpen(true)}
+              iconSize={30}
+              onClick={() =>
+                mainTab === "tipos-activos"
+                  ? setModalTipoActivoOpen(true)
+                  : isLocations
+                    ? handleNewLocation()
+                    : null
+              }
             >
               Nuevo
             </Button>
@@ -125,15 +164,66 @@ export default function Catalogs() {
         }}
       />
 
+      <RegisterLocationModal
+        open={modalLocationOpen}
+        onClose={() => setModalLocationOpen(false)}
+        onGuardar={(data) => {
+          setModalLocationOpen(false);
+        }}
+      />
+      <RegisterCampusModal
+        open={modalCampusOpen}
+        onClose={() => {
+          setModalCampusOpen(false);
+          setEditLocation(null);
+        }}
+        edificios={[]}
+        aulas={[]}
+        initialData={subTab === "campus" ? editLocation : undefined}
+        onGuardar={(data) => {
+          setModalCampusOpen(false);
+          setEditLocation(null);
+        }}
+      />
+      <RegisterBuildingModal
+        open={modalBuildingOpen}
+        onClose={() => {
+          setModalBuildingOpen(false);
+          setEditLocation(null);
+        }}
+        campus={[]}
+        aulas={[]}
+        initialData={subTab === "edificios" ? editLocation : undefined}
+        onGuardar={(data) => {
+          setModalBuildingOpen(false);
+          setEditLocation(null);
+        }}
+      />
+      <RegisterClassroomModal
+        open={modalClassroomOpen}
+        onClose={() => {
+          setModalClassroomOpen(false);
+          setEditLocation(null);
+        }}
+        campus={[]}
+        edificios={[]}
+        initialData={subTab === "aulas" ? editLocation : undefined}
+        onGuardar={(data) => {
+          setModalClassroomOpen(false);
+          setEditLocation(null);
+        }}
+      />
+
       <CatalogSection
         showToolbar={false}
         searchPlaceholder={config.searchPlaceholder}
         emptyMessage={config.emptyMessage}
         sectionKey={currentSection}
-        items={[]}
+        items={isLocations ? locationItems : []}
         search={search}
         onSearchChange={setSearch}
         countLabel={config.countLabel}
+        onEdit={isLocations && hasLocations ? handleEditLocation : undefined}
       />
     </div>
   );

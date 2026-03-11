@@ -11,7 +11,7 @@ export default function FormModal({
   onSubmit,
   submitLabel = "Guardar",
   submitIcon,
-  submitIconSize = 20,
+  submitIconSize = 30,
   className = "",
   children,
 }) {
@@ -41,12 +41,13 @@ export default function FormModal({
         <form onSubmit={handleSubmit} className="form-modal__form">
           {children}
           <footer className="form-modal__footer">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" size="small" onClick={onClose}>
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="primary"
+              size="small"
               iconLeft={submitIcon}
               iconSize={submitIconSize}
             >

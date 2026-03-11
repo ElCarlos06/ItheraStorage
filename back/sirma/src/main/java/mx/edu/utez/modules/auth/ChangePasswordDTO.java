@@ -7,30 +7,30 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * DTO para el flujo de cambio de contraseña en el primer acceso del usuario.
+ * DTO unificado para cambio de contraseña.
  * <p>
- * Se utiliza en el endpoint {@code POST /api/auth/change-password}.
- * El usuario debe proporcionar su correo, la contraseña temporal recibida por correo
- * y la nueva contraseña que desea establecer.
- * </p>
- *
- * @author Ithera Team
+ * Dos modos según {@code primer_login} en el usuario:
+ * <ul>
+ *   <li><b>Con token</b> (enlace del correo): token + passwordNueva. No requiere contraseña actual.</li>
+ *   <li><b>Con correo</b> (primer acceso): correo + passwordActual (temporal) + passwordNueva.</li>
+ * </ul>
  */
 @Getter
 @Setter
 @NoArgsConstructor
 public class ChangePasswordDTO {
 
-    /** Correo institucional del usuario que cambia su contraseña. */
-    @NotBlank(message = "El correo es obligatorio")
+    /** Token del enlace (cuando viene de "olvidé mi contraseña"). */
+    private String token;
+
+    /** Correo (cuando es primer acceso con contraseña temporal). */
     @Email(message = "El correo debe tener un formato válido")
     private String correo;
 
-    /** Contraseña temporal generada automáticamente y enviada al correo. */
-    @NotBlank(message = "La contraseña actual es obligatoria")
+    /** Contraseña actual/temporal (solo cuando es primer acceso). */
     private String passwordActual;
 
-    /** Nueva contraseña elegida por el usuario (debe cumplir estándares de seguridad). */
+    /** Nueva contraseña (siempre obligatoria). */
     @NotBlank(message = "La nueva contraseña es obligatoria")
     private String passwordNueva;
 }

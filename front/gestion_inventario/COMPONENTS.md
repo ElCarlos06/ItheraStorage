@@ -86,7 +86,7 @@ import {
   FilesImport,
   FilesSave,
   ControlsChevronDown,
-  // ... más iconos desde @heathmont/moon-icons o desde el figma donde tenemos los iconos buscas y le picas y ahí dice el nombre xd
+  // ... más iconos desde @heathmont/moon-icons
 } from "@heathmont/moon-icons";
 ```
 

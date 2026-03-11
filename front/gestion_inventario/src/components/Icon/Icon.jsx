@@ -7,9 +7,10 @@ export default function Icon({ icon: IconComponent, size, className, style, ...r
     ? { width: dimension, height: dimension, minWidth: dimension, minHeight: dimension, ...style }
     : style;
   const classes = ["icon-wrap", className].filter(Boolean).join(" ");
+  const iconProps = dimension ? { size: typeof size === "number" ? size : 24, ...rest } : rest;
   return (
     <span className={classes} style={wrapperStyle} aria-hidden>
-      <IconComponent {...rest} />
+      <IconComponent {...iconProps} />
     </span>
   );
 }

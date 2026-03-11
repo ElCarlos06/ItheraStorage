@@ -17,7 +17,6 @@ const navItems = [
   { to: "/usuarios", label: "Usuarios", icon: GenericUsers },
   { to: "/solicitudes", label: "Solicitudes", icon: GenericSettings },
   { to: "/catalogos", label: "Catálogos", icon: FilesMagazine },
-  { to: "/ajustes", label: "Ajustes", icon: GenericSettings },
 ];
 
 export default function Sidebar() {

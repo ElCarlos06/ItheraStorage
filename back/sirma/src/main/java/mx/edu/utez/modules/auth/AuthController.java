@@ -1,8 +1,9 @@
 package mx.edu.utez.modules.auth;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
  *   <li>{@code POST /api/auth/login} — Autentica credenciales y entrega un token JWT.
  *       Si {@code primer_login = true}, retorna HTTP 403 con la bandera
  *       {@code requiresPasswordChange} para que el front redirija al cambio de contraseña.</li>
- *   <li>{@code POST /api/auth/change-password} — Cambia la contraseña temporal por una
- *       permanente y desactiva la restricción de primer acceso.</li>
+ *   <li>{@code POST /api/auth/change-password} — Cambia contraseña. Acepta token (enlace) o
+ *       correo+passwordActual (primer acceso). Unifica ambos flujos.</li>
+ *   <li>{@code POST /api/auth/request-password-reset} — Olvidé mi contraseña: envía enlace por correo.</li>
  * </ul>
  * </p>
  *
@@ -26,10 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/auth")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.reset-base-url:http://localhost:5173}")
+    private String resetBaseUrl;
 
     /**
      * Autentica credenciales y entrega un token JWT.
@@ -79,5 +84,19 @@ public class AuthController {
         ApiResponse response = authService.changePassword(dto);
         return new ResponseEntity<>(response, response.getStatus());
     }
+
+    /**
+     * Solicitud de restablecimiento de contraseña (olvidé mi contraseña).
+     * Genera una nueva contraseña temporal, la envía por correo y marca primer_login = true.
+     *
+     * @param dto correo del usuario
+     * @return ApiResponse con mensaje de éxito
+     */
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<ApiResponse> requestPasswordReset(@Valid @RequestBody RequestPasswordResetDTO dto) {
+        ApiResponse response = authService.requestPasswordReset(dto, resetBaseUrl);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
 }
 

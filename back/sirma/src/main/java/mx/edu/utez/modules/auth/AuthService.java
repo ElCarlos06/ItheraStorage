@@ -2,6 +2,7 @@ package mx.edu.utez.modules.auth;
 
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.modules.register.MailService;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
 import mx.edu.utez.security.jwt.JwtProvider;
@@ -12,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
 
 /**
  * Servicio de autenticación que maneja el proceso de login, generación de tokens JWT
@@ -27,10 +30,15 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class AuthService {
 
+    private static final String PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!";
+    private static final int PASSWORD_LENGTH = 12;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     private final AuthenticationManager authManager;
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     /**
      * Autentica al usuario y retorna un {@link ApiResponse} con el token JWT.
@@ -68,54 +76,100 @@ public class AuthService {
     }
 
     /**
-     * Cambia la contraseña de un usuario en su primer acceso y desactiva la bandera
-     * {@code primer_login}, habilitando el acceso completo al sistema.
-     * <p>
-     * Reglas de la nueva contraseña:
+     * Cambia la contraseña. Unifica dos flujos:
      * <ul>
-     *   <li>Mínimo 8 caracteres</li>
-     *   <li>Al menos una letra mayúscula</li>
-     *   <li>Al menos un dígito</li>
-     *   <li>Al menos un carácter especial (@#$%&amp;*!)</li>
+     *   <li><b>Con token</b>: desde enlace del correo. No requiere contraseña actual.</li>
+     *   <li><b>Con correo + passwordActual</b>: primer acceso (primer_login). Requiere contraseña temporal.</li>
      * </ul>
-     * </p>
-     *
-     * @param dto datos de cambio: correo, contraseña temporal (actual) y nueva contraseña
-     * @return {@link ApiResponse} con el resultado de la operación
      */
     @Transactional
     public ApiResponse changePassword(ChangePasswordDTO dto) {
+        User user;
+        boolean requierePasswordActual = false;
 
-        // 1. Verificar que el usuario exista
-        User user = userRepository.findByCorreo(dto.getCorreo().trim().toLowerCase())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        // 2. Verificar que la contraseña actual (temporal) sea correcta
-        if (!passwordEncoder.matches(dto.getPasswordActual(), user.getPasswordHash())) {
-            return new ApiResponse("La contraseña actual es incorrecta", true, HttpStatus.UNAUTHORIZED);
+        if (dto.getToken() != null && !dto.getToken().isBlank()) {
+            // Flujo: enlace del correo (olvidé mi contraseña)
+            if (!jwtProvider.validateToken(dto.getToken().trim())) {
+                return new ApiResponse("El enlace ha expirado o no es válido. Solicita uno nuevo.", true, HttpStatus.BAD_REQUEST);
+            }
+            String correo = jwtProvider.getUsernameFromToken(dto.getToken().trim());
+            user = userRepository.findByCorreo(correo).orElse(null);
+            if (user == null) {
+                return new ApiResponse("Usuario no encontrado.", true, HttpStatus.NOT_FOUND);
+            }
+        } else if (dto.getCorreo() != null && !dto.getCorreo().isBlank()) {
+            // Flujo: primer acceso (contraseña temporal)
+            requierePasswordActual = true;
+            user = userRepository.findByCorreo(dto.getCorreo().trim().toLowerCase())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            if (dto.getPasswordActual() == null || dto.getPasswordActual().isBlank()) {
+                return new ApiResponse("La contraseña temporal es obligatoria", true, HttpStatus.BAD_REQUEST);
+            }
+            if (!passwordEncoder.matches(dto.getPasswordActual(), user.getPasswordHash())) {
+                return new ApiResponse("La contraseña temporal es incorrecta", true, HttpStatus.UNAUTHORIZED);
+            }
+        } else {
+            return new ApiResponse("Se requiere token o correo con contraseña actual", true, HttpStatus.BAD_REQUEST);
         }
 
-        // 3. Validar que la nueva contraseña cumpla con el nivel mínimo de seguridad
         String nuevaPassword = dto.getPasswordNueva();
         if (!isPasswordSecure(nuevaPassword)) {
             return new ApiResponse(
-                    "La nueva contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial (@#$%&*!)",
+                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial (@#$%&*!)",
                     true, HttpStatus.BAD_REQUEST);
         }
-
-        // 4. Verificar que la nueva contraseña sea diferente a la temporal
-        if (passwordEncoder.matches(nuevaPassword, user.getPasswordHash())) {
-            return new ApiResponse(
-                    "La nueva contraseña no puede ser igual a la contraseña temporal",
-                    true, HttpStatus.BAD_REQUEST);
+        if (requierePasswordActual && passwordEncoder.matches(nuevaPassword, user.getPasswordHash())) {
+            return new ApiResponse("La nueva contraseña no puede ser igual a la temporal", true, HttpStatus.BAD_REQUEST);
         }
 
-        // 5. Aplicar cambios: cifrar nueva contraseña y marcar primer_login = false
         user.setPasswordHash(passwordEncoder.encode(nuevaPassword));
         user.setPrimerLogin(false);
         userRepository.save(user);
 
         return new ApiResponse("Contraseña actualizada correctamente. Ya puedes iniciar sesión.", HttpStatus.OK);
+    }
+
+    /**
+     * Solicitud de restablecimiento de contraseña (olvidé mi contraseña).
+     * Envía un correo con enlace para que el usuario establezca la contraseña que desee.
+     *
+     * @param dto correo del usuario que solicita el restablecimiento
+     * @param resetBaseUrl URL base del frontend para el enlace (ej: http://localhost:5173)
+     * @return ApiResponse con mensaje de éxito
+     */
+    @Transactional
+    public ApiResponse requestPasswordReset(RequestPasswordResetDTO dto, String resetBaseUrl) {
+        String correo = dto.getCorreo().trim().toLowerCase();
+        User user = userRepository.findByCorreo(correo).orElse(null);
+        if (user == null) {
+            return new ApiResponse("No se encontró una cuenta con ese correo", true, HttpStatus.NOT_FOUND);
+        }
+
+        if (!Boolean.TRUE.equals(user.getEsActivo())) {
+            return new ApiResponse("La cuenta está desactivada. Contacta al administrador.", true, HttpStatus.FORBIDDEN);
+        }
+
+        String resetToken = jwtProvider.generateResetToken(correo);
+        String resetLink = resetBaseUrl.replaceAll("/$", "") + "/reset-password?token="
+                + java.net.URLEncoder.encode(resetToken, java.nio.charset.StandardCharsets.UTF_8);
+
+        try {
+            mailService.enviarLinkRestablecimiento(correo, user.getNombreCompleto(), resetLink);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo enviar el correo. Intenta más tarde.");
+        }
+
+        return new ApiResponse(
+                "Revisa tu correo. Te enviamos un enlace para restablecer tu contraseña.",
+                HttpStatus.OK);
+    }
+
+    private String generarContrasenaTemporal() {
+        StringBuilder sb = new StringBuilder(PASSWORD_LENGTH);
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+            sb.append(PASSWORD_CHARS.charAt(RANDOM.nextInt(PASSWORD_CHARS.length())));
+        }
+        return sb.toString();
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────

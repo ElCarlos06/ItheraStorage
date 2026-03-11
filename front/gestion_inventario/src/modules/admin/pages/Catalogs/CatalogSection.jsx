@@ -17,6 +17,9 @@ export default function CatalogSection({
   onSearchChange,
   countLabel = "registros",
   onNew,
+  emptyActionLabel,
+  onEmptyAction,
+  onEdit,
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = onSearchChange ? (searchProp ?? "") : internalSearch;
@@ -52,7 +55,7 @@ export default function CatalogSection({
               />
             </div>
             <div className="catalog-section__actions">
-              <Button variant="primary" iconLeft={GenericPlus} onClick={() => onNew?.()}>
+              <Button variant="primary" iconLeft={GenericPlus} iconSize={30} onClick={() => onNew?.()}>
                 Nuevo
               </Button>
             </div>
@@ -61,15 +64,26 @@ export default function CatalogSection({
 
         <div className="catalog-section__list">
           {showEmptyState ? (
-            <CatalogEmptyState message={emptyMessage} hasSearch={!!(search ?? "").trim()} />
+            <CatalogEmptyState
+              message={emptyMessage}
+              hasSearch={!!(search ?? "").trim()}
+              actionLabel={emptyActionLabel}
+              onAction={onEmptyAction}
+            />
           ) : (
             filtered.map((item) => {
               const nombre = item.nombre ?? item.name ?? "—";
               const cantidad = item.cantidad ?? item.count ?? item.edificios ?? item.aulas ?? 0;
               const subtitle = `${cantidad} ${countLabel}`;
               return (
-                <div key={item.id ?? nombre} className="catalog-section__card-wrap">
-                  <div className="catalog-section__card" role="button" tabIndex={0}>
+<div key={item.id ?? nombre} className="catalog-section__card-wrap">
+                <div
+                  className="catalog-section__card"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onEdit?.(item)}
+                  onKeyDown={(e) => e.key === "Enter" && onEdit?.(item)}
+                >
                     <div className="catalog-section__card-icon">
                       <Icon icon={TravelHotel} size={32} />
                     </div>

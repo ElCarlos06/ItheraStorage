@@ -30,7 +30,7 @@ async function request(endpoint, options = {}) {
       data.message ||
       data.error ||
       (Array.isArray(data.errors) && data.errors[0]?.defaultMessage) ||
-      `Error ${res.status}: ${res.statusText}`;
+      "Ocurrió un error. Intenta de nuevo.";
     // Se adjunta el cuerpo completo al error para que el llamador pueda
     // inspeccionar campos adicionales como requiresPasswordChange
     const err = new Error(msg);
@@ -55,6 +55,13 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  /** PUT /api/users/:id - Actualizar usuario */
+  updateUser: (id, body) =>
+    request(`/api/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
   /** POST /api/login - Iniciar sesión */
   login: (body) =>
     request("/api/auth/login", {
@@ -62,12 +69,23 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
-  /** POST /api/auth/change-password - Cambiar contraseña */
-  passwordRecovery: (body) =>
-    request("/api/auth/change-password", {
+  /** POST /api/auth/request-password-reset - Olvidé mi contraseña: envía nueva temporal por correo */
+  requestPasswordReset: (correo) =>
+    request("/api/auth/request-password-reset", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ correo }),
     }),
+
+  /** POST /api/auth/change-password - Cambiar contraseña (unificado: token o correo+passwordActual) */
+  changePassword: (body) => {
+    const payload = body.token
+      ? { token: body.token, passwordNueva: body.passwordNueva }
+      : { correo: body.correo, passwordActual: body.passwordActual, passwordNueva: body.passwordNueva };
+    return request("/api/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
 
   /** GET /api/users/correo/:correo - Obtener usuario por correo */
   getUserByCorreo: (correo) =>

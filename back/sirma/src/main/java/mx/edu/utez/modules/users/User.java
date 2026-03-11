@@ -20,8 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "USUARIO")
 @AttributeOverride(name = "id", column = @Column(name = "id_usuario"))
-@Getter
-@Setter
+@Getter @Setter
 @NoArgsConstructor
 public class User extends BaseEntity {
 

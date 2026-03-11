@@ -71,4 +71,32 @@ public class MailService {
         mailSender.send(message);
     }
 
+    /**
+     * Envía el correo con enlace para restablecer contraseña.
+     *
+     * @param destinatario correo del usuario
+     * @param nombreCompleto nombre para personalizar
+     * @param resetLink URL completa con token (ej: http://localhost:5173/reset-password?token=xxx)
+     */
+    public void enviarLinkRestablecimiento(String destinatario, String nombreCompleto, String resetLink)
+            throws MessagingException, IOException {
+
+        ClassPathResource tpl = new ClassPathResource("templates/reset-password-email.html");
+        String html = StreamUtils.copyToString(tpl.getInputStream(), StandardCharsets.UTF_8)
+                .replace("{{nombre}}", nombreCompleto)
+                .replace("{{resetLink}}", resetLink);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setTo(destinatario);
+        helper.setSubject("SIRMA — Restablecer contraseña");
+        helper.setText(html, true);
+
+        helper.addInline("logo", new ClassPathResource("static/email/activos360_logo.png"));
+        helper.addInline("onda", new ClassPathResource("static/email/onda.png"));
+
+        mailSender.send(message);
+    }
+
 }

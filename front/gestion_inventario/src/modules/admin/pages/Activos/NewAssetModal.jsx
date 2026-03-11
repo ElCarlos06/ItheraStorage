@@ -1,11 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
 import Input from "../../../../components/Input/Input";
-import Icon from "../../../../components/Icon/Icon";
-import { ControlsChevronDown, FilesSave } from "@heathmont/moon-icons";
+import Select from "../../../../components/Select/Select";
+import { FilesSave } from "@heathmont/moon-icons";
 import "./NewAssetModal.css";
 
-export default function NewAssetModal({ open, onClose, onGuardar }) {
+const TIPO_ACTIVO_OPTIONS = [
+  { value: "Laptop", label: "Laptop" },
+  { value: "Periférico", label: "Periférico" },
+  { value: "Equipo de cómputo", label: "Equipo de cómputo" },
+  { value: "Audiovisual", label: "Audiovisual" },
+];
+
+const CAMPUS_OPTIONS = [
+  { value: "Universidad Tecnológica Emiliano Zapata", label: "Universidad Tecnológica Emiliano Zapata" },
+  { value: "Campus Norte", label: "Campus Norte" },
+  { value: "Campus Centro", label: "Campus Centro" },
+];
+
+const EDIFICIO_OPTIONS = [
+  { value: "D1", label: "D1" },
+  { value: "A2", label: "A2" },
+  { value: "C1", label: "C1" },
+];
+
+const AULA_OPTIONS = [
+  { value: "A1", label: "A1" },
+  { value: "B3", label: "B3" },
+  { value: "Sala 2", label: "Sala 2" },
+];
+
+export default function NewAssetModal({ open, onClose, onGuardar, initialData }) {
+  const isEdit = !!initialData;
   const [form, setForm] = useState({
     numeroSerie: "",
     tipoActivo: "",
@@ -16,8 +42,36 @@ export default function NewAssetModal({ open, onClose, onGuardar }) {
     descripcion: "",
   });
 
+  useEffect(() => {
+    if (open && initialData) {
+      setForm({
+        numeroSerie: initialData.numeroSerie ?? initialData.codigo ?? "",
+        tipoActivo: initialData.tipoActivo ?? "",
+        costo: initialData.costo ?? "",
+        campus: initialData.campus ?? "",
+        edificio: initialData.edificio ?? "",
+        aula: initialData.aula ?? "",
+        descripcion: initialData.descripcion ?? initialData.descripcionCorta ?? "",
+      });
+    } else if (open) {
+      setForm({
+        numeroSerie: "",
+        tipoActivo: "",
+        costo: "",
+        campus: "",
+        edificio: "",
+        aula: "",
+        descripcion: "",
+      });
+    }
+  }, [open, initialData]);
+
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleSelect = (field) => (value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -37,11 +91,11 @@ export default function NewAssetModal({ open, onClose, onGuardar }) {
       open={open}
       onClose={handleClose}
       className="nuevo-activo-modal"
-      title="Registrar Nuevo Activo"
+      title={isEdit ? "Editar Activo" : "Registrar Nuevo Activo"}
       subtitle="Completa la información técnica del dispositivo"
-      submitLabel="Guardar Activo"
+      submitLabel={isEdit ? "Guardar cambios" : "Guardar Activo"}
       submitIcon={FilesSave}
-      submitIconSize={20}
+      submitIconSize={30}
       onSubmit={handleSubmit}
     >
       <div className="form-modal__field">
@@ -58,22 +112,16 @@ export default function NewAssetModal({ open, onClose, onGuardar }) {
 
       <div className="form-modal__row">
         <div className="form-modal__field form-modal__field--flex">
-          <label className="form-modal__label">Tipo de Activo*</label>
-          <div className="nuevo-activo-modal__select-wrap">
-            <select
-              value={form.tipoActivo}
-              onChange={handleChange("tipoActivo")}
-              className="nuevo-activo-modal__select"
-              required
-            >
-              <option value="">Seleccionar...</option>
-              <option value="Laptop">Laptop</option>
-              <option value="Periférico">Periférico</option>
-              <option value="Equipo de cómputo">Equipo de cómputo</option>
-              <option value="Audiovisual">Audiovisual</option>
-            </select>
-            <Icon icon={ControlsChevronDown} size={30} className="nuevo-activo-modal__select-icon" aria-hidden />
-          </div>
+          <Select
+            label="Tipo de Activo"
+            labelClassName="form-modal__label"
+            value={form.tipoActivo}
+            onChange={handleSelect("tipoActivo")}
+            options={TIPO_ACTIVO_OPTIONS}
+            placeholder="Seleccionar..."
+            required
+            variant="ghost"
+          />
         </div>
         <div className="form-modal__field form-modal__field--flex nuevo-activo-modal__field--costo">
           <label className="form-modal__label">Costo</label>
@@ -96,55 +144,40 @@ export default function NewAssetModal({ open, onClose, onGuardar }) {
         <h3 className="nuevo-activo-modal__section-title">Ubicación</h3>
         <div className="form-modal__row nuevo-activo-modal__row--3">
           <div className="form-modal__field form-modal__field--flex">
-            <label className="form-modal__label">Campus*</label>
-            <div className="nuevo-activo-modal__select-wrap">
-              <select
-                value={form.campus}
-                onChange={handleChange("campus")}
-                className="nuevo-activo-modal__select"
-                required
-              >
-                <option value="">Seleccionar...</option>
-                <option value="Universidad Tecnológica Emiliano Zapata">Universidad Tecnológica Emiliano Zapata</option>
-                <option value="Campus Norte">Campus Norte</option>
-                <option value="Campus Centro">Campus Centro</option>
-              </select>
-              <Icon icon={ControlsChevronDown} size={30} className="nuevo-activo-modal__select-icon" aria-hidden />
-            </div>
+            <Select
+              label="Campus"
+              labelClassName="form-modal__label"
+              value={form.campus}
+              onChange={handleSelect("campus")}
+              options={CAMPUS_OPTIONS}
+              placeholder="Seleccionar..."
+              required
+              variant="ghost"
+            />
           </div>
           <div className="form-modal__field form-modal__field--flex">
-            <label className="form-modal__label">Edificio*</label>
-            <div className="nuevo-activo-modal__select-wrap">
-              <select
-                value={form.edificio}
-                onChange={handleChange("edificio")}
-                className="nuevo-activo-modal__select"
-                required
-              >
-                <option value="">Seleccionar...</option>
-                <option value="D1">D1</option>
-                <option value="A2">A2</option>
-                <option value="C1">C1</option>
-              </select>
-              <Icon icon={ControlsChevronDown} size={30} className="nuevo-activo-modal__select-icon" aria-hidden />
-            </div>
+            <Select
+              label="Edificio"
+              labelClassName="form-modal__label"
+              value={form.edificio}
+              onChange={handleSelect("edificio")}
+              options={EDIFICIO_OPTIONS}
+              placeholder="Seleccionar..."
+              required
+              variant="ghost"
+            />
           </div>
           <div className="form-modal__field form-modal__field--flex">
-            <label className="form-modal__label">Aula*</label>
-            <div className="nuevo-activo-modal__select-wrap">
-              <select
-                value={form.aula}
-                onChange={handleChange("aula")}
-                className="nuevo-activo-modal__select"
-                required
-              >
-                <option value="">Seleccionar...</option>
-                <option value="A1">A1</option>
-                <option value="B3">B3</option>
-                <option value="Sala 2">Sala 2</option>
-              </select>
-              <Icon icon={ControlsChevronDown} size={30} className="nuevo-activo-modal__select-icon" aria-hidden />
-            </div>
+            <Select
+              label="Aula"
+              labelClassName="form-modal__label"
+              value={form.aula}
+              onChange={handleSelect("aula")}
+              options={AULA_OPTIONS}
+              placeholder="Seleccionar..."
+              required
+              variant="ghost"
+            />
           </div>
         </div>
       </div>

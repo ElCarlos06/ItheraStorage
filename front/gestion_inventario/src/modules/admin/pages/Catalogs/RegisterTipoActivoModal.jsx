@@ -1,7 +1,7 @@
 import { useState } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
 import Input from "../../../../components/Input/Input";
-import { GenericPlus } from "@heathmont/moon-icons";
+import { FilesSave } from "@heathmont/moon-icons";
 import "./RegisterTipoActivoModal.css";
 
 export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
@@ -41,8 +41,8 @@ export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
       title="Registrar Tipo de Activo"
       subtitle="Define las características del tipo de activo"
       submitLabel="Guardar Tipo"
-      submitIcon={GenericPlus}
-      submitIconSize={20}
+      submitIcon={FilesSave}
+      submitIconSize={30}
       onSubmit={handleSubmit}
     >
       <div className="form-modal__field">
