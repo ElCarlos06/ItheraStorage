@@ -58,7 +58,7 @@ public class AuthService {
         );
 
         // 2. Recuperar entidad para verificar primer_login
-        User user = userRepository.findByCorreo(dto.getCorreo())
+        User user = userRepository.findByCorreoIgnoreCase(dto.getCorreo())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         // 3. Si es primer acceso, bloquear el login y avisar al front
@@ -93,14 +93,14 @@ public class AuthService {
                 return new ApiResponse("El enlace ha expirado o no es válido. Solicita uno nuevo.", true, HttpStatus.BAD_REQUEST);
             }
             String correo = jwtProvider.getUsernameFromToken(dto.getToken().trim());
-            user = userRepository.findByCorreo(correo).orElse(null);
+            user = userRepository.findByCorreoIgnoreCase(correo).orElse(null);
             if (user == null) {
                 return new ApiResponse("Usuario no encontrado.", true, HttpStatus.NOT_FOUND);
             }
         } else if (dto.getCorreo() != null && !dto.getCorreo().isBlank()) {
             // Flujo: primer acceso (contraseña temporal)
             requierePasswordActual = true;
-            user = userRepository.findByCorreo(dto.getCorreo().trim().toLowerCase())
+            user = userRepository.findByCorreoIgnoreCase(dto.getCorreo().trim())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             if (dto.getPasswordActual() == null || dto.getPasswordActual().isBlank()) {
                 return new ApiResponse("La contraseña temporal es obligatoria", true, HttpStatus.BAD_REQUEST);
@@ -140,7 +140,7 @@ public class AuthService {
     @Transactional
     public ApiResponse requestPasswordReset(RequestPasswordResetDTO dto, String resetBaseUrl) {
         String correo = dto.getCorreo().trim().toLowerCase();
-        User user = userRepository.findByCorreo(correo).orElse(null);
+        User user = userRepository.findByCorreoIgnoreCase(correo).orElse(null);
         if (user == null) {
             return new ApiResponse("No se encontró una cuenta con ese correo", true, HttpStatus.NOT_FOUND);
         }

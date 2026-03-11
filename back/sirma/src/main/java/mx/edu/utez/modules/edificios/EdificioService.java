@@ -46,7 +46,14 @@ public class EdificioService {
         if (campus.isEmpty())
             return new ApiResponse("Campus no encontrado", true, HttpStatus.NOT_FOUND);
         if (edificioRepository.existsByCampusIdAndNombreAndEsActivoTrue(dto.getIdCampus(), dto.getNombre()))
-            return new ApiResponse("Ya existe un edificio activo con ese nombre en ese campus. Desactive el existente si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+            return new ApiResponse("Ya existe un edificio activo con ese nombre en ese campus. Desactívelo y actívelo de nuevo si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+        var existenteInactivo = edificioRepository.findFirstByCampusIdAndNombreAndEsActivoFalse(dto.getIdCampus(), dto.getNombre());
+        if (existenteInactivo.isPresent()) {
+            Edificio entity = existenteInactivo.get();
+            entity.setEsActivo(true);
+            edificioRepository.save(entity);
+            return new ApiResponse("Edificio reactivado", entity, HttpStatus.OK);
+        }
         Edificio entity = new Edificio();
         entity.setCampus(campus.get());
         entity.setNombre(dto.getNombre());
@@ -64,7 +71,7 @@ public class EdificioService {
         if (campus.isEmpty())
             return new ApiResponse("Campus no encontrado", true, HttpStatus.NOT_FOUND);
         if (edificioRepository.existsByCampusIdAndNombreAndEsActivoTrueAndIdNot(dto.getIdCampus(), dto.getNombre(), id))
-            return new ApiResponse("Ya existe otro edificio activo con ese nombre en ese campus. Desactive el existente si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+            return new ApiResponse("Ya existe otro edificio activo con ese nombre en ese campus. Desactívelo y actívelo de nuevo si desea reutilizarlo.", true, HttpStatus.CONFLICT);
         Edificio entity = found.get();
         entity.setCampus(campus.get());
         entity.setNombre(dto.getNombre());

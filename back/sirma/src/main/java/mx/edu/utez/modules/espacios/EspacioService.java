@@ -44,7 +44,16 @@ public class EspacioService {
         if (edificio.isEmpty())
             return new ApiResponse("Edificio no encontrado", true, HttpStatus.NOT_FOUND);
         if (espacioRepository.existsByEdificioIdAndNombreEspacioAndEsActivoTrue(dto.getIdEdificio(), dto.getNombreEspacio()))
-            return new ApiResponse("Ya existe un aula activa con ese nombre en ese edificio. Desactive la existente si desea reutilizarla.", true, HttpStatus.CONFLICT);
+            return new ApiResponse("Ya existe un aula activa con ese nombre en ese edificio. Desactívela y actívela de nuevo si desea reutilizarla.", true, HttpStatus.CONFLICT);
+        var existenteInactivo = espacioRepository.findFirstByEdificioIdAndNombreEspacioAndEsActivoFalse(dto.getIdEdificio(), dto.getNombreEspacio());
+        if (existenteInactivo.isPresent()) {
+            Espacio entity = existenteInactivo.get();
+            entity.setTipoEspacio(dto.getTipoEspacio());
+            entity.setDescripcion(dto.getDescripcion());
+            entity.setEsActivo(true);
+            espacioRepository.save(entity);
+            return new ApiResponse("Aula reactivada", entity, HttpStatus.OK);
+        }
         Espacio entity = new Espacio();
         entity.setEdificio(edificio.get());
         entity.setNombreEspacio(dto.getNombreEspacio());
@@ -64,7 +73,7 @@ public class EspacioService {
         if (edificio.isEmpty())
             return new ApiResponse("Edificio no encontrado", true, HttpStatus.NOT_FOUND);
         if (espacioRepository.existsByEdificioIdAndNombreEspacioAndEsActivoTrueAndIdNot(dto.getIdEdificio(), dto.getNombreEspacio(), id))
-            return new ApiResponse("Ya existe otra aula activa con ese nombre en ese edificio. Desactive la existente si desea reutilizarla.", true, HttpStatus.CONFLICT);
+            return new ApiResponse("Ya existe otra aula activa con ese nombre en ese edificio. Desactívela y actívela de nuevo si desea reutilizarla.", true, HttpStatus.CONFLICT);
         Espacio entity = found.get();
         entity.setEdificio(edificio.get());
         entity.setNombreEspacio(dto.getNombreEspacio());

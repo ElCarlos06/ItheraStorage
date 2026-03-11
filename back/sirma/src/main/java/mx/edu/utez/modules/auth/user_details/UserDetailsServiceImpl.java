@@ -29,7 +29,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByCorreo(email)
+        User user = userRepository.findByCorreoIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
         return new UserDetailsImp(user);
     }

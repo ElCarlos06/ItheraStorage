@@ -59,7 +59,7 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public ApiResponse findByCorreo(String correo) {
-        Optional<User> found = userRepository.findByCorreo(correo.trim().toLowerCase());
+        Optional<User> found = userRepository.findByCorreoIgnoreCase(correo.trim());
         if (found.isEmpty())
             return new ApiResponse(
                     "No existe ningún usuario registrado con el correo: " + correo,
@@ -69,14 +69,32 @@ public class UserService {
 
     @Transactional
     public ApiResponse save(UserDTO dto) {
-        if (userRepository.existsByCorreo(dto.getCorreo()))
-            return new ApiResponse("Ya existe un usuario con ese correo", true, HttpStatus.CONFLICT);
+        Optional<User> existente = userRepository.findByCorreoIgnoreCase(dto.getCorreo().trim());
+        if (existente.isPresent() && Boolean.TRUE.equals(existente.get().getEsActivo()))
+            return new ApiResponse("Ya existe un usuario activo con ese correo. Desactívelo y actívelo de nuevo si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+
         Optional<Role> role = roleRepository.findById(dto.getIdRol());
         if (role.isEmpty())
             return new ApiResponse("Rol no encontrado", true, HttpStatus.NOT_FOUND);
         Optional<Area> area = areaRepository.findById(dto.getIdArea());
         if (area.isEmpty())
             return new ApiResponse("Área no encontrada", true, HttpStatus.NOT_FOUND);
+
+        if (existente.isPresent()) {
+            User entity = existente.get();
+            entity.setNombreCompleto(dto.getNombreCompleto());
+            entity.setCurp(dto.getCurp());
+            entity.setFechaNacimiento(LocalDate.parse(dto.getFechaNacimiento()));
+            if (dto.getNumeroEmpleado() != null && !dto.getNumeroEmpleado().isBlank())
+                entity.setNumeroEmpleado(dto.getNumeroEmpleado());
+            entity.setRole(role.get());
+            entity.setArea(area.get());
+            entity.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+            entity.setPrimerLogin(true);
+            entity.setEsActivo(true);
+            userRepository.save(entity);
+            return new ApiResponse("Usuario reactivado", entity, HttpStatus.OK);
+        }
 
         User entity = new User();
         entity.setNombreCompleto(dto.getNombreCompleto());

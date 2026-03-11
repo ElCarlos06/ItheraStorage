@@ -73,7 +73,7 @@ export default function Users({
     setLoading(true);
     api
       .getUsers()
-      .then((res) => setUsers((res.data ?? []).map(mapUser).filter(Boolean)))
+      .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
       .catch((err) => {
         setError(err.message);
         setUsers([]);
@@ -82,7 +82,7 @@ export default function Users({
     const interval = setInterval(() => {
       api
         .getUsers()
-        .then((res) => setUsers((res.data ?? []).map(mapUser).filter(Boolean)))
+        .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
         .catch(() => {});
     }, 30000);
     return () => clearInterval(interval);
@@ -92,7 +92,7 @@ export default function Users({
     if (usersProp !== undefined) return;
     api
       .getUsers()
-      .then((res) => setUsers((res.data ?? []).map(mapUser).filter(Boolean)))
+      .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
       .catch(() => {});
   };
 

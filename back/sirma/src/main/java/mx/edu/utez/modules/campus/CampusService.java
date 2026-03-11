@@ -42,7 +42,15 @@ public class CampusService {
     @Transactional
     public ApiResponse save(CampusDTO dto) {
         if (campusRepository.existsByNombreAndEsActivoTrue(dto.getNombre()))
-            return new ApiResponse("Ya existe un campus activo con ese nombre. Desactive el existente si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+            return new ApiResponse("Ya existe un campus activo con ese nombre. Desactívelo y actívelo de nuevo si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+        var existenteInactivo = campusRepository.findFirstByNombreAndEsActivoFalse(dto.getNombre());
+        if (existenteInactivo.isPresent()) {
+            Campus entity = existenteInactivo.get();
+            entity.setDescripcion(dto.getDescripcion());
+            entity.setEsActivo(true);
+            campusRepository.save(entity);
+            return new ApiResponse("Campus reactivado", entity, HttpStatus.OK);
+        }
         Campus entity = new Campus();
         entity.setNombre(dto.getNombre());
         entity.setDescripcion(dto.getDescripcion());
@@ -57,7 +65,7 @@ public class CampusService {
         if (found.isEmpty())
             return new ApiResponse("Campus no encontrado", true, HttpStatus.NOT_FOUND);
         if (campusRepository.existsByNombreAndEsActivoTrueAndIdNot(dto.getNombre(), id))
-            return new ApiResponse("Ya existe otro campus activo con ese nombre. Desactive el existente si desea reutilizarlo.", true, HttpStatus.CONFLICT);
+            return new ApiResponse("Ya existe otro campus activo con ese nombre. Desactívelo y actívelo de nuevo si desea reutilizarlo.", true, HttpStatus.CONFLICT);
         Campus entity = found.get();
         entity.setNombre(dto.getNombre());
         entity.setDescripcion(dto.getDescripcion());

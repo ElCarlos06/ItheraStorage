@@ -99,15 +99,19 @@ public class RegisterService {
                     true, HttpStatus.BAD_REQUEST);
         }
 
-        // ── 3. Validar unicidad de correo ──────────────────────────────────
+        // ── 3. Validar unicidad de correo (activo) o reactivar inactivo ──────
         String correo = dto.getCorreo().trim().toLowerCase();
-        if (userRepository.existsByCorreo(correo)) {
+        Optional<User> existenteCorreo = userRepository.findByCorreoIgnoreCase(correo);
+        if (existenteCorreo.isPresent() && Boolean.TRUE.equals(existenteCorreo.get().getEsActivo())) {
             return new ApiResponse("El correo electrónico ya está registrado", true, HttpStatus.CONFLICT);
         }
 
-        // ── 4. Validar unicidad de CURP ────────────────────────────────────
+        // ── 4. Validar unicidad de CURP (activo) o mismo usuario inactivo ───
         if (userRepository.existsByCurp(curp)) {
-            return new ApiResponse("La CURP ya está registrada", true, HttpStatus.CONFLICT);
+            if (existenteCorreo.isEmpty() || !curp.equalsIgnoreCase(existenteCorreo.get().getCurp())) {
+                return new ApiResponse("La CURP ya está registrada", true, HttpStatus.CONFLICT);
+            }
+            // mismo usuario inactivo reactivando: CURP coincide, continuar
         }
 
         // ── 5. Validar fecha de nacimiento (mayoría de edad) ───────────────
@@ -136,16 +140,33 @@ public class RegisterService {
             return new ApiResponse("El área especificada no existe", true, HttpStatus.NOT_FOUND);
         }
 
-        // ── 8. Generar número de empleado ──────────────────────────────────
-        //   Formato: [2 últimos chars CURP] + [prefijo rol] + [consecutivo 4 dígitos]
-        //   Ejemplo CURP "GARC900101HMNRRR09" → "09ADM0025"
-        //   Prefijo: Administrador=ADM, Empleado=EMP, Técnico=TEC
-        String numeroEmpleado = generarNumeroEmpleado(curp, role);
+        // ── 8–11. Reactivar usuario inactivo o crear nuevo ─────────────────
+        if (existenteCorreo.isPresent()) {
+            User user = existenteCorreo.get();
+            String passwordPlana = generarPasswordTemporal();
+            user.setNombreCompleto(nombre);
+            user.setCurp(curp);
+            user.setFechaNacimiento(fechaNacimiento);
+            user.setRole(role);
+            user.setArea(areaOpt.get());
+            user.setPasswordHash(passwordEncoder.encode(passwordPlana));
+            user.setPrimerLogin(true);
+            user.setEsActivo(true);
+            userRepository.save(user);
+            try {
+                mailService.enviarCredenciales(correo, nombre, passwordPlana);
+            } catch (Exception e) {
+                return new ApiResponse(
+                        "Usuario reactivado pero hubo un error al enviar el correo: " + e.getMessage(),
+                        user, HttpStatus.OK);
+            }
+            return new ApiResponse("Usuario reactivado exitosamente. Se envió la nueva contraseña temporal al correo " + correo,
+                    user, HttpStatus.OK);
+        }
 
-        // ── 9. Generar contraseña temporal segura ──────────────────────────
+        String numeroEmpleado = generarNumeroEmpleado(curp, role);
         String passwordPlana = generarPasswordTemporal();
 
-        // ── 10. Construir y persistir el usuario ───────────────────────────
         User user = new User();
         user.setNombreCompleto(nombre);
         user.setCorreo(correo);
@@ -160,11 +181,9 @@ public class RegisterService {
 
         userRepository.save(user);
 
-        // ── 11. Enviar contraseña temporal por correo ──────────────────────
         try {
             mailService.enviarCredenciales(correo, nombre, passwordPlana);
         } catch (Exception e) {
-            // El usuario ya fue guardado — registramos el error pero no hacemos rollback
             return new ApiResponse(
                     "Usuario registrado pero hubo un error al enviar el correo: " + e.getMessage(),
                     user, HttpStatus.CREATED);

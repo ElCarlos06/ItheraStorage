@@ -13,8 +13,8 @@ import java.util.Optional;
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    /** Busca un usuario por su correo. */
-    Optional<User> findByCorreo(String correo);
+    /** Busca un usuario por su correo (ignora mayúsculas). */
+    Optional<User> findByCorreoIgnoreCase(String correo);
 
     boolean existsByCorreo(String correo);
 
