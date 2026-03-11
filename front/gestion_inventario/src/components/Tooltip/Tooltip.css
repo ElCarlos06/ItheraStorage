@@ -1,37 +1,31 @@
-.tooltip-trigger {
-  position: relative;
-}
-
-.tooltip {
-  position: fixed;
+.radix-tooltip-content {
   padding: 8px 12px;
-  font-family: var(--moon-font-sans);
-  font-size: 13px;
+  background: #ffffff;
+  color: #232222;
+  font-family: var(--moon-font-sans, "Inter", sans-serif);
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #334155;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 10px;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1000;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  animation: tooltip-in 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+  max-width: 320px;
+  z-index: 9999;
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+  animation: tooltipFadeIn 0.15s ease-out;
 }
 
-.tooltip--follow {
-  left: 0;
-  top: 0;
-}
-
-@keyframes tooltip-in {
+@keyframes tooltipFadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px) scale(0.94);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
+}
+
+.radix-tooltip-arrow {
+  fill: #ffffff;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.06));
 }

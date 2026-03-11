@@ -14,11 +14,11 @@ import {
   GenericPlus,
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
+import { Tooltip } from "../../../../components/Tooltip/Tooltip";
 import { api } from "../../../../api/client";
 import "./Users.css";
 import NewUserModal from "./NewUserModal";
 import UserInfoModal from "./UserInfoModal";
-import Tooltip from "../../../../components/Tooltip/Tooltip";
 
 const STAT_ICONS = [GenericUser, NotificationsBell, GenericSettings];
 
@@ -160,22 +160,17 @@ export default function Users({
               filtered.map((user, idx) => (
                 <div key={user?.id ?? `user-${idx}`} className="users-view__card-wrap">
                   <div className="users-view__card">
+                    <Tooltip content="Clic para ver información completa" side="top">
                     <div className="users-view__card-inner">
-                      <Tooltip
-                        content="Clic para ver información completa"
-                        placement="top"
-                        followCursor
-                        as="div"
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setModalUser(user)}
+                        onKeyDown={(e) => e.key === "Enter" && setModalUser(user)}
+                        aria-label="Ver información completa del usuario"
                         className="users-view__card-body users-view__card-body--clickable"
                       >
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setModalUser(user)}
-                          onKeyDown={(e) => e.key === "Enter" && setModalUser(user)}
-                          aria-label="Ver información completa del usuario"
-                          className="users-view__card-body-inner"
-                        >
+                        <div className="users-view__card-body-inner">
                         <p className="users-view__numero">{user.numeroEmpleado}</p>
                         <div className="users-view__data-row">
                           <div className="users-view__data-col">
@@ -200,7 +195,7 @@ export default function Users({
                           </div>
                         </div>
                         </div>
-                      </Tooltip>
+                      </div>
                       <div className="users-view__card-actions">
                         <button
                           type="button"
@@ -231,6 +226,7 @@ export default function Users({
                         </button>
                       </div>
                     </div>
+                    </Tooltip>
                   </div>
                 </div>
               ))

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import Icon from "../Icon/Icon";
 import { ControlsChevronDown } from "@heathmont/moon-icons";
@@ -35,40 +35,41 @@ export default function Select({
   variant = "default",
 }) {
   const [open, setOpen] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState({});
+  const [dropdownStyle, setDropdownStyle] = useState(null);
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
 
   const selectedOption = options.find((o) => String(o.value) === String(value));
   const displayText = selectedOption ? selectedOption.label : placeholder;
 
-  useEffect(() => {
-    if (open && triggerRef.current) {
-      const updatePosition = () => {
-        if (!triggerRef.current) return;
-        const rect = triggerRef.current.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const dropdownHeight = Math.min(280, Math.max(options.length * 48 + 12, 80));
-        const openDown = spaceBelow >= dropdownHeight || spaceBelow >= rect.top;
-
-        setDropdownStyle({
-          position: "fixed",
-          left: rect.left,
-          width: Math.max(rect.width, 180),
-          top: openDown ? rect.bottom + 6 : undefined,
-          bottom: openDown ? undefined : window.innerHeight - rect.top + 6,
-          zIndex: 1001,
-        });
-      };
-      updatePosition();
-      requestAnimationFrame(updatePosition);
-      window.addEventListener("scroll", updatePosition, true);
-      window.addEventListener("resize", updatePosition);
-      return () => {
-        window.removeEventListener("scroll", updatePosition, true);
-        window.removeEventListener("resize", updatePosition);
-      };
+  useLayoutEffect(() => {
+    if (!open) {
+      setDropdownStyle(null);
+      return;
     }
+    const updatePosition = () => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = Math.min(280, Math.max(options.length * 48 + 12, 80));
+      const openDown = spaceBelow >= dropdownHeight || spaceBelow >= rect.top;
+
+      setDropdownStyle({
+        position: "fixed",
+        left: rect.left,
+        width: Math.max(rect.width, 180),
+        top: openDown ? rect.bottom + 6 : undefined,
+        bottom: openDown ? undefined : window.innerHeight - rect.top + 6,
+        zIndex: 1001,
+      });
+    };
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
   }, [open, options.length]);
 
   useEffect(() => {
@@ -95,7 +96,8 @@ export default function Select({
     setOpen(false);
   };
 
-  const dropdownContent = (
+  const showDropdown = open && dropdownStyle;
+  const dropdownContent = showDropdown ? (
     <div
       className="select-wrap__dropdown select-wrap__dropdown--portal"
       style={dropdownStyle}
@@ -118,7 +120,7 @@ export default function Select({
         ))
       )}
     </div>
-  );
+  ) : null;
 
   return (
     <div
@@ -150,7 +152,7 @@ export default function Select({
           aria-hidden
         />
       </button>
-      {open && createPortal(dropdownContent, document.body)}
+      {showDropdown && createPortal(dropdownContent, document.body)}
     </div>
   );
 }

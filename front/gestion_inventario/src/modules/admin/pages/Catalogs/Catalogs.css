@@ -38,7 +38,7 @@
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.25s ease, background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
 
 .catalogs-tabs__btn:hover {
@@ -49,15 +49,6 @@
 .catalogs-tabs__btn--active {
   background: var(--moon-piccolo-60);
   color: #fff;
-  transform: scale(1);
-}
-
-.catalogs-tabs__btn:not(.catalogs-tabs__btn--active) {
-  transform: scale(0.92);
-}
-
-.catalogs-tabs__btn:not(.catalogs-tabs__btn--active):hover {
-  transform: scale(0.96);
 }
 
 .catalogs-tabs__btn--active:hover {

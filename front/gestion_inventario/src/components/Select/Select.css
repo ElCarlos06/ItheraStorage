@@ -132,6 +132,9 @@
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
+}
+
+.select-wrap__option:not(.select-wrap__option--selected) {
   transition: background 0.15s, color 0.15s;
 }
 
@@ -142,18 +145,19 @@
 }
 
 .select-wrap__option:hover:not(.select-wrap__option--selected) {
-  background: #f0f2f5;
-  color: var(--moon-content-text);
+  background: var(--moon-piccolo-10);
+  color: var(--moon-piccolo-60);
 }
 
 .select-wrap__option--selected {
-  background: var(--moon-piccolo-10);
-  color: var(--moon-piccolo-60);
-  font-weight: 500;
+  background: rgba(79, 70, 229, 0.25);
+  color: var(--moon-piccolo);
+  font-weight: 600;
+  transition: none;
 }
 
 .select-wrap__option--selected:hover {
-  background: var(--moon-piccolo-20);
+  background: rgba(79, 70, 229, 0.35);
   color: var(--moon-piccolo);
 }
 

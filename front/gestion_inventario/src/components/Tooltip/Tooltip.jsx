@@ -1,76 +1,31 @@
-import { useState, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
+import * as RadixTooltip from "@radix-ui/react-tooltip";
 import "./Tooltip.css";
 
-const SHOW_DELAY = 350;
-const HIDE_DELAY = 80;
-
-export default function Tooltip({
-  content,
-  children,
-  followCursor = true,
-  placement = "bottom",
-  className = "",
-  as: Wrapper = "div",
-}) {
-  const [visible, setVisible] = useState(false);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
-  const showTimeout = useRef(null);
-  const hideTimeout = useRef(null);
-
-  const clearTimers = useCallback(() => {
-    if (showTimeout.current) clearTimeout(showTimeout.current);
-    if (hideTimeout.current) clearTimeout(hideTimeout.current);
-    showTimeout.current = null;
-    hideTimeout.current = null;
-  }, []);
-
-  const handleEnter = useCallback(
-    (e) => {
-      clearTimers();
-      if (followCursor) {
-        setPos({ x: e.clientX + 14, y: e.clientY + 10 });
-      }
-      showTimeout.current = setTimeout(() => setVisible(true), SHOW_DELAY);
-    },
-    [followCursor, clearTimers]
-  );
-
-  const handleMove = useCallback(
-    (e) => {
-      if (followCursor) {
-        setPos({ x: e.clientX + 14, y: e.clientY + 10 });
-      }
-    },
-    [followCursor]
-  );
-
-  const handleLeave = useCallback(() => {
-    clearTimers();
-    hideTimeout.current = setTimeout(() => setVisible(false), HIDE_DELAY);
-  }, [clearTimers]);
-
-  const tooltipEl = visible && (
-    <span
-      className={`tooltip tooltip--follow tooltip--${placement}`}
-      style={followCursor ? { left: pos.x, top: pos.y } : undefined}
-      role="tooltip"
-    >
-      {content}
-    </span>
-  );
-
+/**
+ * Tooltip usando Radix UI. Estilo blanco con sombra suave.
+ */
+export function TooltipProvider({ children, delayDuration = 300, ...props }) {
   return (
-    <>
-      <Wrapper
-        className={`tooltip-trigger ${className}`.trim()}
-        onMouseEnter={handleEnter}
-        onMouseMove={handleMove}
-        onMouseLeave={handleLeave}
-      >
-        {children}
-        {tooltipEl && createPortal(tooltipEl, document.body)}
-      </Wrapper>
-    </>
+    <RadixTooltip.Provider delayDuration={delayDuration} {...props}>
+      {children}
+    </RadixTooltip.Provider>
+  );
+}
+
+export function Tooltip({ children, content, side = "top", sideOffset = 8 }) {
+  return (
+    <RadixTooltip.Root>
+      <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
+      <RadixTooltip.Portal>
+        <RadixTooltip.Content
+          className="radix-tooltip-content"
+          side={side}
+          sideOffset={sideOffset}
+        >
+          {content}
+          <RadixTooltip.Arrow className="radix-tooltip-arrow" />
+        </RadixTooltip.Content>
+      </RadixTooltip.Portal>
+    </RadixTooltip.Root>
   );
 }

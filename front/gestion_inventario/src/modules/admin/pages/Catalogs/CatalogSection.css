@@ -38,6 +38,12 @@
 
 .catalog-section__card-wrap {
   cursor: pointer;
+  position: relative;
+  z-index: 0;
+}
+
+.catalog-section__card-wrap:hover {
+  z-index: 1;
 }
 
 .catalog-section__card {
