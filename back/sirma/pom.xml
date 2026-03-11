@@ -103,6 +103,15 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+
+        <!-- //springdoc para el json y traer todo a la movil -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>

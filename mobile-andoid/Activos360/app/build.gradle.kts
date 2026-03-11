@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.openapi.generator") version "7.20.0"
 }
 
 android {
@@ -33,13 +34,62 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
     buildFeatures {
         compose = true
     }
+
+    //uso del openapi
+    sourceSets {
+        getByName("main") {
+            java.srcDir("${project.buildDir}/generated/openapi/src/main/kotlin")
+        }
+    }
+}
+
+openApiGenerate {
+    generatorName.set("kotlin")
+    /*// 1. Ruta a tu archivo generado con IntelliJ
+    inputSpec.set("$projectDir/src/main/resources/api-docs.yaml")
+
+    // 2. Donde se guardará el código (no lo toques, déjalo en build)
+    outputDir.set("$buildDir/generated/openapi")
+*/
+    // Carpeta para usar el acrhivo api
+    inputSpec.set("$rootDir/specs/api-docs.json")
+
+    outputDir.set("${project.buildDir}/generated/openapi")
+
+    // 3. Nombres de tus paquetes
+    apiPackage.set("com.example.activos360.api")
+    modelPackage.set("com.example.activos360.model")
+
+    configOptions.set(mapOf(
+        "library" to "jvm-retrofit2", // Usa Retrofit 2
+        "serializationLibrary" to "moshi", // O "gson" / "kotlinx_serialization"
+        "useCoroutines" to "true", // Genera funciones 'suspend'
+        "omitGradleWrapper" to "true"
+    ))
 }
 
 dependencies {
+    //RETROFIT PARA LAS PETICIONES
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    //VIEWMODEL
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    //moshi para usar los json
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+
+    // Librería para el interceptor de logs (líneas rojas de okhttp3)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // Librería para el ScalarsConverter (líneas rojas de scalars)
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -49,7 +99,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
