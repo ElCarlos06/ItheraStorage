@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory // ASEGÚRATE DE ESTE IMPORT
-import com.example.activos360.api.AuthControllerApi
-import com.example.activos360.models.AuthDTO
+import com.example.activos360.back.api.AuthControllerApi
+import com.example.activos360.back.model.AuthDTO
 
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
