@@ -2,7 +2,7 @@ import { useState } from "react";
 import PasswordInput from "./PasswordInput";
 import Button from "../../../components/Button/Button";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../../api/client";
+import { authApi } from "../../../api/authApi";
 import BackToLogin from "./BackToLogin";
 
 /**
@@ -58,7 +58,7 @@ export default function NewPasswordForm({ correo }) {
 
     setLoading(true);
     try {
-      await api.changePassword({
+      await authApi.changePassword({
         correo,
         passwordActual: form.contrasenaActual,
         passwordNueva: form.nueva,

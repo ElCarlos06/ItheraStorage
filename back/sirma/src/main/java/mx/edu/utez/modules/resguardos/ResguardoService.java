@@ -51,8 +51,21 @@ public class ResguardoService {
     @Transactional
     public ApiResponse save(ResguardoDTO dto) {
         Optional<Assets> activo = assetsRepository.findById(dto.getIdActivo());
+
         if (activo.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
+
+        Optional<Resguardo> resguardoExistente = resguardoRepository
+                .findByActivoAndEstadoResguardo(activo.get(), "Pendiente");
+
+        if (resguardoExistente.isPresent()) {
+            User empleadoActual = resguardoExistente.get().getUsuarioEmpleado();
+            if (!empleadoActual.getId().equals(dto.getIdUsuarioEmpleado()))
+                return new ApiResponse(
+                        "El activo ya está asignado a otro empleado", true, HttpStatus.CONFLICT
+                );
+        }
+
         Optional<User> empleado = userRepository.findById(dto.getIdUsuarioEmpleado());
         if (empleado.isEmpty())
             return new ApiResponse("Empleado no encontrado", true, HttpStatus.NOT_FOUND);

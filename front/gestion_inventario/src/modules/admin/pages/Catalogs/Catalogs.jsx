@@ -13,7 +13,7 @@ import RegisterClassroomModal from "./RegisterClassroomModal";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import { GenericPlus } from "@heathmont/moon-icons";
-import { api } from "../../../../api/client";
+import { ubicacionesApi } from "../../../../api/ubicacionesApi";
 import "./Catalogs.css";
 
 const MAIN_TABS = [
@@ -136,7 +136,7 @@ export default function Catalogs() {
     if (!isLocations) return;
     setLoading(true);
     setError(null);
-    Promise.all([api.getCampus(), api.getEdificios(), api.getEspacios()])
+    Promise.all([ubicacionesApi.getCampus(), ubicacionesApi.getEdificios(), ubicacionesApi.getEspacios()])
       .then(([r1, r2, r3]) => {
         setCampus(r1?.data ?? []);
         setEdificios(r2?.data ?? []);
@@ -148,9 +148,9 @@ export default function Catalogs() {
 
   const refreshLocations = () => {
     if (!isLocations) return;
-    api.getCampus().then((r) => setCampus(r.data ?? [])).catch(() => {});
-    api.getEdificios().then((r) => setEdificios(r.data ?? [])).catch(() => {});
-    api.getEspacios().then((r) => setEspacios(r.data ?? [])).catch(() => {});
+    ubicacionesApi.getCampus().then((r) => setCampus(r.data ?? [])).catch(() => {});
+    ubicacionesApi.getEdificios().then((r) => setEdificios(r.data ?? [])).catch(() => {});
+    ubicacionesApi.getEspacios().then((r) => setEspacios(r.data ?? [])).catch(() => {});
   };
 
   const handleMainTab = (id) => {
@@ -178,10 +178,10 @@ export default function Catalogs() {
   const handleGuardarCampus = async (data) => {
     try {
       if (editLocation?.id) {
-        await api.updateCampus(editLocation.id, data);
+        await ubicacionesApi.updateCampus(editLocation.id, data);
         toast.success("Campus actualizado correctamente");
       } else {
-        await api.createCampus(data);
+        await ubicacionesApi.createCampus(data);
         toast.success("Campus registrado correctamente");
       }
       refreshLocations();
@@ -194,10 +194,10 @@ export default function Catalogs() {
   const handleGuardarEdificio = async (data) => {
     try {
       if (editLocation?.id) {
-        await api.updateEdificio(editLocation.id, data);
+        await ubicacionesApi.updateEdificio(editLocation.id, data);
         toast.success("Edificio actualizado correctamente");
       } else {
-        await api.createEdificio(data);
+        await ubicacionesApi.createEdificio(data);
         toast.success("Edificio registrado correctamente");
       }
       refreshLocations();
@@ -213,13 +213,13 @@ export default function Catalogs() {
     if (!confirmDeleteLocation?.id) return;
     try {
       if (subTab === "campus") {
-        await api.toggleStatusCampus(confirmDeleteLocation.id);
+        await ubicacionesApi.toggleStatusCampus(confirmDeleteLocation.id);
         toast.success("Campus eliminado correctamente");
       } else if (subTab === "edificios") {
-        await api.toggleStatusEdificio(confirmDeleteLocation.id);
+        await ubicacionesApi.toggleStatusEdificio(confirmDeleteLocation.id);
         toast.success("Edificio eliminado correctamente");
       } else if (subTab === "aulas") {
-        await api.toggleStatusEspacio(confirmDeleteLocation.id);
+        await ubicacionesApi.toggleStatusEspacio(confirmDeleteLocation.id);
         toast.success("Aula eliminada correctamente");
       }
       setConfirmDeleteLocation(null);
@@ -241,10 +241,10 @@ export default function Catalogs() {
   const handleGuardarAula = async (data) => {
     try {
       if (editLocation?.id) {
-        await api.updateEspacio(editLocation.id, data);
+        await ubicacionesApi.updateEspacio(editLocation.id, data);
         toast.success("Aula actualizada correctamente");
       } else {
-        await api.createEspacio(data);
+        await ubicacionesApi.createEspacio(data);
         toast.success("Aula registrada correctamente");
       }
       refreshLocations();
@@ -333,13 +333,13 @@ export default function Catalogs() {
         onClose={() => setModalLocationOpen(false)}
         onGuardar={async (data) => {
           try {
-            const campusRes = await api.createCampus({ nombre: data.campus.trim(), descripcion: data.descripcion?.trim() || null });
+            const campusRes = await ubicacionesApi.createCampus({ nombre: data.campus.trim(), descripcion: data.descripcion?.trim() || null });
             const campusId = campusRes?.data?.id;
             if (!campusId) throw new Error("No se obtuvo el campus creado");
-            const edificioRes = await api.createEdificio({ idCampus: campusId, nombre: data.edificio.trim() });
+            const edificioRes = await ubicacionesApi.createEdificio({ idCampus: campusId, nombre: data.edificio.trim() });
             const edificioId = edificioRes?.data?.id;
             if (!edificioId) throw new Error("No se obtuvo el edificio creado");
-            await api.createEspacio({ idEdificio: edificioId, nombreEspacio: data.aula.trim() });
+            await ubicacionesApi.createEspacio({ idEdificio: edificioId, nombreEspacio: data.aula.trim() });
             toast.success("Ubicación registrada correctamente");
             refreshLocations();
           } catch (err) {

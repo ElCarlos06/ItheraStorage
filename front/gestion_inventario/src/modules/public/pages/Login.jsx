@@ -5,7 +5,7 @@ import InputField from "../components/InputField";
 import PasswordInput from "../components/PasswordInput";
 import LogoHeader from "../components/LogoHeader";
 import ProgressBar from "../components/ProgressBar";
-import { api } from "../../../api/client";
+import { authApi } from "../../../api/authApi";
 import {
   validarCorreoLogin,
   validarContrasenaLogin,
@@ -50,7 +50,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const data = await api.login({
+      const data = await authApi.login({
         correo: form.correo.trim().toLowerCase(),
         password: form.contrasena,
       });

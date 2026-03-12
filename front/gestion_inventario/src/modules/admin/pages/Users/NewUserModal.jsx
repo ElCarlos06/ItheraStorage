@@ -5,7 +5,9 @@ import Button from "../../../../components/Button/Button";
 import Select from "../../../../components/Select/Select";
 import { X } from "lucide-react";
 import { FilesSave } from "@heathmont/moon-icons";
-import { api } from "../../../../api/client";
+import { authApi } from "../../../../api/authApi";
+import { usersApi } from "../../../../api/usersApi";
+import { rolesApi } from "../../../../api/rolesApi";
 import {
   validarCurp,
   validarNombre,
@@ -34,7 +36,7 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
 
   useEffect(() => {
     if (open) {
-      api
+      rolesApi
         .getRoles()
         .then((res) => setRoles(Array.isArray(res.data) ? res.data : []))
         .catch(() => setRoles([]));
@@ -98,9 +100,9 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
         idArea: Number(form.area),
       };
       if (isEdit && initialData?.id) {
-        await api.updateUser(initialData.id, payload);
+        await usersApi.updateUser(initialData.id, payload);
       } else {
-        await api.register(payload);
+        await authApi.register(payload);
       }
       setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
       setErrores({});

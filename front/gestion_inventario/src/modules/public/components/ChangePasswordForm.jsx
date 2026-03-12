@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PasswordInput from "./PasswordInput";
 import Button from "../../../components/Button/Button";
 import BackToLogin from "./BackToLogin";
-import { api } from "../../../api/client";
+import { authApi } from "../../../api/authApi";
 import "../styles/public.css";
 
 /**
@@ -65,7 +65,7 @@ export default function ChangePasswordForm({ correo, token, onSuccess }) {
       const body = token
         ? { token, passwordNueva: form.nueva }
         : { correo, passwordActual: form.contrasenaActual, passwordNueva: form.nueva };
-      await api.changePassword(body);
+      await authApi.changePassword(body);
 
       if (onSuccess) {
         onSuccess();

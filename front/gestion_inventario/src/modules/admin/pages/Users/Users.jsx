@@ -16,7 +16,7 @@ import {
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
 import { Tooltip } from "../../../../components/Tooltip/Tooltip";
-import { api } from "../../../../api/client";
+import { usersApi } from "../../../../api/usersApi";
 import "./Users.css";
 import NewUserModal from "./NewUserModal";
 import UserInfoModal from "./UserInfoModal";
@@ -71,7 +71,7 @@ export default function Users({
   useEffect(() => {
     if (usersProp !== undefined) return;
     setLoading(true);
-    api
+    usersApi
       .getUsers()
       .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
       .catch((err) => {
@@ -80,7 +80,7 @@ export default function Users({
       })
       .finally(() => setLoading(false));
     const interval = setInterval(() => {
-      api
+      usersApi
         .getUsers()
         .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
         .catch(() => {});
@@ -90,7 +90,7 @@ export default function Users({
 
   const refreshUsers = () => {
     if (usersProp !== undefined) return;
-    api
+    usersApi
       .getUsers()
       .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
       .catch(() => {});
@@ -285,7 +285,7 @@ export default function Users({
         onConfirm={async () => {
           if (!confirmDeleteUser?.id) return;
           try {
-            await api.toggleStatusUser(confirmDeleteUser.id);
+            await usersApi.toggleStatusUser(confirmDeleteUser.id);
             setError(null);
             setConfirmDeleteUser(null);
             onEliminar?.(confirmDeleteUser);

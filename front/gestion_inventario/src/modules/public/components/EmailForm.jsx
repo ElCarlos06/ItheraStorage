@@ -2,7 +2,7 @@ import { useState } from "react";
 import InputField from "./InputField";
 import Button from "../../../components/Button/Button";
 import BackToLogin from "./BackToLogin";
-import { api } from "../../../api/client";
+import { authApi } from "../../../api/authApi";
 import { validarCorreoLogin } from "../../../utils/validaciones";
 
 /**
@@ -33,7 +33,7 @@ export default function EmailForm() {
     setLoading(true);
     setError(null);
     try {
-      await api.requestPasswordReset(correo.trim().toLowerCase());
+      await authApi.requestPasswordReset(correo.trim().toLowerCase());
       setSuccess(true);
     } catch (err) {
       setError(err.message || "No se encontro una cuenta con ese correo");
