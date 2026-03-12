@@ -1,11 +1,11 @@
 package com.example.activos360.back.api
 
+import com.example.activos360.back.model.ChangePasswordDTO
+import com.example.activos360.back.model.ModelApiResponse
+import com.example.activos360.back.model.RequestPasswordResetDTO
 import retrofit2.http.*
 import retrofit2.Response
 
-import com.example.activos360.model.ChangePasswordDTO
-import com.example.activos360.model.ModelApiResponse
-import com.example.activos360.model.RequestPasswordResetDTO
 
 interface AuthControllerApi {
     /**

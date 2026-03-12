@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.openapi.generator") version "7.20.0"
+    id("org.openapi.generator") version "7.5.0"
 }
 
 android {
@@ -108,4 +108,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+tasks.whenTaskAdded {
+    if (name == "preBuild") {
+        dependsOn("openApiGenerate")
+    }
 }

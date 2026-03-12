@@ -16,8 +16,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,30 +30,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.R
+import com.example.activos360.navigation.NavigationBar
+import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.components.Canvas2
+import com.example.activos360.ui.components.QRScanner
 import com.example.activos360.ui.components.WaveHeader
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
+// 1. Borra el import de com.example.activos360.navigation.NavigationBar
+// 2. Asegúrate de que importe el de com.example.activos360.ui.components.BottomCustomBar
+
 @Composable
 fun HomeEmpleado(viewModel: EmpleadoViewModel = viewModel()) {
+    Scaffold(
+        bottomBar = {
+            BottomCustomBar() // <-- Usamos el nombre nuevo
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.White),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Canvas2()
 
-    val primaryColor = Color(0xFF7B88FF)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        //Canvas de el usuario XDDDD
-        Canvas2()
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-        Box {
-            Row(
-
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
             ) {
-                
+                QRScanner()
             }
         }
     }

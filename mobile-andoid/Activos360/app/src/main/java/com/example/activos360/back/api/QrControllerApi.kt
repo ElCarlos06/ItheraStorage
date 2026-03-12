@@ -1,6 +1,6 @@
 package com.example.activos360.back.api
 
-import org.openapitools.client.infrastructure.CollectionFormats.*
+
 import retrofit2.http.*
 import retrofit2.Response
 import okhttp3.RequestBody

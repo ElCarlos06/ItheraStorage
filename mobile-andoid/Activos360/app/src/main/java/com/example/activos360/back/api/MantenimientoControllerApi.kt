@@ -1,14 +1,15 @@
 package com.example.activos360.back.api
 
-import org.openapitools.client.infrastructure.CollectionFormats.*
+import com.example.activos360.back.model.ModelApiResponse
+
 import retrofit2.http.*
 import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.example.activos360.model.MantenimientoDTO
-import com.example.activos360.model.ModelApiResponse
-import com.example.activos360.model.SubirImagenRequest
+import com.example.activos360.back.model.MantenimientoDTO
+
+import com.example.activos360.back.model.SubirImagenRequest
 
 interface MantenimientoControllerApi {
     /**

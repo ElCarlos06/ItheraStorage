@@ -1,14 +1,11 @@
 package com.example.activos360.back.api
 
-import org.openapitools.client.infrastructure.CollectionFormats.*
+import com.example.activos360.back.model.ModelApiResponse
+import com.example.activos360.back.model.ReporteDTO
+import com.example.activos360.back.model.SubirImagenRequest
+
 import retrofit2.http.*
 import retrofit2.Response
-import okhttp3.RequestBody
-import com.squareup.moshi.Json
-
-import com.example.activos360.model.ModelApiResponse
-import com.example.activos360.model.ReporteDTO
-import com.example.activos360.model.SubirImagenRequest
 
 interface ReporteControllerApi {
     /**
