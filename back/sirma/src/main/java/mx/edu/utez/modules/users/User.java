@@ -1,5 +1,6 @@
 package mx.edu.utez.modules.users;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,6 +48,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "id_area", nullable = false)
     private Area area;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 

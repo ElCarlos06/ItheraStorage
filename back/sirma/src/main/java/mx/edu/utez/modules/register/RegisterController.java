@@ -28,7 +28,6 @@ public class RegisterController {
      * @return respuesta con el resultado del registro
      */
     @PostMapping(value = {"", "/"})
-    @PreAuthorize("hasRole('Administrador')")
     public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegisterDTO dto) {
         ApiResponse response = registerService.register(dto);
         return new ResponseEntity<>(response, response.getStatus());
