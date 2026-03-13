@@ -54,7 +54,7 @@ public class MainSecurity {
                         .requestMatchers("/", "/error", "/email/**", "/preview/**").permitAll()
                         .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/register", "/api/register/**").authenticated()
+                        .requestMatchers("/api/register", "/api/register/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

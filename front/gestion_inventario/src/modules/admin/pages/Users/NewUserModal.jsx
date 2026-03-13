@@ -5,9 +5,7 @@ import Button from "../../../../components/Button/Button";
 import Select from "../../../../components/Select/Select";
 import { X } from "lucide-react";
 import { FilesSave } from "@heathmont/moon-icons";
-import { authApi } from "../../../../api/authApi";
-import { usersApi } from "../../../../api/usersApi";
-import { rolesApi } from "../../../../api/rolesApi";
+import { api } from "../../../../api/client"; // roles/areas vía api
 import {
   validarCurp,
   validarNombre,
@@ -36,13 +34,13 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
 
   useEffect(() => {
     if (open) {
-      rolesApi
+      api
         .getRoles()
-        .then((res) => setRoles(Array.isArray(res.data) ? res.data : []))
+        .then((res) => setRoles(Array.isArray(res?.data) ? res.data : []))
         .catch(() => setRoles([]));
       api
         .getAreas()
-        .then((res) => setAreas(Array.isArray(res.data) ? res.data : []))
+        .then((res) => setAreas(Array.isArray(res?.data) ? res.data : []))
         .catch(() => setAreas([]));
     }
   }, [open]);
@@ -100,9 +98,9 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
         idArea: Number(form.area),
       };
       if (isEdit && initialData?.id) {
-        await usersApi.updateUser(initialData.id, payload);
+        await api.updateUser(initialData.id, payload);
       } else {
-        await authApi.register(payload);
+        await api.register(payload);
       }
       setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
       setErrores({});
