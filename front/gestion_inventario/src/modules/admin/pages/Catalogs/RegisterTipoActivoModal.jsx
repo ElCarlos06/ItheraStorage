@@ -5,31 +5,53 @@ import { FilesSave } from "@heathmont/moon-icons";
 import "./RegisterTipoActivoModal.css";
 
 export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
-  const [form, setForm] = useState({
+
+  const initialState = {
     nombre: "",
     marca: "",
     modelo: "",
-    tipoBien: "mueble",
+    tipoBien: "Mueble",
     descripcion: "",
-  });
+  };
+
+  const [form, setForm] = useState(initialState);
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }));
   };
 
   const handleTipoBien = (valor) => {
-    setForm((prev) => ({ ...prev, tipoBien: valor }));
+    setForm((prev) => ({
+      ...prev,
+      tipoBien: valor,
+    }));
+  };
+
+  const resetForm = () => {
+    setForm(initialState);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onGuardar?.(form);
-    setForm({ nombre: "", marca: "", modelo: "", tipoBien: "mueble", descripcion: "" });
-    onClose?.();
+
+    const data = {
+      ...form,
+      nombre: form.nombre.trim(),
+      marca: form.marca.trim(),
+      modelo: form.modelo.trim(),
+      descripcion: form.descripcion?.trim(),
+    };
+
+    onGuardar?.(data);
+
+    resetForm();
   };
 
   const handleClose = () => {
-    setForm({ nombre: "", marca: "", modelo: "", tipoBien: "mueble", descripcion: "" });
+    resetForm();
     onClose?.();
   };
 
@@ -45,73 +67,89 @@ export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
       submitIconSize={30}
       onSubmit={handleSubmit}
     >
+
       <div className="form-modal__field">
         <Input
           label="Nombre del Activo*"
-          labelClassName="form-modal__label"
-          placeholder="Ej: Laptop, Monitor, Impresora, Proyector"
+          placeholder="Ej: Laptop, Monitor, Impresora"
           value={form.nombre}
           onChange={handleChange("nombre")}
-          className="form-modal__input"
           required
         />
       </div>
 
       <div className="form-modal__row">
+
         <div className="form-modal__field form-modal__field--flex">
           <Input
             label="Marca*"
-            labelClassName="form-modal__label"
-            placeholder="Ej: HP, Dell, Lenovo, Epson"
+            placeholder="Ej: HP, Dell"
             value={form.marca}
             onChange={handleChange("marca")}
-            className="form-modal__input"
             required
           />
         </div>
+
         <div className="form-modal__field form-modal__field--flex">
           <Input
             label="Modelo*"
-            labelClassName="form-modal__label"
-            placeholder="Ej: EliteBook 840, ThinkPad X1"
+            placeholder="Ej: EliteBook"
             value={form.modelo}
             onChange={handleChange("modelo")}
-            className="form-modal__input"
             required
           />
         </div>
+
       </div>
 
       <div className="form-modal__field">
+
         <label className="form-modal__label">Tipo de bien*</label>
+
         <div className="registrar-tipo-activo-modal__tipo-bien">
+
           <button
             type="button"
-            className={`registrar-tipo-activo-modal__tipo-btn ${form.tipoBien === "mueble" ? "registrar-tipo-activo-modal__tipo-btn--active" : ""}`}
-            onClick={() => handleTipoBien("mueble")}
+            className={`registrar-tipo-activo-modal__tipo-btn ${
+              form.tipoBien === "Mueble"
+                ? "registrar-tipo-activo-modal__tipo-btn--active"
+                : ""
+            }`}
+            onClick={() => handleTipoBien("Mueble")}
           >
             Mueble
           </button>
+
           <button
             type="button"
-            className={`registrar-tipo-activo-modal__tipo-btn ${form.tipoBien === "vehiculo" ? "registrar-tipo-activo-modal__tipo-btn--active" : ""}`}
-            onClick={() => handleTipoBien("vehiculo")}
+            className={`registrar-tipo-activo-modal__tipo-btn ${
+              form.tipoBien === "Inmueble"
+                ? "registrar-tipo-activo-modal__tipo-btn--active"
+                : ""
+            }`}
+            onClick={() => handleTipoBien("Inmueble")}
           >
             Vehículo
           </button>
+
         </div>
       </div>
 
       <div className="form-modal__field">
-        <label className="form-modal__label">Descripción / Características</label>
+
+        <label className="form-modal__label">
+          Descripción / Características
+        </label>
+
         <textarea
           className="form-modal__textarea"
-          placeholder="Describe las características generales de este tipo de activo: especificaciones técnicas, usos comunes, etc."
           value={form.descripcion}
           onChange={handleChange("descripcion")}
           rows={4}
         />
+
       </div>
+
     </FormModal>
   );
 }

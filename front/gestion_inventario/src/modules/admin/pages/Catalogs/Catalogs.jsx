@@ -15,6 +15,7 @@ import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import { GenericPlus } from "@heathmont/moon-icons";
 import { ubicacionesApi } from "../../../../api/ubicacionesApi";
 import "./Catalogs.css";
+import { tipoActivosApi } from "../../../../api/tipoActivosApi.js";
 
 const MAIN_TABS = [
   { id: "tipos-activos", label: "Tipos de Activos", sub: ["muebles", "vehiculos"] },
@@ -115,6 +116,7 @@ export default function Catalogs() {
   const [campus, setCampus] = useState([]);
   const [edificios, setEdificios] = useState([]);
   const [espacios, setEspacios] = useState([]);
+  const [tiposActivos, setTiposActivos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -132,6 +134,20 @@ export default function Catalogs() {
 
   const hasLocations = locationItems.length > 0;
 
+  const tiposActivosItems = useMemo(() => {
+
+  if (subTab === "muebles") {
+    return tiposActivos.filter((t) => t.tipoBien === "Mueble");
+  }
+
+  if (subTab === "vehiculos") {
+    return tiposActivos.filter((t) => t.tipoBien === "Inmueble");
+  }
+
+  return [];
+
+}, [tiposActivos, subTab]);
+
   useEffect(() => {
     if (!isLocations) return;
     setLoading(true);
@@ -146,12 +162,34 @@ export default function Catalogs() {
       .finally(() => setLoading(false));
   }, [isLocations]);
 
+  useEffect(() => {
+
+  if (mainTab === "tipos-activos") {
+    cargarTiposActivos();
+  }
+
+}, [mainTab]);
+
   const refreshLocations = () => {
     if (!isLocations) return;
     ubicacionesApi.getCampus().then((r) => setCampus(r.data ?? [])).catch(() => {});
     ubicacionesApi.getEdificios().then((r) => setEdificios(r.data ?? [])).catch(() => {});
     ubicacionesApi.getEspacios().then((r) => setEspacios(r.data ?? [])).catch(() => {});
   };
+
+  const cargarTiposActivos = async () => {
+  try {
+
+    const res = await tipoActivosApi.getTipoActivos();
+
+    setTiposActivos(res?.data ?? []);
+
+  } catch (err) {
+
+    console.error("Error cargando tipos de activos", err);
+
+  }
+};
 
   const handleMainTab = (id) => {
     setMainTab(id);
@@ -320,13 +358,30 @@ export default function Catalogs() {
       </div>
 
       <RegisterTipoActivoModal
-        open={modalTipoActivoOpen}
-        onClose={() => setModalTipoActivoOpen(false)}
-        onGuardar={(data) => {
-          setModalTipoActivoOpen(false);
-          toast.success("Guardado correctamente");
-        }}
-      />
+  open={modalTipoActivoOpen}
+  onClose={() => setModalTipoActivoOpen(false)}
+  onGuardar={async (data) => {
+
+    try {
+
+      await tipoActivosApi.crearTipoActivo(data);
+
+      await cargarTiposActivos();
+
+      toast.success("Tipo de activo guardado correctamente");
+
+      setModalTipoActivoOpen(false);
+
+    } catch (error) {
+
+      console.error(error);
+
+      toast.error("Error al guardar tipo de activo");
+
+    }
+
+  }}
+/>
 
       <RegisterLocationModal
         open={modalLocationOpen}
@@ -405,7 +460,7 @@ export default function Catalogs() {
         searchPlaceholder={config.searchPlaceholder}
         emptyMessage={config.emptyMessage}
         sectionKey={currentSection}
-        items={isLocations ? locationItems : []}
+        items={isLocations ? locationItems : tiposActivosItems}
         loading={isLocations && loading}
         search={search}
         onSearchChange={setSearch}
