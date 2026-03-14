@@ -5,6 +5,7 @@ import Buscador from "../../../../components/Buscador/Buscador";
 import UsersEmptyState from "./UsersEmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import Button from "../../../../components/Button/Button";
+import Pagination from "../../components/layout/Pagination";
 import {
   GenericUser,
   GenericSettings,
@@ -40,8 +41,8 @@ function mapUser(u) {
     nacimiento: u.fechaNacimiento ?? u.fecha_nacimiento,
     idRol: u.role?.id ?? u.idRol ?? u.id_rol,
     idArea: u.area?.id ?? u.idArea ?? u.id_area,
-    rol: typeof roleName === "string" ? roleName : roleName?.nombre ?? "-",
-    area: typeof areaName === "string" ? areaName : areaName?.nombre ?? "-",
+    rol: typeof roleName === "string" ? roleName : (roleName?.nombre ?? "-"),
+    area: typeof areaName === "string" ? areaName : (areaName?.nombre ?? "-"),
   };
 }
 
@@ -64,6 +65,12 @@ export default function Users({
   const [users, setUsers] = useState(Array.isArray(usersProp) ? usersProp : []);
   const [loading, setLoading] = useState(loadingProp ?? false);
   const [error, setError] = useState(errorProp ?? null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 10;
   const stats = Array.isArray(statsProp) ? statsProp : [];
 
   const currentUserCorreo = getCurrentUserCorreo();
@@ -72,8 +79,18 @@ export default function Users({
     if (usersProp !== undefined) return;
     setLoading(true);
     usersApi
-      .getUsers()
-      .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
+      .getUsers(currentPage - 1, pageSize)
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
+        setUsers(
+          list
+            .filter((u) => u?.esActivo !== false)
+            .map(mapUser)
+            .filter(Boolean),
+        );
+        setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
+        setTotalElements(res?.data?.totalElements ?? res?.totalElements ?? list.length);
+      })
       .catch((err) => {
         setError(err.message);
         setUsers([]);
@@ -81,18 +98,38 @@ export default function Users({
       .finally(() => setLoading(false));
     const interval = setInterval(() => {
       usersApi
-        .getUsers()
-        .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
+        .getUsers(currentPage - 1, pageSize)
+        .then((res) => {
+          const list = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
+          setUsers(
+            list
+              .filter((u) => u?.esActivo !== false)
+              .map(mapUser)
+              .filter(Boolean),
+          );
+          setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
+          setTotalElements(res?.data?.totalElements ?? res?.totalElements ?? list.length);
+        })
         .catch(() => {});
     }, 30000);
     return () => clearInterval(interval);
-  }, [usersProp]);
+  }, [usersProp, currentPage]);
 
   const refreshUsers = () => {
     if (usersProp !== undefined) return;
     usersApi
-      .getUsers()
-      .then((res) => setUsers((res.data ?? []).filter((u) => u?.esActivo !== false).map(mapUser).filter(Boolean)))
+      .getUsers(currentPage - 1, pageSize)
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
+        setUsers(
+          list
+            .filter((u) => u?.esActivo !== false)
+            .map(mapUser)
+            .filter(Boolean),
+        );
+        setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
+        setTotalElements(res?.data?.totalElements ?? res?.totalElements ?? list.length);
+      })
       .catch(() => {});
   };
 
@@ -100,7 +137,8 @@ export default function Users({
     let list = Array.isArray(users) ? users : [];
     if (currentUserCorreo) {
       list = list.filter(
-        (u) => (u.correo ?? "").toLowerCase() !== currentUserCorreo.toLowerCase()
+        (u) =>
+          (u.correo ?? "").toLowerCase() !== currentUserCorreo.toLowerCase(),
       );
     }
     const q = search.trim().toLowerCase();
@@ -109,7 +147,7 @@ export default function Users({
       list = list.filter(
         (u) =>
           (u.nombre ?? "").toLowerCase().includes(q) ||
-          (u.correo ?? "").toLowerCase().includes(q)
+          (u.correo ?? "").toLowerCase().includes(q),
       );
     }
 
@@ -135,7 +173,7 @@ export default function Users({
       />
 
       <section className="users-view" aria-label="Gestión de usuarios">
-        <div className="users-view__stats row g-3 mb-4">
+        <div className="users-view__stats row g-3">
           {stats.map((stat, i) => (
             <div key={i} className="col-12 col-sm-6 col-xl-3">
               <StatCard icon={STAT_ICONS[i]} {...stat} />
@@ -165,10 +203,7 @@ export default function Users({
         </div>
 
         {error && (
-          <ErrorBanner
-            message={error}
-            onDismiss={() => setError(null)}
-          />
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}
 
         {loading ? (
@@ -181,78 +216,110 @@ export default function Users({
               <UsersEmptyState hasSearch={!!search.trim()} />
             ) : (
               filtered.map((user, idx) => (
-                <div key={user?.id ?? `user-${idx}`} className="users-view__card-wrap">
+                <div
+                  key={user?.id ?? `user-${idx}`}
+                  className="users-view__card-wrap"
+                >
                   <div className="users-view__card">
-                    <Tooltip content="Clic para ver información completa" side="top">
-                    <div className="users-view__card-inner">
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setModalUser(user)}
-                        onKeyDown={(e) => e.key === "Enter" && setModalUser(user)}
-                        aria-label="Ver información completa del usuario"
-                        className="users-view__card-body users-view__card-body--clickable"
-                      >
-                        <div className="users-view__card-body-inner">
-                        <p className="users-view__numero">{user.numeroEmpleado}</p>
-                        <div className="users-view__data-row">
-                          <div className="users-view__data-col">
-                            <p className="users-view__label">Rol</p>
-                            <p className="users-view__value">{user.rol ?? "—"}</p>
-                          </div>
-                          <div className="users-view__data-col">
-                            <p className="users-view__label">Nombre Completo</p>
-                            <p className="users-view__value">{user.nombre ?? "—"}</p>
-                          </div>
-                          <div className="users-view__data-col">
-                            <p className="users-view__label">Curp</p>
-                            <p className="users-view__value">{user.curp ?? "—"}</p>
-                          </div>
-                          <div className="users-view__data-col">
-                            <p className="users-view__label">Correo</p>
-                            <p className="users-view__value">{user.correo ?? "—"}</p>
-                          </div>
-                          <div className="users-view__data-col">
-                            <p className="users-view__label">Área</p>
-                            <p className="users-view__value">{user.area ?? "—"}</p>
+                    <Tooltip
+                      content="Clic para ver información completa"
+                      side="top"
+                    >
+                      <div className="users-view__card-inner">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setModalUser(user)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && setModalUser(user)
+                          }
+                          aria-label="Ver información completa del usuario"
+                          className="users-view__card-body users-view__card-body--clickable"
+                        >
+                          <div className="users-view__card-body-inner">
+                            <p className="users-view__numero">
+                              {user.numeroEmpleado}
+                            </p>
+                            <div className="users-view__data-row">
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Rol</p>
+                                <p className="users-view__value">
+                                  {user.rol ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">
+                                  Nombre Completo
+                                </p>
+                                <p className="users-view__value">
+                                  {user.nombre ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Curp</p>
+                                <p className="users-view__value">
+                                  {user.curp ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Correo</p>
+                                <p className="users-view__value">
+                                  {user.correo ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Área</p>
+                                <p className="users-view__value">
+                                  {user.area ?? "—"}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
+                        <div className="users-view__card-actions">
+                          <button
+                            type="button"
+                            className="users-view__action-btn users-view__action-btn--delete"
+                            title="Eliminar"
+                            onClick={() => setConfirmDeleteUser(user)}
+                          >
+                            <Icon icon={GenericDelete} size={30} />
+                          </button>
+                          <button
+                            type="button"
+                            className="users-view__action-btn"
+                            title="Editar"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalEditUser(user);
+                            }}
+                          >
+                            <Icon icon={GenericEdit} size={30} />
+                          </button>
+                          <button
+                            type="button"
+                            className="users-view__action-btn"
+                            title="Detalles"
+                            onClick={() => onDetalles?.(user)}
+                          >
+                            <Icon icon={SecurityPassport} size={30} />
+                          </button>
                         </div>
                       </div>
-                      <div className="users-view__card-actions">
-                        <button
-                          type="button"
-                          className="users-view__action-btn users-view__action-btn--delete"
-                          title="Eliminar"
-                          onClick={() => setConfirmDeleteUser(user)}
-                        >
-                          <Icon icon={GenericDelete} size={30} />
-                        </button>
-                        <button
-                          type="button"
-                          className="users-view__action-btn"
-                          title="Editar"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setModalEditUser(user);
-                          }}
-                        >
-                          <Icon icon={GenericEdit} size={30} />
-                        </button>
-                        <button
-                          type="button"
-                          className="users-view__action-btn"
-                          title="Detalles"
-                          onClick={() => onDetalles?.(user)}
-                        >
-                          <Icon icon={SecurityPassport} size={30} />
-                        </button>
-                      </div>
-                    </div>
                     </Tooltip>
                   </div>
                 </div>
               ))
+            )}
+
+            {!showEmptyState && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalElements={totalElements}
+                pageSize={pageSize}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             )}
           </div>
         )}
@@ -289,8 +356,13 @@ export default function Users({
             setError(null);
             setConfirmDeleteUser(null);
             onEliminar?.(confirmDeleteUser);
-            const deletedCorreo = (confirmDeleteUser.correo ?? "").toLowerCase();
-            if (currentUserCorreo && deletedCorreo === currentUserCorreo.toLowerCase()) {
+            const deletedCorreo = (
+              confirmDeleteUser.correo ?? ""
+            ).toLowerCase();
+            if (
+              currentUserCorreo &&
+              deletedCorreo === currentUserCorreo.toLowerCase()
+            ) {
               toast.success("Tu cuenta fue eliminada");
               logout();
             } else {

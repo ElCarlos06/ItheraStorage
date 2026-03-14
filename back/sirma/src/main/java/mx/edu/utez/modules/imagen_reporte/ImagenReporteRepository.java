@@ -1,4 +1,4 @@
-package mx.edu.utez.modules.reportes;
+package mx.edu.utez.modules.imagen_reporte;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

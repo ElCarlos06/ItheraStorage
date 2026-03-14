@@ -4,6 +4,7 @@ import Button from "../../../../components/Button/Button";
 import Icon from "../../../../components/Icon/Icon";
 import { GenericPlus, TravelHotel, ControlsChevronRight, GenericDelete, GenericEdit } from "@heathmont/moon-icons";
 import CatalogEmptyState from "./CatalogEmptyState";
+import Pagination from "../../components/layout/Pagination";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import "./CatalogSection.css";
 
@@ -44,6 +45,17 @@ export default function CatalogSection({
 
   const showEmptyState = filtered.length === 0;
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(startIndex, startIndex + itemsPerPage);
+  }, [filtered, currentPage, itemsPerPage]);
+
   return (
     <div className={`catalog-section ${showEmptyState && !loading ? "catalog-section--empty" : ""} ${loading ? "catalog-section--loading" : ""}`}>
       <section className="catalog-section__view" aria-label={title}>
@@ -78,7 +90,7 @@ export default function CatalogSection({
               onAction={onEmptyAction}
             />
           ) : (
-            filtered.map((item) => {
+            paginatedItems.map((item) => {
               const nombre = item.nombre ?? item.name ?? "—";
               const edificiosCount = item.edificios ?? 0;
               const aulasCount = item.aulas ?? 0;
@@ -180,6 +192,20 @@ export default function CatalogSection({
             })
           )}
         </div>
+        {!loading && !showEmptyState && (
+          <div style={{ marginTop: "2rem" }}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalElements={totalItems}
+              pageSize={itemsPerPage}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                window.scrollTo(0, 0);
+              }}
+            />
+          </div>
+        )}
       </section>
     </div>
   );

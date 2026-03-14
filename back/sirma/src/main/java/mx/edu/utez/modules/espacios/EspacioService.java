@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.edificios.Edificio;
 import mx.edu.utez.modules.edificios.EdificioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,9 @@ public class EspacioService {
     private final EdificioRepository edificioRepository;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<Espacio> list = espacioRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<Espacio> page = espacioRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)
@@ -105,4 +107,3 @@ public class EspacioService {
     }
 
 }
-

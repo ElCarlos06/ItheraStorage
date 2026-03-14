@@ -5,7 +5,7 @@ export const activosApi = {
    * Obtener todos los activos
    * GET /api/activos
    */
-  getActivos: () => request("/api/activos"),
+  getActivos: (page = 0, size = 1000) => request(`/api/activos?page=${page}&size=${size}`),
 
   /**
    * Subir una imagen al activo especificado, guardando en Cloudinary.

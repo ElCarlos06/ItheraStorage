@@ -10,20 +10,18 @@ import mx.edu.utez.modules.reportes.Reporte;
 import mx.edu.utez.modules.reportes.ReporteRepository;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
-import mx.edu.utez.util.CloudinaryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-@Service
 @AllArgsConstructor
+@Service
 public class MantenimientoService {
 
     private final MantenimientoRepository mantenimientoRepository;
@@ -31,13 +29,11 @@ public class MantenimientoService {
     private final AssetsRepository assetsRepository;
     private final UserRepository userRepository;
     private final PrioridadRepository prioridadRepository;
-    private final ImagenMantenimientoRepository imagenMantenimientoRepository;
-    private final CloudinaryService cloudinaryService;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<Mantenimiento> list = mantenimientoRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<Mantenimiento> page = mantenimientoRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)
@@ -118,51 +114,4 @@ public class MantenimientoService {
         mantenimientoRepository.save(entity);
         return new ApiResponse("Mantenimiento actualizado", entity, HttpStatus.OK);
     }
-
-    // ────────── IMÁGENES ──────────
-
-    private static final String CARPETA_CLOUDINARY = "sirma/mantenimientos";
-
-    @Transactional
-    public ApiResponse subirImagen(Long mantenimientoId, MultipartFile file) {
-        Optional<Mantenimiento> found = mantenimientoRepository.findById(mantenimientoId);
-        if (found.isEmpty())
-            return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
-        try {
-            Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_CLOUDINARY);
-
-            ImagenMantenimiento img = new ImagenMantenimiento();
-            img.setMantenimiento(found.get());
-            img.setUrlCloudinary((String) resultado.get("secure_url"));
-            img.setPublicIdCloudinary((String) resultado.get("public_id"));
-            img.setNombreArchivo(file.getOriginalFilename());
-            imagenMantenimientoRepository.save(img);
-
-            return new ApiResponse("Imagen subida correctamente", img, HttpStatus.CREATED);
-        } catch (IOException e) {
-            return new ApiResponse("Error al subir imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public ApiResponse listarImagenes(Long mantenimientoId) {
-        List<ImagenMantenimiento> lista = imagenMantenimientoRepository.findByMantenimientoId(mantenimientoId);
-        return new ApiResponse("OK", lista, HttpStatus.OK);
-    }
-
-    @Transactional
-    public ApiResponse eliminarImagen(Long imagenId) {
-        Optional<ImagenMantenimiento> found = imagenMantenimientoRepository.findById(imagenId);
-        if (found.isEmpty())
-            return new ApiResponse("Imagen no encontrada", true, HttpStatus.NOT_FOUND);
-        try {
-            cloudinaryService.delete(found.get().getPublicIdCloudinary());
-            imagenMantenimientoRepository.delete(found.get());
-            return new ApiResponse("Imagen eliminada correctamente", HttpStatus.OK);
-        } catch (IOException e) {
-            return new ApiResponse("Error al eliminar imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
 }
-

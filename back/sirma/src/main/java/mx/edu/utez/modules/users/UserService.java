@@ -7,6 +7,8 @@ import mx.edu.utez.modules.areas.AreaRepository;
 import mx.edu.utez.modules.roles.Role;
 import mx.edu.utez.modules.roles.RoleRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,9 +34,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<User> list = userRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<User> page = userRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)

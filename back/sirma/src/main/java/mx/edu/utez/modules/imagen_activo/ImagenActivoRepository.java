@@ -1,4 +1,4 @@
-package mx.edu.utez.modules.assets;
+package mx.edu.utez.modules.imagen_activo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

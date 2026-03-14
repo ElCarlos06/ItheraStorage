@@ -4,20 +4,19 @@ import { request } from "./base";
  * Cliente API para Tipos de Activos
  */
 export const tipoActivosApi = {
-
   /**
    * Obtener todos los tipos de activos
    * GET /api/tipo-activos
    */
-  getTipoActivos: () => request("/api/tipo-activos"),
+  getTipoActivos: (page, size) =>
+    request(`/api/tipo-activos?page=${page}&size=${size}`),
 
   /**
    * Obtener un tipo de activo por ID
    * GET /api/tipo-activos/{id}
    * @param {number} id Identificador del tipo de activo
    */
-  getTipoActivoById: (id) =>
-    request(`/api/tipo-activos/${id}`),
+  getTipoActivoById: (id) => request(`/api/tipo-activos/${id}`),
 
   /**
    * Crear un nuevo tipo de activo
@@ -51,5 +50,4 @@ export const tipoActivosApi = {
     request(`/api/tipo-activos/${id}/status`, {
       method: "PATCH",
     }),
-
 };

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.marcas.Marca;
 import mx.edu.utez.modules.marcas.MarcaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,9 @@ public class ModeloService {
     private final MarcaRepository marcaRepository;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<Modelo> list = modeloRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<Modelo> page = modeloRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)
@@ -77,4 +79,3 @@ public class ModeloService {
     }
 
 }
-

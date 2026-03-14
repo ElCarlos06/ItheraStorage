@@ -2,6 +2,8 @@ package mx.edu.utez.modules.tipo_fallas;
 
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +24,9 @@ public class TipoFallaService {
     private final TipoFallaRepository tipoFallaRepository;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<TipoFalla> list = tipoFallaRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<TipoFalla> page = tipoFallaRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)

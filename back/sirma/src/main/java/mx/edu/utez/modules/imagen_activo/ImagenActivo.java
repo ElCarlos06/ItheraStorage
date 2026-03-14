@@ -1,13 +1,20 @@
-package mx.edu.utez.modules.assets;
+package mx.edu.utez.modules.imagen_activo;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mx.edu.utez.kernel.BaseEntity;
+import mx.edu.utez.modules.assets.Assets;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad que representa la asociación entre una imagen almacenada en Cloudinary y un Activo.
+ * Almacena la URL pública y el ID para gestionar el archivo en la nube.
+ *
+ * @author Ithera Team
+ */
 @Entity
 @Table(name = "IMAGEN_ACTIVO")
 @AttributeOverride(name = "id", column = @Column(name = "id_imagen_activo"))
@@ -16,6 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ImagenActivo extends BaseEntity {
 
+    /** Activo al que pertenece la imagen. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_activo", nullable = false)
     private Assets activo;
@@ -32,8 +40,12 @@ public class ImagenActivo extends BaseEntity {
     @Column(name = "nombre_archivo", length = 255)
     private String nombreArchivo;
 
-    @Column(name = "fecha_subida", insertable = false, updatable = false)
+    /** Fecha y hora en la que se subió la imagen. Se asigna automáticamente. */
+    @Column(name = "fecha_subida", updatable = false)
     private LocalDateTime fechaSubida;
 
+    @PrePersist
+    protected void onCreate() {
+        fechaSubida = LocalDateTime.now();
+    }
 }
-

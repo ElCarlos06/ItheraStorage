@@ -25,25 +25,32 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class User extends BaseEntity {
 
+    /** Nombre completo del usuario administrativo o personal. */
     @Column(name = "nombre_completo", nullable = false, length = 150)
     private String nombreCompleto;
 
+    /** Correo institucional usado para login y notificaciones. */
     @Column(name = "correo", nullable = false, length = 100, unique = true)
     private String correo;
 
+    /** Clave Única de Registro de Población. */
     @Column(name = "curp", nullable = false, length = 18, unique = true)
     private String curp;
 
+    /** Fecha de nacimiento del usuario. */
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
+    /** Número de empleado o control interno. */
     @Column(name = "numero_empleado", nullable = false, length = 20, unique = true)
     private String numeroEmpleado;
 
+    /** Rol asignado que define los permisos en el sistema. */
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
     private Role role;
 
+    /** Área o departamento de adscripción. */
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_area", nullable = false)
     private Area area;

@@ -1,0 +1,76 @@
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  width: 100%;
+  color: #6B7280; /* Text mute color */
+  font-size: 0.875rem; /* 14px */
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-bold {
+  font-weight: 600;
+  color: #374151; /* Darker text for numbers */
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pagination-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px; /* Slightly rounded square */
+  border: 1px solid #E5E7EB; /* Light gray border */
+  background-color: #F9FAFB;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background-color: #F3F4F6;
+  color: #4B5563;
+}
+
+.pagination-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-page-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 48px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #F3F4F6;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.pagination-btn-next {
+  background-color: #8B5CF6; /* Purple color from screenshot */
+  border-color: #8B5CF6;
+  color: white;
+}
+
+.pagination-btn-next:hover:not(.disabled) {
+  background-color: #7C3AED;
+  border-color: #7C3AED;
+  color: white;
+}

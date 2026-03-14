@@ -2,6 +2,8 @@ package mx.edu.utez.modules.prioridades;
 
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +24,9 @@ public class PrioridadService {
     private final PrioridadRepository prioridadRepository;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<Prioridad> list = prioridadRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<Prioridad> page = prioridadRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)

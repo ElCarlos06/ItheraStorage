@@ -3,6 +3,8 @@ package mx.edu.utez.modules.tipo_activos;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +16,8 @@ public class TipoActivoController {
     private final TipoActivoService tipoActivoService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse> findAll() {
-        ApiResponse response = tipoActivoService.findAll();
+    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
+        ApiResponse response = tipoActivoService.findAll(pageable);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -44,4 +46,3 @@ public class TipoActivoController {
     }
 
 }
-

@@ -24,6 +24,7 @@ import { toast } from "../../../../utils/toast.jsx";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./Activos.css";
+import Pagination from "../../components/layout/Pagination.jsx";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
 
@@ -53,7 +54,13 @@ export default function Activos({
   const filtered = useMemo(() => {
     let list = Array.isArray(activos) ? activos : [];
     const q = search.trim().toLowerCase();
-    if (q) list = list.filter((a) => (a.nombre ?? "").toLowerCase().includes(q) || (a.codigo ?? "").toLowerCase().includes(q) || (a.descripcionCorta ?? "").toLowerCase().includes(q));
+    if (q)
+      list = list.filter(
+        (a) =>
+          (a.nombre ?? "").toLowerCase().includes(q) ||
+          (a.codigo ?? "").toLowerCase().includes(q) ||
+          (a.descripcionCorta ?? "").toLowerCase().includes(q),
+      );
     return list;
   }, [activos, search]);
 
@@ -64,14 +71,40 @@ export default function Activos({
   };
 
   const statusLabel = (s) => {
-    const labels = { disponible: "Disponible", resguardado: "Resguardado", mantenimiento: "Mantenimiento", "en proceso": "En proceso", baja: "Baja", reportado: "Reportado" };
+    const labels = {
+      disponible: "Disponible",
+      resguardado: "Resguardado",
+      mantenimiento: "Mantenimiento",
+      "en proceso": "En proceso",
+      baja: "Baja",
+      reportado: "Reportado",
+    };
     return labels[s] ?? s;
   };
 
   const showEmptyState = filtered.length === 0;
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filtered.slice(startIndex, endIndex);
+  }, [filtered, currentPage, itemsPerPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+
   return (
-    <div className={`activos-page ${showEmptyState ? "activos-page--empty" : ""}`}>
+    <div
+      className={`activos-page ${showEmptyState ? "activos-page--empty" : ""}`}
+    >
       <PageHeader
         overline="GESTIÓN DE INVENTARIO"
         title="Inventario de Activos"
@@ -97,10 +130,20 @@ export default function Activos({
             />
           </div>
           <div className="activos-view__actions">
-            <Button variant="secondary" iconLeft={FilesImport} iconSize={30} onClick={() => onImportExcel?.()}>
+            <Button
+              variant="secondary"
+              iconLeft={FilesImport}
+              iconSize={30}
+              onClick={() => onImportExcel?.()}
+            >
               Importar Excel
             </Button>
-            <Button variant="primary" iconLeft={GenericPlus} iconSize={30} onClick={() => setModalNuevoOpen(true)}>
+            <Button
+              variant="primary"
+              iconLeft={GenericPlus}
+              iconSize={30}
+              onClick={() => setModalNuevoOpen(true)}
+            >
               Nuevo
             </Button>
           </div>
@@ -115,60 +158,110 @@ export default function Activos({
             {showEmptyState ? (
               <ActivosEmptyState hasSearch={!!search.trim()} />
             ) : (
-              filtered.map((item) => (
+              paginatedItems.map((item) => (
                 <div key={item.id} className="activos-view__asset-card-wrap">
                   <Card padding="medium" className="activos-view__asset-card">
                     <div className="activos-view__asset-content">
                       <div className="activos-view__asset-row activos-view__asset-row--1">
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-code">{item.codigo ?? "—"}</p>
-                      <p className="activos-view__asset-desc">{item.descripcionCorta ?? "—"}</p>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-code">
+                            {item.codigo ?? "—"}
+                          </p>
+                          <p className="activos-view__asset-desc">
+                            {item.descripcionCorta ?? "—"}
+                          </p>
+                        </div>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">Activo</p>
+                          <p className="activos-view__asset-value">
+                            {item.nombre ?? "—"}
+                          </p>
+                        </div>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">
+                            Asignado a
+                          </p>
+                          <p className="activos-view__asset-value">
+                            {item.asignadoA ?? "—"}
+                          </p>
+                        </div>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">
+                            Tipo de activo
+                          </p>
+                          <p className="activos-view__asset-value">
+                            {item.tipoActivo ?? "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="activos-view__asset-row activos-view__asset-row--2">
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">Estado</p>
+                          <StatusBadge
+                            status={item.status ?? "disponible"}
+                            size="small"
+                          >
+                            {statusLabel(item.status ?? "disponible")}
+                          </StatusBadge>
+                        </div>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">Campus</p>
+                          <p className="activos-view__asset-value">
+                            {item.campus ?? "—"}
+                          </p>
+                        </div>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">Edificio</p>
+                          <p className="activos-view__asset-value">
+                            {item.edificio ?? "—"}
+                          </p>
+                        </div>
+                        <div className="activos-view__asset-col">
+                          <p className="activos-view__asset-label">Aula</p>
+                          <p className="activos-view__asset-value">
+                            {item.aula ?? "—"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Activo</p>
-                      <p className="activos-view__asset-value">{item.nombre ?? "—"}</p>
-                    </div>
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Asignado a</p>
-                      <p className="activos-view__asset-value">{item.asignadoA ?? "—"}</p>
-                    </div>
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Tipo de activo</p>
-                      <p className="activos-view__asset-value">{item.tipoActivo ?? "—"}</p>
-                    </div>
-                  </div>
-                  <div className="activos-view__asset-row activos-view__asset-row--2">
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Estado</p>
-                      <StatusBadge status={item.status ?? "disponible"} size="small">
-                        {statusLabel(item.status ?? "disponible")}
-                      </StatusBadge>
-                    </div>
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Campus</p>
-                      <p className="activos-view__asset-value">{item.campus ?? "—"}</p>
-                    </div>
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Edificio</p>
-                      <p className="activos-view__asset-value">{item.edificio ?? "—"}</p>
-                    </div>
-                    <div className="activos-view__asset-col">
-                      <p className="activos-view__asset-label">Aula</p>
-                      <p className="activos-view__asset-value">{item.aula ?? "—"}</p>
-                    </div>
-                  </div>
-                    </div>
-                    <div className="activos-view__asset-actions" aria-label="Acciones del activo">
-                      <button type="button" className="activos-view__action-btn activos-view__action-btn--delete" title="Eliminar" aria-label="Eliminar" onClick={() => setConfirmDeleteAsset(item)}>
+                    <div
+                      className="activos-view__asset-actions"
+                      aria-label="Acciones del activo"
+                    >
+                      <button
+                        type="button"
+                        className="activos-view__action-btn activos-view__action-btn--delete"
+                        title="Eliminar"
+                        aria-label="Eliminar"
+                        onClick={() => setConfirmDeleteAsset(item)}
+                      >
                         <Icon icon={GenericDelete} size={30} />
                       </button>
-                      <button type="button" className="activos-view__action-btn" title="Editar" aria-label="Editar" onClick={() => setModalEditAsset(item)}>
+                      <button
+                        type="button"
+                        className="activos-view__action-btn"
+                        title="Editar"
+                        aria-label="Editar"
+                        onClick={() => setModalEditAsset(item)}
+                      >
                         <Icon icon={GenericEdit} size={30} />
                       </button>
-                      <button type="button" className="activos-view__action-btn" title="Historial" aria-label="Historial" onClick={() => onHistorial?.(item)}>
+                      <button
+                        type="button"
+                        className="activos-view__action-btn"
+                        title="Historial"
+                        aria-label="Historial"
+                        onClick={() => onHistorial?.(item)}
+                      >
                         <Icon icon={TimeTime} size={30} />
                       </button>
-                      <button type="button" className="activos-view__action-btn" title="Detalles" aria-label="Detalles" onClick={() => onDetalles?.(item)}>
+                      <button
+                        type="button"
+                        className="activos-view__action-btn"
+                        title="Detalles"
+                        aria-label="Detalles"
+                        onClick={() => onDetalles?.(item)}
+                      >
                         <Icon icon={SecurityPassport} size={30} />
                       </button>
                     </div>
@@ -178,6 +271,14 @@ export default function Activos({
             )}
           </div>
         )}
+
+        <Pagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          totalElements={totalItems}
+          pageSize={itemsPerPage}
+          onPageChange={handlePageChange}
+        />
       </section>
 
       <NewAssetModal

@@ -3,6 +3,8 @@ package mx.edu.utez.modules.roles;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +22,8 @@ public class RoleController {
     private final RoleService roleService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse> findAll() {
-        ApiResponse response = roleService.findAll();
+    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
+        ApiResponse response = roleService.findAll(pageable);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

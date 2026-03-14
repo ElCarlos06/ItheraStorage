@@ -26,7 +26,11 @@ export const authApi = {
   changePassword: (body) => {
     const payload = body.token
       ? { token: body.token, passwordNueva: body.passwordNueva }
-      : { correo: body.correo, passwordActual: body.passwordActual, passwordNueva: body.passwordNueva };
+      : {
+          correo: body.correo,
+          passwordActual: body.passwordActual,
+          passwordNueva: body.passwordNueva,
+        };
     return request("/api/auth/change-password", {
       method: "POST",
       body: JSON.stringify(payload),

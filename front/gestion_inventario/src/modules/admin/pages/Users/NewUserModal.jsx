@@ -35,12 +35,12 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
   useEffect(() => {
     if (open) {
       api
-        .getRoles()
-        .then((res) => setRoles(Array.isArray(res?.data) ? res.data : []))
+        .getRoles(0, 1000)
+        .then((res) => setRoles(Array.isArray(res?.data?.content) ? res.data.content : []))
         .catch(() => setRoles([]));
       api
-        .getAreas()
-        .then((res) => setAreas(Array.isArray(res?.data) ? res.data : []))
+        .getAreas(0, 1000)
+        .then((res) => setAreas(Array.isArray(res?.data?.content) ? res.data.content : []))
         .catch(() => setAreas([]));
     }
   }, [open]);

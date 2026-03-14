@@ -2,7 +2,7 @@
  * Cliente API base para el backend SIRMA.
  * Contiene la función `request` configurada con la Base URL.
  */
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_BASE = "http://localhost:8080";
 
 /**
  * Función principal para peticiones HTTP
@@ -12,8 +12,11 @@ const API_BASE = import.meta.env.VITE_API_URL || "";
  */
 export async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
-  const token = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("token") : null;
-  
+  const token =
+    typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("token")
+      : null;
+
   const headers = {
     ...options.headers,
   };
@@ -49,7 +52,7 @@ export async function request(endpoint, options = {}) {
       data.error ||
       (Array.isArray(data.errors) && data.errors[0]?.defaultMessage) ||
       "Ocurrió un error. Intenta de nuevo.";
-    
+
     const err = new Error(msg);
     err.data = data;
     err.status = res.status;

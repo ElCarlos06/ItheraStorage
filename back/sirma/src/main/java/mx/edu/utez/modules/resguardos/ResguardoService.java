@@ -6,6 +6,8 @@ import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +25,9 @@ public class ResguardoService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public ApiResponse findAll() {
-        List<Resguardo> list = resguardoRepository.findAll();
-        return new ApiResponse("OK", list, HttpStatus.OK);
+    public ApiResponse findAll(Pageable pageable) {
+        Page<Resguardo> page = resguardoRepository.findAll(pageable);
+        return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
     @Transactional(readOnly = true)
@@ -58,6 +60,7 @@ public class ResguardoService {
         Optional<Resguardo> resguardoExistente = resguardoRepository
                 .findByActivoAndEstadoResguardo(activo.get(), "Pendiente");
 
+        // Evita reasignar el activo a un empleado distinto mientras exista un resguardo pendiente.
         if (resguardoExistente.isPresent()) {
             User empleadoActual = resguardoExistente.get().getUsuarioEmpleado();
             if (!empleadoActual.getId().equals(dto.getIdUsuarioEmpleado()))
@@ -105,4 +108,3 @@ public class ResguardoService {
     }
 
 }
-
