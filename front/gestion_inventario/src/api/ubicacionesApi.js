@@ -2,7 +2,8 @@ import { request } from "./base";
 
 export const ubicacionesApi = {
   /** Ubicaciones: Campus */
-  getCampus: (page = 0, size = 1000) => request(`/api/campus?page=${page}&size=${size}`),
+  getCampus: (page = 0, size = 10) =>
+    request(`/api/campus?page=${page}&size=${size}`),
   createCampus: (body) =>
     request("/api/campus", { method: "POST", body: JSON.stringify(body) }),
   updateCampus: (id, body) =>
@@ -11,7 +12,8 @@ export const ubicacionesApi = {
     request(`/api/campus/${id}/status`, { method: "PATCH" }),
 
   /** Ubicaciones: Edificios */
-  getEdificios: (page = 0, size = 1000) => request(`/api/edificios?page=${page}&size=${size}`),
+  getEdificios: (page = 0, size = 10) =>
+    request(`/api/edificios?page=${page}&size=${size}`),
   getEdificiosByCampus: (campusId) =>
     request(`/api/edificios/campus/${campusId}`),
   createEdificio: (body) =>
@@ -25,7 +27,8 @@ export const ubicacionesApi = {
     request(`/api/edificios/${id}/status`, { method: "PATCH" }),
 
   /** Ubicaciones: Espacios (Aulas/Lab) */
-  getEspacios: (page = 0, size = 1000) => request(`/api/espacios?page=${page}&size=${size}`),
+  getEspacios: (page = 0, size = 10) =>
+    request(`/api/espacios?page=${page}&size=${size}`),
   getEspaciosByEdificio: (edificioId) =>
     request(`/api/espacios/edificio/${edificioId}`),
   createEspacio: (body) =>

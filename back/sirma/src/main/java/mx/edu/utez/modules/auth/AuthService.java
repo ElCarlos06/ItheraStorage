@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.Optional;
 
 /**
  * Servicio de autenticación que maneja el proceso de login, generación de tokens JWT
@@ -73,6 +74,34 @@ public class AuthService {
         // 4. Credenciales correctas y contraseña ya cambiada → generar token
         String token = jwtProvider.generateToken(auth);
         return new ApiResponse("Login exitoso", new TokenResponse(token), HttpStatus.OK);
+    }
+
+    /**
+     * Obtiene la información del usuario autenticado current.
+     * Devuelve un DTO seguro (UserProfileDTO) en lugar de la entidad completa.
+     *
+     * @param auth objeto de autenticación de Spring Security
+     * @return ApiResponse con los datos del perfil del usuario
+     */
+    @Transactional(readOnly = true)
+    public ApiResponse getActiveUser(Authentication auth) {
+        String correo = auth.getName();
+        Optional<User> usr = userRepository.findByCorreoIgnoreCase(correo);
+
+        if (usr.isPresent()) {
+            User user = usr.get();
+            UserProfileDTO profile = new UserProfileDTO(
+                    user.getId(),
+                    user.getNombreCompleto(),
+                    user.getCorreo(),
+                    user.getRole() != null ? user.getRole().getNombre() : "Sin Rol",
+                    user.getArea() != null ? user.getArea().getNombre() : "Sin Área",
+                    user.getNumeroEmpleado()
+            );
+            return new ApiResponse("Usuario retornado exitosamente", profile, HttpStatus.OK);
+        } else {
+            return new ApiResponse("Usuario no encontrado", null, HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
@@ -162,14 +191,6 @@ public class AuthService {
         return new ApiResponse(
                 "Revisa tu correo. Te enviamos un enlace para restablecer tu contraseña.",
                 HttpStatus.OK);
-    }
-
-    private String generarContrasenaTemporal() {
-        StringBuilder sb = new StringBuilder(PASSWORD_LENGTH);
-        for (int i = 0; i < PASSWORD_LENGTH; i++) {
-            sb.append(PASSWORD_CHARS.charAt(RANDOM.nextInt(PASSWORD_CHARS.length())));
-        }
-        return sb.toString();
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────

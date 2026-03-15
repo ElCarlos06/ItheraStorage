@@ -2,8 +2,9 @@ import { request } from "./base";
 
 export const rolesApi = {
   /** GET /api/roles */
-  getRoles: (page = 0, size = 1000) => request(`/api/roles?page=${page}&size=${size}`),
+  getRoles: () => request("/api/roles"),
 
   /** GET /api/areas */
-  getAreas: (page = 0, size = 1000) => request(`/api/areas?page=${page}&size=${size}`),
+  getAreas: (page = 0, size = 10) =>
+    request(`/api/areas?page=${page}&size=${size}`),
 };

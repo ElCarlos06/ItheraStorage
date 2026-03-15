@@ -169,9 +169,9 @@ export default function Catalogs() {
     setLoading(true);
     setError(null);
     Promise.all([
-      ubicacionesApi.getCampus(0, 1000),
-      ubicacionesApi.getEdificios(0, 1000),
-      ubicacionesApi.getEspacios(0, 1000),
+      ubicacionesApi.getCampus(),
+      ubicacionesApi.getEdificios(),
+      ubicacionesApi.getEspacios(),
     ])
       .then(([r1, r2, r3]) => {
         setCampus(r1?.data?.content ?? []);
@@ -191,22 +191,25 @@ export default function Catalogs() {
   const refreshLocations = () => {
     if (!isLocations) return;
     ubicacionesApi
-      .getCampus(0, 1000)
+      .getCampus()
       .then((r) => setCampus(r.data?.content ?? []))
       .catch(() => {});
     ubicacionesApi
-      .getEdificios(0, 1000)
+      .getEdificios()
       .then((r) => setEdificios(r.data?.content ?? []))
       .catch(() => {});
     ubicacionesApi
-      .getEspacios(0, 1000)
+      .getEspacios()
       .then((r) => setEspacios(r.data?.content ?? []))
       .catch(() => {});
   };
 
   const cargarTiposActivos = async () => {
     try {
-      const res = await tipoActivosApi.getTipoActivos(currentPage - 1, pageSize);
+      const res = await tipoActivosApi.getTipoActivos(
+        currentPage - 1,
+        pageSize,
+      );
 
       setTiposActivos(res?.data?.content ?? []);
       setTotalPages(res?.data?.totalPages ?? 0);
@@ -511,16 +514,6 @@ export default function Catalogs() {
           isLocations && hasLocations ? handleDeleteLocation : undefined
         }
       />
-      
-      {mainTab === "tipos-activos" && !loading && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalElements={totalElements}
-          pageSize={pageSize}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
-      )}
     </div>
   );
 }

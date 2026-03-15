@@ -36,4 +36,12 @@ export const authApi = {
       body: JSON.stringify(payload),
     });
   },
+
+  /** GET /api/auth/me - Obtener perfil del usuario */
+  me: () =>
+    request("/api/auth/me", {
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+    }),
 };

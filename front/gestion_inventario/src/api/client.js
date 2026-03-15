@@ -50,10 +50,10 @@ async function request(endpoint, options = {}) {
 
 export const api = {
   /** GET /api/roles */
-  getRoles: (page = 0, size = 1000) => request(`/api/roles?page=${page}&size=${size}`),
+  getRoles: () => request(`/api/roles`),
 
   /** GET /api/areas */
-  getAreas: (page = 0, size = 1000) => request(`/api/areas?page=${page}&size=${size}`),
+  getAreas: (page = 0, size = 10) => request(`/api/areas?page=${page}&size=${size}`),
 
   /** POST /api/register - Registrar nuevo usuario */
   register: (body) =>
@@ -117,14 +117,14 @@ export const api = {
     }),
 
   /** GET /api/users - Listar usuarios (requiere auth) */
-  getUsers: (page = 0, size = 1000) => request(`/api/users?page=${page}&size=${size}`),
+  getUsers: (page = 0, size = 10) => request(`/api/users?page=${page}&size=${size}`),
 
   /** Ubicaciones: Campus, Edificios, Espacios (Aulas) */
-  getCampus: (page = 0, size = 1000) => request(`/api/campus?page=${page}&size=${size}`),
-  getEdificios: (page = 0, size = 1000) => request(`/api/edificios?page=${page}&size=${size}`),
+  getCampus: (page = 0, size = 10) => request(`/api/campus?page=${page}&size=${size}`),
+  getEdificios: (page = 0, size = 10) => request(`/api/edificios?page=${page}&size=${size}`),
   getEdificiosByCampus: (campusId) =>
     request(`/api/edificios/campus/${campusId}`),
-  getEspacios: (page = 0, size = 1000) => request(`/api/espacios?page=${page}&size=${size}`),
+  getEspacios: (page = 0, size = 10) => request(`/api/espacios?page=${page}&size=${size}`),
   getEspaciosByEdificio: (edificioId) =>
     request(`/api/espacios/edificio/${edificioId}`),
   createCampus: (body) =>

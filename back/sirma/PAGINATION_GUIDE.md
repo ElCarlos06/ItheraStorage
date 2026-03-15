@@ -1,10 +1,12 @@
 # Guía de Migración a Paginación (Backend & Frontend)
 
-Se ha implementado paginación en todos los endpoints de listado (`findAll`) del backend para mejorar el rendimiento y la experiencia de usuario. A continuación se detallan los cambios y cómo adaptar el frontend.
+Se ha implementado paginación en la mayoría de los endpoints de listado (`findAll`) del backend para mejorar el rendimiento y la experiencia de usuario. A continuación se detallan los cambios y cómo adaptar el frontend.
+
+**Nota importante:** Los catálogos pequeños como **Roles** y **Prioridades** NO están paginados y devuelven una lista simple `[...]`.
 
 ## 1. Cambios en el Backend
 
-Los endpoints `GET` que devuelven listas (ej. `/api/tipo-activos`, `/api/users`, etc.) ahora aceptan parámetros de paginación opcionales y devuelven un objeto `Page` en lugar de una `List` simple.
+Los endpoints `GET` que devuelven listas grandes (ej. `/api/tipo-activos`, `/api/users`, etc.) ahora aceptan parámetros de paginación opcionales y devuelven un objeto `Page` en lugar de una `List` simple.
 
 ### Parámetros de Petición (Query Params)
 Ahora puedes enviar los siguientes parámetros en la URL:

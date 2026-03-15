@@ -8,7 +8,7 @@ export const tipoActivosApi = {
    * Obtener todos los tipos de activos
    * GET /api/tipo-activos
    */
-  getTipoActivos: (page, size) =>
+  getTipoActivos: (page = 0, size = 10) =>
     request(`/api/tipo-activos?page=${page}&size=${size}`),
 
   /**

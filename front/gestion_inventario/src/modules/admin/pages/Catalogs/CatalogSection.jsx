@@ -2,7 +2,13 @@ import { useState, useMemo } from "react";
 import Buscador from "../../../../components/Buscador/Buscador";
 import Button from "../../../../components/Button/Button";
 import Icon from "../../../../components/Icon/Icon";
-import { GenericPlus, TravelHotel, ControlsChevronRight, GenericDelete, GenericEdit } from "@heathmont/moon-icons";
+import {
+  GenericPlus,
+  TravelHotel,
+  ControlsChevronRight,
+  GenericDelete,
+  GenericEdit,
+} from "@heathmont/moon-icons";
 import CatalogEmptyState from "./CatalogEmptyState";
 import Pagination from "../../components/layout/Pagination";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
@@ -57,7 +63,9 @@ export default function CatalogSection({
   }, [filtered, currentPage, itemsPerPage]);
 
   return (
-    <div className={`catalog-section ${showEmptyState && !loading ? "catalog-section--empty" : ""} ${loading ? "catalog-section--loading" : ""}`}>
+    <div
+      className={`catalog-section ${showEmptyState && !loading ? "catalog-section--empty" : ""} ${loading ? "catalog-section--loading" : ""}`}
+    >
       <section className="catalog-section__view" aria-label={title}>
         {showToolbar && (
           <div className="catalog-section__toolbar">
@@ -70,7 +78,12 @@ export default function CatalogSection({
               />
             </div>
             <div className="catalog-section__actions">
-              <Button variant="primary" iconLeft={GenericPlus} iconSize={30} onClick={() => onNew?.()}>
+              <Button
+                variant="primary"
+                iconLeft={GenericPlus}
+                iconSize={30}
+                onClick={() => onNew?.()}
+              >
                 Nuevo
               </Button>
             </div>
@@ -125,10 +138,17 @@ export default function CatalogSection({
                 col2Value = null;
               }
 
-              const hasActions = (onEdit || onDelete) && (sectionKey === "campus" || sectionKey === "edificios" || sectionKey === "aulas");
+              const hasActions =
+                (onEdit || onDelete) &&
+                (sectionKey === "campus" ||
+                  sectionKey === "edificios" ||
+                  sectionKey === "aulas");
 
               return (
-                <div key={item.id ?? nombre} className="catalog-section__card-wrap">
+                <div
+                  key={item.id ?? nombre}
+                  className="catalog-section__card-wrap"
+                >
                   <div
                     className="catalog-section__card"
                     role="button"
@@ -141,22 +161,35 @@ export default function CatalogSection({
                     </div>
                     <div className="catalog-section__card-content">
                       <p className="catalog-section__card-title">{nombre}</p>
-                      <p className="catalog-section__card-subtitle">{subtitle}</p>
+                      <p className="catalog-section__card-subtitle">
+                        {subtitle}
+                      </p>
                     </div>
                     <div className="catalog-section__card-columns">
                       <div className="catalog-section__card-cantidad">
-                        <p className="catalog-section__card-cantidad-label">{col1Label}</p>
-                        <p className="catalog-section__card-cantidad-value">{col1Value}</p>
+                        <p className="catalog-section__card-cantidad-label">
+                          {col1Label}
+                        </p>
+                        <p className="catalog-section__card-cantidad-value">
+                          {col1Value}
+                        </p>
                       </div>
                       {col2Label != null && (
                         <div className="catalog-section__card-cantidad">
-                          <p className="catalog-section__card-cantidad-label">{col2Label}</p>
-                          <p className="catalog-section__card-cantidad-value">{col2Value}</p>
+                          <p className="catalog-section__card-cantidad-label">
+                            {col2Label}
+                          </p>
+                          <p className="catalog-section__card-cantidad-value">
+                            {col2Value}
+                          </p>
                         </div>
                       )}
                     </div>
                     {hasActions ? (
-                      <div className="catalog-section__card-actions" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="catalog-section__card-actions"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {onDelete && (
                           <button
                             type="button"
@@ -182,7 +215,10 @@ export default function CatalogSection({
                       </div>
                     ) : null}
                     {!hasActions && (
-                      <div className="catalog-section__card-chevron" aria-hidden>
+                      <div
+                        className="catalog-section__card-chevron"
+                        aria-hidden
+                      >
                         <Icon icon={ControlsChevronRight} size={20} />
                       </div>
                     )}

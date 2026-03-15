@@ -56,7 +56,9 @@
   border: 2px dashed var(--moon-piccolo-60);
   border-radius: var(--moon-radius-s-md);
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .settings-upload:hover,

@@ -5,10 +5,8 @@ import lombok.RequiredArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controlador REST para operaciones de autenticación en SIRMA.
@@ -95,6 +93,17 @@ public class AuthController {
     @PostMapping("/request-password-reset")
     public ResponseEntity<ApiResponse> requestPasswordReset(@Valid @RequestBody RequestPasswordResetDTO dto) {
         ApiResponse response = authService.requestPasswordReset(dto, resetBaseUrl);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    /**
+     * Método para obtener el usuario actualmente logueado, con el fin de no tocar más el MainSecurity xd
+     * @param authentication Es el usuario encriptado.
+     * @return ApiResponse con los datos necesarios para su uso debido :D.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getMe(Authentication authentication) {
+        ApiResponse response = authService.getActiveUser(authentication);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
