@@ -40,5 +40,23 @@ class AssetDetailViewModel : ViewModel() {
     fun dismissModal() {
         uiState = uiState.copy(isVisible = true)
     }
+
+
+    // Agrega esto a tu AssetDetailViewModel o crea ResguardosViewModel
+    var isResguardosModalVisible by mutableStateOf(false)
+        private set
+
+    fun showResguardos() { isResguardosModalVisible = true }
+    fun dismissResguardos() { isResguardosModalVisible = false }
+
+    fun confirmarResguardo() {
+        // 1. Cerramos el modal
+        isResguardosModalVisible = false
+        // 2. Aquí podrías disparar un evento para que la UI se mueva al escáner
+        // o simplemente cerrar el modal y que el usuario ya esté viendo la cámara.
+    }
+
+
+
 }
 
