@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "IMAGEN_PERFIL")
-@AttributeOverride(name = "id", column = @Column(name = "id_imagen_perfil"))
+@AttributeOverride(name = "id", column = @Column(name = "id_imagen"))
 @Getter
 @Setter
 @NoArgsConstructor

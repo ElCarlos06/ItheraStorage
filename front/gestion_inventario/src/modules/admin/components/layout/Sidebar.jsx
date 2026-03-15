@@ -11,7 +11,9 @@ import {
 import Icon from "../../../../components/Icon/Icon";
 import logoActivos360 from "../../../../assets/activos360_logo.png";
 import { getProfileFromToken } from "../../../../api/authApi";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import { imagenPerfilApi } from "../../../../api/imagenPerfilApi";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: GenericHome },
@@ -24,6 +26,7 @@ const navItems = [
 export default function Sidebar() {
   // Se usa memo pq no van a cambiar los valores de el usuario autenticao
   const profile = useMemo(() => getProfileFromToken(), []);
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
   // Elimina el token de sesión y recarga la página para que App.jsx
   // detecte la ausencia del token y monte PublicRouter con la pantalla de login
@@ -31,6 +34,15 @@ export default function Sidebar() {
     sessionStorage.removeItem("token");
     window.location.replace("/");
   };
+
+  useEffect(() => {
+    if (profile?.correo) {
+      imagenPerfilApi
+        .getByCorreo(profile.correo)
+        .then((res) => setAvatarUrl(res.data?.urlCloudinary))
+        .catch(() => setAvatarUrl(null));
+    }
+  }, [profile?.correo]);
 
   return (
     <aside className="admin-sidebar">
@@ -67,7 +79,18 @@ export default function Sidebar() {
           className="admin-sidebar__user"
           title="Ir a Ajustes"
         >
-          <div className="admin-sidebar__avatar">A</div>
+          <div className="admin-sidebar__avatar">
+            <img
+              src={avatarUrl || "/public/default-avatar.png"}
+              alt="imagen de perfil"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "inherit",
+              }}
+            />
+          </div>
           <div className="admin-sidebar__user-info">
             <span className="admin-sidebar__user-name">
               {profile?.nombreCompleto.split(" ")[0]}

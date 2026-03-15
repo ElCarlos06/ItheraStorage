@@ -22,7 +22,7 @@ import "./Users.css";
 import NewUserModal from "./NewUserModal";
 import UserInfoModal from "./UserInfoModal";
 import { toast } from "../../../../utils/toast.jsx";
-import { getCurrentUserCorreo, logout } from "../../../../utils/auth";
+import { getCurrentUserCorreo, logout } from "../../../../api/authApi";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 
@@ -81,34 +81,33 @@ export default function Users({
     usersApi
       .getUsers(currentPage - 1, pageSize)
       .then((res) => {
-        const list = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
-        setUsers(
-          list
-            .filter((u) => u?.esActivo !== false)
-            .map(mapUser)
-            .filter(Boolean),
-        );
+        const list = Array.isArray(res)
+          ? res
+          : res?.data?.content || res?.content || res?.data || [];
+        setUsers(list.map(mapUser).filter(Boolean));
         setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
-        setTotalElements(res?.data?.totalElements ?? res?.totalElements ?? list.length);
+        setTotalElements(
+          res?.data?.totalElements ?? res?.totalElements ?? list.length,
+        );
       })
       .catch((err) => {
         setError(err.message);
         setUsers([]);
       })
       .finally(() => setLoading(false));
+
     const interval = setInterval(() => {
       usersApi
         .getUsers(currentPage - 1, pageSize)
         .then((res) => {
-          const list = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
-          setUsers(
-            list
-              .filter((u) => u?.esActivo !== false)
-              .map(mapUser)
-              .filter(Boolean),
-          );
+          const list = Array.isArray(res)
+            ? res
+            : res?.data?.content || res?.content || res?.data || [];
+          setUsers(list.map(mapUser).filter(Boolean));
           setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
-          setTotalElements(res?.data?.totalElements ?? res?.totalElements ?? list.length);
+          setTotalElements(
+            res?.data?.totalElements ?? res?.totalElements ?? list.length,
+          );
         })
         .catch(() => {});
     }, 30000);
@@ -120,15 +119,14 @@ export default function Users({
     usersApi
       .getUsers(currentPage - 1, pageSize)
       .then((res) => {
-        const list = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
-        setUsers(
-          list
-            .filter((u) => u?.esActivo !== false)
-            .map(mapUser)
-            .filter(Boolean),
-        );
+        const list = Array.isArray(res)
+          ? res
+          : res?.data?.content || res?.content || res?.data || [];
+        setUsers(list.map(mapUser).filter(Boolean));
         setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
-        setTotalElements(res?.data?.totalElements ?? res?.totalElements ?? list.length);
+        setTotalElements(
+          res?.data?.totalElements ?? res?.totalElements ?? list.length,
+        );
       })
       .catch(() => {});
   };
@@ -316,7 +314,7 @@ export default function Users({
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                totalElements={totalElements}
+                totalElements={totalElements - 1}
                 pageSize={pageSize}
                 onPageChange={(page) => setCurrentPage(page)}
               />

@@ -6,14 +6,7 @@ import { GenericUpload, FilesSave } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
 import "./Settings.css";
 import { getProfileFromToken } from "../../../../api/authApi";
-
-const DEFAULT_PROFILE = {
-  nombreCompleto: "Administrador",
-  email: "admin@sistema.com",
-  rol: "Administrador",
-  departamento: "Tecnologías de la Información",
-  noEmpleado: "ADM-001",
-};
+import { imagenPerfilApi } from "../../../../api/imagenPerfilApi";
 
 export default function Settings({
   profile: profileProp,
@@ -33,14 +26,15 @@ export default function Settings({
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (file) onUploadPhoto?.(file);
+    if (file) imagenPerfilApi.upload(profile.correo, file);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file?.type.startsWith("image/")) onUploadPhoto?.(file);
+    if (file?.type.startsWith("image/"))
+      imagenPerfilApi.upload(profile.correo, file);
   };
 
   const handleDragOver = (e) => {

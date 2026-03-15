@@ -26,9 +26,9 @@ public class ImagenPerfilController {
      * @param id Identificador del usuario.
      * @return Respuesta HTTP con la información de la imagen de perfil.
      */
-    @GetMapping("/usuario/{id}")
-    public ResponseEntity<ApiResponse> findById(@PathVariable Long id) {
-        ApiResponse response = imagenPerfilService.listarImagenes(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> findByCorreo(@PathVariable String id) {
+        ApiResponse response = imagenPerfilService.obtenerImagen(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -39,8 +39,8 @@ public class ImagenPerfilController {
      * @param file Archivo de imagen de la nueva foto de perfil.
      * @return Respuesta HTTP con los datos de la nueva imagen guardada.
      */
-    @PostMapping("/usuario/{id}")
-    public ResponseEntity<ApiResponse> save(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    @PostMapping("/{id}")
+    public ResponseEntity<ApiResponse> save(@PathVariable String id, @RequestParam("file") MultipartFile file) {
         ApiResponse response = imagenPerfilService.subirImagen(id, file);
         return new ResponseEntity<>(response, response.getStatus());
     }

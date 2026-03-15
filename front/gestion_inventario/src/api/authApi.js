@@ -56,3 +56,25 @@ export const getProfileFromToken = () => {
     numeroEmpleado: payload.numeroEmpleado,
   };
 };
+
+/**
+ * Obtiene el correo del usuario actual desde el token JWT en sessionStorage.
+ * El subject (sub) del JWT contiene el correo del usuario logueado.
+ * @returns {string|null} correo o null si no hay token valido
+ */
+export function getCurrentUserCorreo() {
+  const token = sessionStorage.getItem("token");
+  if (!token) return null;
+  try {
+    const decoded = parseJwt(token);
+    return decoded.sub ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Cierra sesion y recarga para mostrar el login */
+export function logout() {
+  sessionStorage.removeItem("token");
+  window.location.replace("/");
+}

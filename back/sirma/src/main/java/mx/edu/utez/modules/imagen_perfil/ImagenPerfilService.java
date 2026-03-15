@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,42 +33,71 @@ public class ImagenPerfilService {
 	/**
 	 * Sube y asocia una foto de perfil al usuario indicado.
 	 *
-	 * @param usuarioId ID del usuario.
+	 * @param correo Correo del usuario actual.
 	 * @param file      Archivo de la foto de perfil.
 	 * @return ApiResponse con la nueva imagen de perfil.
 	 */
 	@Transactional
-	public ApiResponse subirImagen(Long usuarioId, MultipartFile file) {
-		Optional<User> found = userRepository.findById(usuarioId);
+	public ApiResponse subirImagen(String correo, MultipartFile file) {
+		Optional<User> found = userRepository.findByCorreoIgnoreCase(correo);
 		if (found.isEmpty())
 			return new ApiResponse("Usuario no encontrado", true, HttpStatus.NOT_FOUND);
 
+		User usuario = found.get();
+		String carpetaUsuario = CARPETA_CLOUDINARY + "/" + usuario.getNumeroEmpleado();
+
+		// 1. Eliminar foto anterior si existe (para mantener solo una activa y limpia)
+		Optional<ImagenPerfil> imagenPrevia = imagenPerfilRepository.findByUsuarioId(usuario.getId());
+		if (imagenPrevia.isPresent()) {
+			ImagenPerfil img = imagenPrevia.get();
+			try {
+				cloudinaryService.delete(img.getPublicIdCloudinary());
+				imagenPerfilRepository.delete(img);
+			} catch (IOException e) {
+				// Loggear error pero continuar con la subida si es posible, o retornar error
+				System.err.println("Error al eliminar imagen previa de Cloudinary: " + e.getMessage());
+			}
+		}
+
 		try {
-			Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_CLOUDINARY);
+			// 2. Subir nueva foto a la carpeta del usuario (usando su número de empleado)
+			Map<String, Object> resultado = cloudinaryService.upload(file, carpetaUsuario);
 
 			ImagenPerfil img = new ImagenPerfil();
-			img.setUsuario(found.get());
+			img.setUsuario(usuario);
 			img.setUrlCloudinary((String) resultado.get("secure_url"));
 			img.setPublicIdCloudinary((String) resultado.get("public_id"));
 			img.setNombreArchivo(file.getOriginalFilename());
 			imagenPerfilRepository.save(img);
 
-			return new ApiResponse("Imagen de perfil subida correctamente", img, HttpStatus.CREATED);
+			return new ApiResponse("Imagen de perfil actualizada correctamente", img, HttpStatus.CREATED);
 		} catch (IOException e) {
 			return new ApiResponse("Error al subir imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	/**
-	 * Lista todas las fotos de perfil del usuario (historial por si se guardan varias).
+	 * Obtiene la foto de perfil actual del usuario.
 	 *
-	 * @param usuarioId ID del usuario.
-	 * @return ApiResponse con la lista de fotos.
+	 * @param correo Correo del usuario actual.
+	 * @return ApiResponse con la imagen de perfil encontrada.
 	 */
 	@Transactional(readOnly = true)
-	public ApiResponse listarImagenes(Long usuarioId) {
-		List<ImagenPerfil> lista = imagenPerfilRepository.findByUsuarioId(usuarioId);
-		return new ApiResponse("OK", lista, HttpStatus.OK);
+	public ApiResponse obtenerImagen(String correo) {
+
+		Optional<User> found = userRepository.findByCorreoIgnoreCase(correo);
+
+		if (found.isEmpty())
+			return new ApiResponse("El usuario no tiene imágenes asociadas", true, HttpStatus.NOT_FOUND);
+
+		User  usuario = found.get();
+
+		Optional<ImagenPerfil> imagen = imagenPerfilRepository.findByUsuarioId(usuario.getId());
+		if (imagen.isPresent()) {
+			return new ApiResponse("OK", imagen.get(), HttpStatus.OK);
+		} else {
+			return new ApiResponse("El usuario no tiene foto de perfil", null, HttpStatus.NOT_FOUND);
+		}
 	}
 
 	/**
