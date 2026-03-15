@@ -96,16 +96,8 @@ public class AuthController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    /**
-     * Método para obtener el usuario actualmente logueado, con el fin de no tocar más el MainSecurity xd
-     * @param authentication Es el usuario encriptado.
-     * @return ApiResponse con los datos necesarios para su uso debido :D.
-     */
-    @GetMapping("/me")
-    public ResponseEntity<?> getMe(Authentication authentication) {
-        ApiResponse response = authService.getActiveUser(authentication);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
+
+
 
 }
 

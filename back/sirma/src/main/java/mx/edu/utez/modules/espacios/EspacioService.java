@@ -22,7 +22,7 @@ public class EspacioService {
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
-        Page<Espacio> page = espacioRepository.findAll(pageable);
+        Page<Espacio> page = espacioRepository.findAllByEsActivoTrue(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 

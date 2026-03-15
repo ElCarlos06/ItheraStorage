@@ -30,13 +30,23 @@ export default function CatalogSection({
   onEmptyAction,
   onEdit,
   onDelete,
+  // Props para paginación del servidor (opcionales)
+  serverPagination = false,
+  currentPage: serverCurrentPage,
+  totalPages: serverTotalPages,
+  totalElements: serverTotalElements,
+  onPageChange: onServerPageChange,
 }) {
   const [internalSearch, setInternalSearch] = useState("");
+  const [internalPage, setInternalPage] = useState(1);
+  const itemsPerPage = 10;
+
   const search = onSearchChange ? (searchProp ?? "") : internalSearch;
   const handleSearchChange = (e) => {
     const val = e?.target?.value ?? "";
     if (onSearchChange) onSearchChange(val);
     else setInternalSearch(val);
+    setInternalPage(1); // Reset local page on search
   };
 
   const filtered = useMemo(() => {
@@ -49,18 +59,27 @@ export default function CatalogSection({
     });
   }, [items, search]);
 
-  const showEmptyState = filtered.length === 0;
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const totalItems = filtered.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Decidimos qué valores de paginación usar
+  const currentPage = serverPagination ? serverCurrentPage : internalPage;
+  const totalItems = serverPagination ? serverTotalElements : filtered.length;
+  const totalPages = serverPagination ? serverTotalPages : Math.ceil(filtered.length / itemsPerPage);
 
   const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
+    if (serverPagination) return filtered; // El servidor ya mandó solo 10
+    const startIndex = (internalPage - 1) * itemsPerPage;
     return filtered.slice(startIndex, startIndex + itemsPerPage);
-  }, [filtered, currentPage, itemsPerPage]);
+  }, [serverPagination, filtered, internalPage, itemsPerPage]);
+
+  const handlePageChange = (page) => {
+    if (serverPagination) {
+      onServerPageChange?.(page);
+    } else {
+      setInternalPage(page);
+    }
+    window.scrollTo(0, 0);
+  };
+
+  const showEmptyState = filtered.length === 0;
 
   return (
     <div
@@ -228,6 +247,7 @@ export default function CatalogSection({
             })
           )}
         </div>
+
         {!loading && !showEmptyState && (
           <div style={{ marginTop: "2rem" }}>
             <Pagination
@@ -235,10 +255,7 @@ export default function CatalogSection({
               totalPages={totalPages}
               totalElements={totalItems}
               pageSize={itemsPerPage}
-              onPageChange={(page) => {
-                setCurrentPage(page);
-                window.scrollTo(0, 0);
-              }}
+              onPageChange={handlePageChange}
             />
           </div>
         )}

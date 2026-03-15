@@ -1,5 +1,10 @@
 import { request } from "./base";
 
+const parseJwt = (token) => {
+  const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+  return JSON.parse(atob(base64));
+};
+
 export const authApi = {
   /** POST /api/auth/login - Iniciar sesión */
   login: (body) =>
@@ -36,12 +41,18 @@ export const authApi = {
       body: JSON.stringify(payload),
     });
   },
+};
 
-  /** GET /api/auth/me - Obtener perfil del usuario */
-  me: () =>
-    request("/api/auth/me", {
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      },
-    }),
+export const getProfileFromToken = () => {
+  const token = sessionStorage.getItem("token");
+  if (!token) return null;
+
+  const payload = parseJwt(token);
+  return {
+    nombreCompleto: payload.nombre,
+    correo: payload.sub,
+    rol: payload.role,
+    area: payload.area,
+    numeroEmpleado: payload.numeroEmpleado,
+  };
 };

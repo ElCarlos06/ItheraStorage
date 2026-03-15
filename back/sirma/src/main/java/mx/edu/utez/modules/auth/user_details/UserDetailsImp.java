@@ -1,5 +1,6 @@
 package mx.edu.utez.modules.auth.user_details;
 
+import lombok.Getter;
 import mx.edu.utez.modules.users.User;
 
 import org.jspecify.annotations.Nullable;
@@ -16,20 +17,31 @@ import java.util.Collections;
  *
  * @author Ithera Team
  */
+@Getter
 public class UserDetailsImp implements UserDetails {
 
     private final String email;
     private final String password;
     private final boolean enabled;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final Long id;
+    private final String nombreCompleto;
+    private final String area;
+    private final String numeroEmpleado;
+    private final String role;
 
     public UserDetailsImp(User user) {
         this.email = user.getCorreo();
         this.password = user.getPasswordHash();
         this.enabled = user.getEsActivo() != null && user.getEsActivo();
         String roleName = user.getRole().getNombre();
+        this.role = roleName;
         this.authorities = Collections.singleton(
                 new SimpleGrantedAuthority(roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName));
+        this.id = user.getId();
+        this.nombreCompleto = user.getNombreCompleto();
+        this.area = user.getArea() != null ? user.getArea().getNombre() : "Sin Área";
+        this.numeroEmpleado = user.getNumeroEmpleado();
     }
 
     @Override

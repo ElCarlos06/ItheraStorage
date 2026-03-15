@@ -24,7 +24,7 @@ public class EdificioService {
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
-        Page<Edificio> page = edificioRepository.findAll(pageable);
+        Page<Edificio> page = edificioRepository.findAllByEsActivoTrue(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 

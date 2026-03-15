@@ -10,6 +10,8 @@ import {
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
 import logoActivos360 from "../../../../assets/activos360_logo.png";
+import { getProfileFromToken } from "../../../../api/authApi";
+import { useMemo } from "react";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: GenericHome },
@@ -20,6 +22,9 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  // Se usa memo pq no van a cambiar los valores de el usuario autenticao
+  const profile = useMemo(() => getProfileFromToken(), []);
+
   // Elimina el token de sesión y recarga la página para que App.jsx
   // detecte la ausencia del token y monte PublicRouter con la pantalla de login
   const handleLogout = () => {
@@ -64,8 +69,10 @@ export default function Sidebar() {
         >
           <div className="admin-sidebar__avatar">A</div>
           <div className="admin-sidebar__user-info">
-            <span className="admin-sidebar__user-name">Administrador</span>
-            <span className="admin-sidebar__user-role">Admin</span>
+            <span className="admin-sidebar__user-name">
+              {profile?.nombreCompleto.split(" ")[0]}
+            </span>
+            <span className="admin-sidebar__user-role">{profile?.rol}</span>
           </div>
         </Link>
         <button

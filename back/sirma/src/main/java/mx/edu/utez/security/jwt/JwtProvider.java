@@ -2,7 +2,10 @@ package mx.edu.utez.security.jwt;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import mx.edu.utez.modules.auth.user_details.UserDetailsImp;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +19,14 @@ import java.util.Date;
 @Component
 public class JwtProvider {
 
-    private final String SECRET = "EstaEsUnaClaveSuperSecretaYDebeSerMuyLargaParaQueSeaSegura1234567890";
-    private final int EXPIRATION = 3600 * 1000; // 1 hora en milisegundos
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private int expiration;
 
     private Key getSecretKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     /**
@@ -30,11 +36,20 @@ public class JwtProvider {
      * @return token JWT firmado
      */
     public String generateToken(Authentication authentication) {
-        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+
+        // Valida el cast de forma segura (no se me ocurrio nunca pq no sabia que existia instanceof XDDD)
+        if (!(authentication.getPrincipal() instanceof UserDetailsImp userPrincipal))
+            throw new IllegalArgumentException("Usuario inválido o nulo");
+
         return Jwts.builder()
                 .setSubject(userPrincipal.getUsername())
+                .claim("id", userPrincipal.getId())
+                .claim("nombre", userPrincipal.getNombreCompleto())
+                .claim("role", userPrincipal.getRole())
+                .claim("area", userPrincipal.getArea())
+                .claim("numeroEmpleado", userPrincipal.getNumeroEmpleado())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + EXPIRATION))
+                .setExpiration(new Date(new Date().getTime() + expiration))
                 .signWith(getSecretKey())
                 .compact();
     }
@@ -49,6 +64,24 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(getSecretKey()).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
+
+    /**
+     * Obtiene el usuario autenticado actual desde el contexto de seguridad.
+     * <p>
+     * Recupera los detalles del usuario (UserDetailsImp) almacenados en el
+     * SecurityContextHolder, evitando así una nueva consulta a la base de datos.
+     * </p>
+     *
+     * @return UserDetailsImp con la información del usuario en sesión, o null si no hay sesión.
+     */
+    public UserDetailsImp getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImp) {
+            return (UserDetailsImp) authentication.getPrincipal();
+        }
+        return null;
+    }
+
 
     /**
      * Verifica integridad y vigencia del token.

@@ -4,6 +4,12 @@
  */
 const API_BASE = "http://localhost:8080";
 
+// Código de estado HTTP que indican que la sesión ha expirado o es inválida
+const UNAUTHORIZED = 401;
+
+// Código de estado HTTP que indican que el usuario no tiene permisos para realizar la acción
+const FORBIDDEN = 403;
+
 /**
  * Función principal para peticiones HTTP
  * @param {string} endpoint Cadena relativa, ej. '/api/users'
@@ -43,6 +49,15 @@ export async function request(endpoint, options = {}) {
         ? `No se pudo conectar al servidor. ¿Está corriendo en ${API_BASE}?`
         : err.message || "Error de conexión",
     );
+  }
+
+  // Manejo de sesión, en cuanto le llegue un 401 o 403, se cierra sesión
+  if (res.status === UNAUTHORIZED || res.status === FORBIDDEN) {
+    sessionStorage.removeItem("token");
+    // Redirigir a login (raíz) si no estamos ya ahí
+    if (window.location.pathname !== "/") {
+      window.location.replace("/");
+    }
   }
 
   const data = await res.json().catch(() => ({}));

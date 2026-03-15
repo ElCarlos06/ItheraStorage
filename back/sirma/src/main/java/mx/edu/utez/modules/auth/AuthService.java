@@ -76,33 +76,8 @@ public class AuthService {
         return new ApiResponse("Login exitoso", new TokenResponse(token), HttpStatus.OK);
     }
 
-    /**
-     * Obtiene la información del usuario autenticado current.
-     * Devuelve un DTO seguro (UserProfileDTO) en lugar de la entidad completa.
-     *
-     * @param auth objeto de autenticación de Spring Security
-     * @return ApiResponse con los datos del perfil del usuario
-     */
-    @Transactional(readOnly = true)
-    public ApiResponse getActiveUser(Authentication auth) {
-        String correo = auth.getName();
-        Optional<User> usr = userRepository.findByCorreoIgnoreCase(correo);
 
-        if (usr.isPresent()) {
-            User user = usr.get();
-            UserProfileDTO profile = new UserProfileDTO(
-                    user.getId(),
-                    user.getNombreCompleto(),
-                    user.getCorreo(),
-                    user.getRole() != null ? user.getRole().getNombre() : "Sin Rol",
-                    user.getArea() != null ? user.getArea().getNombre() : "Sin Área",
-                    user.getNumeroEmpleado()
-            );
-            return new ApiResponse("Usuario retornado exitosamente", profile, HttpStatus.OK);
-        } else {
-            return new ApiResponse("Usuario no encontrado", null, HttpStatus.NOT_FOUND);
-        }
-    }
+
 
     /**
      * Cambia la contraseña. Unifica dos flujos:

@@ -29,7 +29,7 @@ public class CampusService {
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
-        Page<Campus> page = campusRepository.findAll(pageable);
+        Page<Campus> page = campusRepository.findAllByEsActivoTrue(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 

@@ -5,7 +5,7 @@ import Button from "../../../../components/Button/Button";
 import { GenericUpload, FilesSave } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
 import "./Settings.css";
-import { authApi } from "../../../../api/authApi";
+import { getProfileFromToken } from "../../../../api/authApi";
 
 const DEFAULT_PROFILE = {
   nombreCompleto: "Administrador",
@@ -24,11 +24,9 @@ export default function Settings({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authApi
-      .me()
-      .then((res) => setProfile(res.data))
-      .catch((err) => console.error("Error cargando perfil", err))
-      .finally(() => setLoading(false));
+    const data = getProfileFromToken();
+    if (data) setProfile(data);
+    setLoading(false);
   }, []);
 
   const [dragOver, setDragOver] = useState(false);
