@@ -5,6 +5,7 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.imagen.BaseImagenService;
+import mx.edu.utez.util.CloudinaryPaths;
 import mx.edu.utez.util.CloudinaryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,8 +27,6 @@ import java.util.Optional;
 @Service
 public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenActivoRepository> {
 
-    private static final String CARPETA_CLOUDINARY = "sirma/activos";
-
     private final AssetsRepository assetsRepository;
 
     public ImagenActivoService(ImagenActivoRepository repository, AssetsRepository assetsRepository, CloudinaryService cloudinaryService) {
@@ -48,19 +47,21 @@ public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenA
         Optional<Assets> found = assetsRepository.findById(activoId);
         if (found.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
+
+        Map<String, Object> resultado;
         try {
-            String CARPETA_ACTIVO = CARPETA_CLOUDINARY + found.get().getEtiqueta();
-            Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_ACTIVO);
-
-            ImagenActivo img = new ImagenActivo();
-            img.setActivo(found.get());
-            img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
-            repository.save(img);
-
-            return new ApiResponse("Imagen registrada correctamente", img, HttpStatus.CREATED);
+            // Usamos la nueva constante centralizada
+            resultado = cloudinaryService.upload(file, CloudinaryPaths.ACTIVOS);
         } catch (IOException e) {
-            return new ApiResponse("Error al subir imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ApiResponse("Error al subir imagen a Cloudinary", true, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        ImagenActivo img = new ImagenActivo();
+        img.setActivo(found.get());
+        img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+        repository.save(img);
+
+        return new ApiResponse("Imagen registrada correctamente", img, HttpStatus.CREATED);
     }
 
     /**

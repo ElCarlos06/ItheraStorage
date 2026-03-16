@@ -42,6 +42,26 @@ public class CloudinaryService {
     }
 
     /**
+     * Sube un archivo en formato byte array a Cloudinary.
+     * Útil para archivos generados en memoria (ej. PDFs, QRs).
+     *
+     * @param fileBytes Bytes del archivo.
+     * @param folder    Carpeta destino.
+     * @return Mapa con respuesta de Cloudinary.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> upload(byte[] fileBytes, String folder) throws IOException {
+        return cloudinary.uploader().upload(
+                fileBytes,
+                ObjectUtils.asMap(
+                        "folder", folder,
+                        "resource_type", "image",
+                        "overwrite", false
+                )
+        );
+    }
+
+    /**
      * Elimina un archivo de Cloudinary usando su publicId.
      *
      * @param publicId Public ID del recurso en Cloudinary.
@@ -54,4 +74,3 @@ public class CloudinaryService {
         );
     }
 }
-

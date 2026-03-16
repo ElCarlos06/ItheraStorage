@@ -8,6 +8,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controlador REST para la gestión de activos.
+ * Expone endpoints para crear, leer, actualizar y cambiar el estatus de los activos.
+ * @author Ithera Team
+ */
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/activos")
@@ -15,30 +20,56 @@ public class AssetsController {
 
     private final AssetsService assetsService;
 
+    /**
+     * Recupera una lista paginada de activos activos.
+     * @param pageable Configuración de paginación y ordenamiento.
+     * @return ResponseEntity con la lista de activos.
+     */
     @GetMapping
     public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
         ApiResponse response = assetsService.findAll(pageable);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Busca un activo por su ID.
+     * @param id Identificador del activo.
+     * @return ResponseEntity con el activo encontrado o error si no existe.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> findById(@PathVariable Long id) {
         ApiResponse response = assetsService.findById(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Registra un nuevo activo.
+     * @param dto Datos del activo a registrar.
+     * @return ResponseEntity con el activo creado.
+     */
     @PostMapping
     public ResponseEntity<ApiResponse> save(@Valid @RequestBody AssetsDTO dto) {
         ApiResponse response = assetsService.save(dto);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Actualiza la información de un activo existente.
+     * @param id Identificador del activo a actualizar.
+     * @param dto Nuevos datos del activo.
+     * @return ResponseEntity con el activo actualizado.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> update(@PathVariable Long id, @Valid @RequestBody AssetsDTO dto) {
         ApiResponse response = assetsService.update(id, dto);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Cambia el estatus de un activo a inactivo (baja lógica).
+     * @param id Identificador del activo.
+     * @return ResponseEntity con el resultado de la operación.
+     */
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse> toggleStatus(@PathVariable Long id) {
         ApiResponse response = assetsService.toggleStatus(id);

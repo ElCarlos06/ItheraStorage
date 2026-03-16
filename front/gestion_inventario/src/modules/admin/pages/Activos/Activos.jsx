@@ -2,9 +2,7 @@ import { useState, useMemo } from "react";
 import NewAssetModal from "./NewAssetModal";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
-import Card from "../../../../components/Card/Card";
 import Buscador from "../../../../components/Buscador/Buscador";
-import StatusBadge from "../../../../components/StatusBadge/StatusBadge";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import Button from "../../../../components/Button/Button";
@@ -13,19 +11,15 @@ import {
   GenericUser,
   GenericSettings,
   NotificationsBell,
-  GenericDelete,
-  GenericEdit,
-  TimeTime,
-  SecurityPassport,
   GenericPlus,
   FilesImport,
 } from "@heathmont/moon-icons";
-import Icon from "../../../../components/Icon/Icon";
 import { toast } from "../../../../utils/toast.jsx";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./Activos.css";
 import Pagination from "../../components/layout/Pagination.jsx";
+import ActivosCard from "./components/ActivosCard.jsx";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
 
@@ -69,18 +63,6 @@ export default function Activos({
     const value = e.target.value;
     setSearch(value);
     onSearch?.(value);
-  };
-
-  const statusLabel = (s) => {
-    const labels = {
-      disponible: "Disponible",
-      resguardado: "Resguardado",
-      mantenimiento: "Mantenimiento",
-      "en proceso": "En proceso",
-      baja: "Baja",
-      reportado: "Reportado",
-    };
-    return labels[s] ?? s;
   };
 
   const showEmptyState = filtered.length === 0;
@@ -166,114 +148,14 @@ export default function Activos({
               />
             ) : (
               paginatedItems.map((item) => (
-                <div key={item.id} className="activos-view__asset-card-wrap">
-                  <Card padding="medium" className="activos-view__asset-card">
-                    <div className="activos-view__asset-content">
-                      <div className="activos-view__asset-row activos-view__asset-row--1">
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-code">
-                            {item.codigo ?? "—"}
-                          </p>
-                          <p className="activos-view__asset-desc">
-                            {item.descripcionCorta ?? "—"}
-                          </p>
-                        </div>
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">Activo</p>
-                          <p className="activos-view__asset-value">
-                            {item.nombre ?? "—"}
-                          </p>
-                        </div>
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">
-                            Asignado a
-                          </p>
-                          <p className="activos-view__asset-value">
-                            {item.asignadoA ?? "—"}
-                          </p>
-                        </div>
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">
-                            Tipo de activo
-                          </p>
-                          <p className="activos-view__asset-value">
-                            {item.tipoActivo ?? "—"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="activos-view__asset-row activos-view__asset-row--2">
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">Estado</p>
-                          <StatusBadge
-                            status={item.status ?? "disponible"}
-                            size="small"
-                          >
-                            {statusLabel(item.status ?? "disponible")}
-                          </StatusBadge>
-                        </div>
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">Campus</p>
-                          <p className="activos-view__asset-value">
-                            {item.campus ?? "—"}
-                          </p>
-                        </div>
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">Edificio</p>
-                          <p className="activos-view__asset-value">
-                            {item.edificio ?? "—"}
-                          </p>
-                        </div>
-                        <div className="activos-view__asset-col">
-                          <p className="activos-view__asset-label">Aula</p>
-                          <p className="activos-view__asset-value">
-                            {item.aula ?? "—"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="activos-view__asset-actions"
-                      aria-label="Acciones del activo"
-                    >
-                      <button
-                        type="button"
-                        className="activos-view__action-btn activos-view__action-btn--delete"
-                        title="Eliminar"
-                        aria-label="Eliminar"
-                        onClick={() => setConfirmDeleteAsset(item)}
-                      >
-                        <Icon icon={GenericDelete} size={30} />
-                      </button>
-                      <button
-                        type="button"
-                        className="activos-view__action-btn"
-                        title="Editar"
-                        aria-label="Editar"
-                        onClick={() => setModalEditAsset(item)}
-                      >
-                        <Icon icon={GenericEdit} size={30} />
-                      </button>
-                      <button
-                        type="button"
-                        className="activos-view__action-btn"
-                        title="Historial"
-                        aria-label="Historial"
-                        onClick={() => onHistorial?.(item)}
-                      >
-                        <Icon icon={TimeTime} size={30} />
-                      </button>
-                      <button
-                        type="button"
-                        className="activos-view__action-btn"
-                        title="Detalles"
-                        aria-label="Detalles"
-                        onClick={() => onDetalles?.(item)}
-                      >
-                        <Icon icon={SecurityPassport} size={30} />
-                      </button>
-                    </div>
-                  </Card>
-                </div>
+                <ActivosCard
+                  key={item.id}
+                  item={item}
+                  onEliminar={() => setConfirmDeleteAsset(item)}
+                  onEditar={() => setModalEditAsset(item)}
+                  onHistorial={onHistorial}
+                  onDetalles={onDetalles}
+                />
               ))
             )}
           </div>

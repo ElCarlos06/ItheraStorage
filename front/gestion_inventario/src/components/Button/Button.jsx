@@ -35,13 +35,13 @@ export default function Button({
     >
       {iconLeft && (
         <span className="btn__icon btn__icon--left">
-          <Icon icon={iconLeft} size={iconSize} />
+          {import("react").isValidElement(iconLeft) ? iconLeft : <Icon icon={iconLeft} size={iconSize} />}
         </span>
       )}
       {content}
       {iconRight && (
         <span className="btn__icon btn__icon--right">
-          <Icon icon={iconRight} size={iconSize} />
+          {import("react").isValidElement(iconRight) ? iconRight : <Icon icon={iconRight} size={iconSize} />}
         </span>
       )}
     </button>

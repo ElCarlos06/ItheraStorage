@@ -19,6 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio de negocio para la gestión de Reportes de Incidencias.
+ * Contiene la lógica para la creación y seguimiento de reportes sobre activos dañados o con fallas.
+ * @author Ithera Team
+ */
 @AllArgsConstructor
 @Service
 public class ReporteService {
@@ -29,12 +34,22 @@ public class ReporteService {
     private final TipoFallaRepository tipoFallaRepository;
     private final PrioridadRepository prioridadRepository;
 
+    /**
+     * Recupera una lista paginada de todos los reportes.
+     * @param pageable Configuración de la paginación.
+     * @return ApiResponse con la página de reportes.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
         Page<Reporte> page = reporteRepository.findAll(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
+    /**
+     * Busca un reporte específico por su ID.
+     * @param id Identificador del reporte.
+     * @return ApiResponse con el reporte encontrado o error.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findById(Long id) {
         Optional<Reporte> found = reporteRepository.findById(id);
@@ -43,12 +58,23 @@ public class ReporteService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Busca todos los reportes asociados a un activo.
+     * @param activoId Identificador del activo.
+     * @return ApiResponse con la lista de reportes.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByActivo(Long activoId) {
         List<Reporte> list = reporteRepository.findByActivoId(activoId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Registra un nuevo reporte en el sistema.
+     * Valida que existan el activo, usuario, tipo de falla y prioridad.
+     * @param dto DTO con los datos del reporte.
+     * @return ApiResponse con el reporte creado.
+     */
     @Transactional
     public ApiResponse save(ReporteDTO dto) {
         Optional<Assets> activo = assetsRepository.findById(dto.getIdActivo());
@@ -75,6 +101,13 @@ public class ReporteService {
         return new ApiResponse("Reporte registrado", entity, HttpStatus.CREATED);
     }
 
+    /**
+     * Actualiza la información de un reporte existente.
+     * Permite modificar descripción, estado, tipo de falla y prioridad.
+     * @param id Identificador del reporte a actualizar.
+     * @param dto DTO con los nuevos datos.
+     * @return ApiResponse con el reporte actualizado.
+     */
     @Transactional
     public ApiResponse update(Long id, ReporteDTO dto) {
         Optional<Reporte> found = reporteRepository.findById(id);

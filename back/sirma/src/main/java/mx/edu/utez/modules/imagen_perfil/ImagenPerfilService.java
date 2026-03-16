@@ -92,13 +92,15 @@ public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenP
 		if (found.isEmpty())
 			return new ApiResponse("El usuario no tiene imágenes asociadas", true, HttpStatus.NOT_FOUND);
 
-		User  usuario = found.get();
+		User usuario = found.get();
 
 		Optional<ImagenPerfil> imagen = repository.findByUsuarioId(usuario.getId());
-		if (imagen.isPresent()) {
+
+		if (imagen.isPresent())
 			return new ApiResponse("OK", imagen.get(), HttpStatus.OK);
-		} else {
+
+		else
 			return new ApiResponse("El usuario no tiene foto de perfil", null, HttpStatus.NOT_FOUND);
-		}
+
 	}
 }

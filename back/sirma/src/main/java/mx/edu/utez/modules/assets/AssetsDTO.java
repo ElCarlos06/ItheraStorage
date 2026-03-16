@@ -3,11 +3,13 @@ package mx.edu.utez.modules.assets;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -41,5 +43,14 @@ public class AssetsDTO {
     private String fechaAlta; // yyyy-MM-dd
     private Boolean esActivo;
 
-}
+    // Campos de visualización para detalle extendido
+    /** URLs de imágenes del perfil del activo */
+    private List<String> imagenesPerfil;
 
+    /** URLs de imágenes de reportes asociados */
+    private List<String> imagenesReportes;
+
+    /** URLs de imágenes de mantenimientos asociados */
+    private List<String> imagenesMantenimientos;
+
+}

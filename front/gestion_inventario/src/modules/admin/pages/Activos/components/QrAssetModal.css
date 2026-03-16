@@ -1,0 +1,140 @@
+/* QrAssetModal */
+.qr-asset-modal {
+  width: 380px;
+  max-width: 95vw;
+}
+
+.qr-asset-modal__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Header ── */
+.qr-asset-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--moon-beerus, #e8e8e8);
+}
+
+.qr-asset-modal__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--moon-bulma);
+}
+
+.qr-asset-modal__subtitle {
+  font-size: 0.82rem;
+  color: var(--moon-trunks);
+  margin: 3px 0 0;
+}
+
+.qr-asset-modal__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--moon-trunks);
+  padding: 4px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+}
+.qr-asset-modal__close:hover {
+  color: var(--moon-bulma);
+  background: var(--moon-gohan);
+}
+
+/* ── QR Card ── */
+.qr-asset-modal__card {
+  margin: 16px;
+  padding: 20px;
+  background: var(--moon-gohan, #f5f5f5);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Image wrapper */
+.qr-asset-modal__img-wrap {
+  width: 200px;
+  height: 200px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--moon-beerus, #e5e5e5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.qr-asset-modal__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Loading spinner */
+.qr-asset-modal__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--moon-beerus, #e4e4e4);
+  border-top-color: var(--moon-piccolo, #5c4fc7);
+  border-radius: 50%;
+  animation: qr-spin 0.75s linear infinite;
+}
+
+@keyframes qr-spin {
+  to { transform: rotate(360deg); }
+}
+
+.qr-asset-modal__state-text {
+  font-size: 0.8rem;
+  color: var(--moon-trunks);
+  text-align: center;
+  margin: 0;
+  padding: 0 8px;
+}
+.qr-asset-modal__state-text--error {
+  color: var(--moon-chichi, #e84747);
+}
+
+/* Code label */
+.qr-asset-modal__code-wrap {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qr-asset-modal__code-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--moon-trunks);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.qr-asset-modal__code-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--moon-bulma);
+  letter-spacing: 0.03em;
+}
+
+/* ── Actions ── */
+.qr-asset-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 16px;
+}

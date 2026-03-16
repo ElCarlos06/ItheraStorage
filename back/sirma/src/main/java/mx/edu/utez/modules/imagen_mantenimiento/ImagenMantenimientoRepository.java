@@ -8,5 +8,7 @@ import java.util.List;
 @Repository
 public interface ImagenMantenimientoRepository extends JpaRepository<ImagenMantenimiento, Long> {
     List<ImagenMantenimiento> findByMantenimientoId(Long mantenimientoId);
-}
 
+    // Buscar imágenes de mantenimientos asociados a un activo
+    List<ImagenMantenimiento> findByMantenimientoActivoId(Long activoId);
+}

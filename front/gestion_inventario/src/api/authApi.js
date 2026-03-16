@@ -43,6 +43,10 @@ export const authApi = {
   },
 };
 
+/**
+ * Obtiene el perfil del usuario actual desde el token JWT en sessionStorage.
+ * @returns {object|null} objeto con nombreCompleto, correo, rol, area y numeroEmpleado o null si no hay token valido
+ */
 export const getProfileFromToken = () => {
   const token = sessionStorage.getItem("token");
   if (!token) return null;
