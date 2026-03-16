@@ -6,6 +6,7 @@ import Card from "../../../../components/Card/Card";
 import Buscador from "../../../../components/Buscador/Buscador";
 import StatusBadge from "../../../../components/StatusBadge/StatusBadge";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
+import LoadingState from "../../../../components/LoadingState/LoadingState";
 import Button from "../../../../components/Button/Button";
 import {
   ShopBag,
@@ -152,7 +153,9 @@ export default function Activos({
         {error && <ErrorBanner message={error} />}
 
         {loading ? (
-          <div className="activos-view__loading">Cargando activos…</div>
+          <div className="activos-view__loading">
+            <LoadingState message="Cargando activos…" />
+          </div>
         ) : (
           <div className="activos-view__list">
             {showEmptyState ? (

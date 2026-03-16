@@ -6,9 +6,6 @@
   gap: 18px;
   padding: 32px 48px;
   width: 100%;
-  background: var(--moon-goku);
-  border: 0.8px solid var(--moon-content-border);
-  border-radius: var(--moon-radius-s-lg);
   text-align: center;
 }
 
