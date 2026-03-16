@@ -19,13 +19,14 @@
 }
 
 .registrar-tipo-activo-modal__tipo-btn:hover {
-  background: var(--moon-beerus);
-  color: var(--moon-content-text);
+  background: var(--moon-purple-10);
+  color: var(--moon-piccolo-60);
+  border-color: var(--moon-piccolo-60);
 }
 
 .registrar-tipo-activo-modal__tipo-btn--active {
-  background: var(--moon-gohan);
-  color: var(--moon-content-text);
-  border-color: var(--moon-content-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--moon-purple-10);
+  color: var(--moon-piccolo);
+  border-color: var(--moon-piccolo);
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.2);
 }

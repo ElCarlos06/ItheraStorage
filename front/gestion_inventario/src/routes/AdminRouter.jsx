@@ -3,7 +3,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import MainLayout from "../modules/admin/components/layout/MainLayout";
 
 const Dashboard = lazy(() => import("../modules/admin/pages/Dashboard/Dashboard"));
-const Activos = lazy(() => import("../modules/admin/pages/Activos/Activos"));
+const ActivosPage = lazy(() => import("../modules/admin/pages/Activos/ActivosPage"));
 const Users = lazy(() => import("../modules/admin/pages/Users/Users"));
 const Requests = lazy(() => import("../modules/admin/pages/Requests/Requests"));
 const Catalogs = lazy(() => import("../modules/admin/pages/Catalogs/Catalogs"));
@@ -24,7 +24,7 @@ export default function AdminRouter() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/activos" element={<Activos />} />
+          <Route path="/activos" element={<ActivosPage />} />
           <Route path="/usuarios" element={<Users />} />
           <Route path="/solicitudes" element={<Requests />} />
           <Route path="/catalogos" element={<Catalogs />} />

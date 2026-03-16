@@ -1,0 +1,56 @@
+/* Diseño según Figma Gestion_Inventario_5B node 971:4900 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-family: var(--moon-font-sans, "DM Sans", sans-serif);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.status-badge--small {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+/* Disponible - Figma: bg rgba(64,166,159,0.13), text #40a69f */
+.status-badge--disponible {
+  background: rgba(64, 166, 159, 0.13);
+  color: #40a69f;
+}
+
+/* Resguardado - variante azul */
+.status-badge--resguardado {
+  background: rgba(57, 73, 171, 0.13);
+  color: #3949ab;
+}
+
+/* Mantenimiento - variante naranja */
+.status-badge--mantenimiento {
+  background: rgba(230, 81, 0, 0.13);
+  color: #e65100;
+}
+
+/* En proceso - variante amarilla */
+.status-badge--en-proceso {
+  background: rgba(249, 168, 37, 0.13);
+  color: #c77700;
+}
+
+/* Baja / Reportado - variante roja */
+.status-badge--baja,
+.status-badge--reportado {
+  background: rgba(198, 40, 40, 0.13);
+  color: #c62828;
+}
+
+/* Neutral */
+.status-badge--neutral {
+  background: rgba(107, 114, 128, 0.13);
+  color: #6b7280;
+}

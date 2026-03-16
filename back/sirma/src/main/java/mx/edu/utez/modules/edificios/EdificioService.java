@@ -38,7 +38,7 @@ public class EdificioService {
 
     @Transactional(readOnly = true)
     public ApiResponse findByCampus(Long campusId) {
-        List<Edificio> list = edificioRepository.findByCampusId(campusId);
+        List<Edificio> list = edificioRepository.findByCampusIdAndEsActivoTrue(campusId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 

@@ -23,7 +23,16 @@ public class TipoActivoDTO {
     @Size(max = 255)
     private String descripcion;
 
+    @Size(max = 100)
+    private String marca;
+
+    @Size(max = 100)
+    private String modelo;
+
     private Boolean esActivo;
+
+    /** Cantidad de activos registrados de este tipo (solo lectura para API). */
+    private Long cantidad;
 
 }
 

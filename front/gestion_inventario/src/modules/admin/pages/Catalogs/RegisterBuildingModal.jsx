@@ -6,6 +6,7 @@ import FormModal from "../../../../components/FormModal/FormModal";
 import Input from "../../../../components/Input/Input";
 import Select from "../../../../components/Select/Select";
 import { FilesSave } from "@heathmont/moon-icons";
+import { toast } from "../../../../utils/toast.jsx";
 import "./RegisterLocationModal.css";
 
 export default function RegisterBuildingModal({ open, onClose, onGuardar, campus = [], initialData }) {
@@ -17,7 +18,7 @@ export default function RegisterBuildingModal({ open, onClose, onGuardar, campus
     if (open && initialData) {
       setForm({
         nombre: initialData.nombre ?? initialData.name ?? "",
-        idCampus: String(initialData.campus?.id ?? initialData.idCampus ?? ""),
+        idCampus: String(initialData.idCampus ?? initialData.campus?.id ?? ""),
       });
     } else if (open) {
       setForm({ nombre: "", idCampus: "" });
@@ -32,10 +33,21 @@ export default function RegisterBuildingModal({ open, onClose, onGuardar, campus
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const validarCampos = () => {
+    const faltantes = [];
+    if (!form.idCampus) faltantes.push("Campus");
+    if (!form.nombre?.trim()) faltantes.push("Nombre del edificio");
+    if (faltantes.length > 0) {
+      toast.error(`Complete los campos obligatorios: ${faltantes.join(", ")}`);
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validarCampos()) return;
     const idCampus = form.idCampus ? Number(form.idCampus) : null;
-    if (!idCampus) return;
     setLoading(true);
     try {
       await onGuardar?.({ nombre: form.nombre.trim(), idCampus });

@@ -67,6 +67,12 @@
   border-color: var(--moon-piccolo);
 }
 
+.settings-upload--loading {
+  pointer-events: none;
+  opacity: 0.8;
+  cursor: wait;
+}
+
 .settings-upload__input {
   position: absolute;
   opacity: 0;

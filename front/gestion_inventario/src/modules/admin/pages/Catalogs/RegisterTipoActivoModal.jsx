@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
 import Input from "../../../../components/Input/Input";
 import { FilesSave } from "@heathmont/moon-icons";
+import { toast } from "../../../../utils/toast.jsx";
 import "./RegisterTipoActivoModal.css";
 
-export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
-
+export default function RegisterTipoActivoModal({ open, onClose, onGuardar, initialData }) {
+  const isEdit = !!initialData;
+  const [loading, setLoading] = useState(false);
   const initialState = {
     nombre: "",
     marca: "",
@@ -15,6 +17,20 @@ export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
   };
 
   const [form, setForm] = useState(initialState);
+
+  useEffect(() => {
+    if (open && initialData) {
+      setForm({
+        nombre: initialData.nombre ?? "",
+        marca: initialData.marca ?? "",
+        modelo: initialData.modelo ?? "",
+        tipoBien: initialData.tipoBien ?? "Mueble",
+        descripcion: initialData.descripcion ?? "",
+      });
+    } else if (open) {
+      setForm(initialState);
+    }
+  }, [open, initialData]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({
@@ -34,20 +50,39 @@ export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
     setForm(initialState);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const validarCampos = () => {
+    const faltantes = [];
+    if (!form.nombre?.trim()) faltantes.push("Nombre del activo");
+    if (!form.marca?.trim()) faltantes.push("Marca");
+    if (!form.modelo?.trim()) faltantes.push("Modelo");
+    if (faltantes.length > 0) {
+      toast.error(`Complete los campos obligatorios: ${faltantes.join(", ")}`);
+      return false;
+    }
+    return true;
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validarCampos()) return;
     const data = {
       ...form,
       nombre: form.nombre.trim(),
       marca: form.marca.trim(),
       modelo: form.modelo.trim(),
-      descripcion: form.descripcion?.trim(),
+      tipoBien: form.tipoBien,
+      descripcion: form.descripcion?.trim() || null,
     };
-
-    onGuardar?.(data);
-
-    resetForm();
+    setLoading(true);
+    try {
+      await onGuardar?.(data);
+      resetForm();
+      onClose?.();
+    } catch {
+      // El error ya lo muestra el padre
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -60,14 +95,14 @@ export default function RegisterTipoActivoModal({ open, onClose, onGuardar }) {
       open={open}
       onClose={handleClose}
       className="registrar-tipo-activo-modal"
-      title="Registrar Tipo de Activo"
+      title={isEdit ? "Editar Tipo de Activo" : "Registrar Tipo de Activo"}
       subtitle="Define las características del tipo de activo"
-      submitLabel="Guardar Tipo"
+      submitLabel={isEdit ? "Guardar cambios" : "Guardar Tipo"}
       submitIcon={FilesSave}
       submitIconSize={30}
+      loading={loading}
       onSubmit={handleSubmit}
     >
-
       <div className="form-modal__field">
         <Input
           label="Nombre del Activo*"

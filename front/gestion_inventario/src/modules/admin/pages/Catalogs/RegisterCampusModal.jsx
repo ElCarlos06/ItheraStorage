@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
 import Input from "../../../../components/Input/Input";
 import { FilesSave } from "@heathmont/moon-icons";
+import { toast } from "../../../../utils/toast.jsx";
 import "./RegisterLocationModal.css";
 
 export default function RegisterCampusModal({ open, onClose, onGuardar, initialData }) {
@@ -27,8 +28,17 @@ export default function RegisterCampusModal({ open, onClose, onGuardar, initialD
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const validarCampos = () => {
+    if (!form.nombre?.trim()) {
+      toast.error("Complete los campos obligatorios: Nombre del campus");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validarCampos()) return;
     setLoading(true);
     try {
       await onGuardar?.({ nombre: form.nombre.trim(), descripcion: form.descripcion?.trim() || null });

@@ -60,7 +60,7 @@ export default function Select({
         width: Math.max(rect.width, 180),
         top: openDown ? rect.bottom + 6 : undefined,
         bottom: openDown ? undefined : window.innerHeight - rect.top + 6,
-        zIndex: 1001,
+        zIndex: 10050,
       });
     };
     updatePosition();
@@ -76,8 +76,10 @@ export default function Select({
     if (!open) return;
     const handleClickOutside = (e) => {
       if (containerRef.current?.contains(e.target)) return;
-      const dropdown = document.querySelector(".select-wrap__dropdown--portal");
-      if (dropdown?.contains(e.target)) return;
+      const dropdowns = document.querySelectorAll(".select-wrap__dropdown--portal");
+      for (const dd of dropdowns) {
+        if (dd.contains(e.target)) return;
+      }
       setOpen(false);
     };
     const handleEscape = (e) => {

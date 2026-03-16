@@ -27,7 +27,7 @@ public class AssetsDTO {
     @NotNull
     private Long idTipoActivo;
 
-    @NotNull
+    /** Opcional: si es null, se usa marca/modelo del tipo de activo */
     private Long idModelo;
 
     @NotNull

@@ -90,13 +90,13 @@
   min-height: 0;
 }
 
-.users-view__list:has(.users-empty) {
+.users-view__list:has(.empty-state) {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.users-view__list:has(.users-empty) .users-empty {
+.users-view__list:has(.empty-state) .empty-state {
   align-self: stretch;
   flex: 1;
   min-height: 0;

@@ -5,6 +5,7 @@ import { useState } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
 import Input from "../../../../components/Input/Input";
 import { FilesSave } from "@heathmont/moon-icons";
+import { toast } from "../../../../utils/toast.jsx";
 import "./RegisterLocationModal.css";
 
 export default function RegisterLocationModal({ open, onClose, onGuardar }) {
@@ -20,8 +21,21 @@ export default function RegisterLocationModal({ open, onClose, onGuardar }) {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const validarCampos = () => {
+    const faltantes = [];
+    if (!form.campus?.trim()) faltantes.push("Campus");
+    if (!form.edificio?.trim()) faltantes.push("Edificio");
+    if (!form.aula?.trim()) faltantes.push("Aula / Laboratorio");
+    if (faltantes.length > 0) {
+      toast.error(`Complete los campos obligatorios: ${faltantes.join(", ")}`);
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validarCampos()) return;
     setLoading(true);
     try {
       await onGuardar?.(form);

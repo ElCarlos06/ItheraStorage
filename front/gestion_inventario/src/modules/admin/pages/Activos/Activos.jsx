@@ -5,7 +5,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import Card from "../../../../components/Card/Card";
 import Buscador from "../../../../components/Buscador/Buscador";
 import StatusBadge from "../../../../components/StatusBadge/StatusBadge";
-import ActivosEmptyState from "./ActivosEmptyState";
+import EmptyState from "../../../../components/EmptyState/EmptyState";
 import Button from "../../../../components/Button/Button";
 import {
   ShopBag,
@@ -156,7 +156,11 @@ export default function Activos({
         ) : (
           <div className="activos-view__list">
             {showEmptyState ? (
-              <ActivosEmptyState hasSearch={!!search.trim()} />
+              <EmptyState
+                message="No hay activos para mostrar"
+                hasSearch={!!search.trim()}
+                searchMessage="No hay activos o no coinciden con la búsqueda."
+              />
             ) : (
               paginatedItems.map((item) => (
                 <div key={item.id} className="activos-view__asset-card-wrap">
@@ -284,28 +288,36 @@ export default function Activos({
       <NewAssetModal
         open={modalNuevoOpen}
         onClose={() => setModalNuevoOpen(false)}
-        onGuardar={(data) => {
-          onNuevo?.(data);
-          setModalNuevoOpen(false);
-          toast.success("Activo guardado correctamente");
+        onGuardar={async (data) => {
+          try {
+            await onNuevo?.(data);
+            setModalNuevoOpen(false);
+            toast.success("Activo guardado correctamente");
+          } catch {
+            // El toast de error lo maneja el padre (ActivosPage)
+          }
         }}
       />
       <NewAssetModal
         open={!!modalEditAsset}
         onClose={() => setModalEditAsset(null)}
         initialData={modalEditAsset}
-        onGuardar={(data) => {
-          onEditar?.(modalEditAsset, data);
-          setModalEditAsset(null);
-          toast.success("Activo actualizado correctamente");
+        onGuardar={async (data) => {
+          try {
+            await onEditar?.(modalEditAsset, data);
+            setModalEditAsset(null);
+            toast.success("Activo actualizado correctamente");
+          } catch {
+            // El toast de error lo maneja el padre
+          }
         }}
       />
 
       <ConfirmDeleteModal
         open={!!confirmDeleteAsset}
         onClose={() => setConfirmDeleteAsset(null)}
-        onConfirm={() => {
-          onEliminar?.(confirmDeleteAsset);
+        onConfirm={async () => {
+          await onEliminar?.(confirmDeleteAsset);
           toast.success("Activo eliminado correctamente");
         }}
         title="¿Confirmar eliminación?"

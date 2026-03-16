@@ -9,7 +9,8 @@ import {
   GenericDelete,
   GenericEdit,
 } from "@heathmont/moon-icons";
-import CatalogEmptyState from "./CatalogEmptyState";
+import { getTipoActivoIcon } from "../../../../utils/tipoActivoIcons";
+import EmptyState from "../../../../components/EmptyState/EmptyState";
 import Pagination from "../../components/layout/Pagination";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import "./CatalogSection.css";
@@ -30,6 +31,7 @@ export default function CatalogSection({
   onEmptyAction,
   onEdit,
   onDelete,
+  loadingMessage,
   // Props para paginación del servidor (opcionales)
   serverPagination = false,
   currentPage: serverCurrentPage,
@@ -112,12 +114,15 @@ export default function CatalogSection({
         <div className="catalog-section__list">
           {loading ? (
             <div className="catalog-section__list-loading">
-              <LoadingState message="Cargando ubicaciones…" />
+              <LoadingState
+                message={loadingMessage ?? (sectionKey === "muebles" || sectionKey === "vehiculos" ? "Cargando tipos de activos…" : "Cargando ubicaciones…")}
+              />
             </div>
           ) : showEmptyState ? (
-            <CatalogEmptyState
+            <EmptyState
               message={emptyMessage}
               hasSearch={!!(search ?? "").trim()}
+              searchMessage="No hay resultados o no coinciden con la búsqueda."
               actionLabel={emptyActionLabel}
               onAction={onEmptyAction}
             />
@@ -157,11 +162,15 @@ export default function CatalogSection({
                 col2Value = null;
               }
 
+              const isTipoActivo = sectionKey === "muebles" || sectionKey === "vehiculos";
               const hasActions =
                 (onEdit || onDelete) &&
                 (sectionKey === "campus" ||
                   sectionKey === "edificios" ||
-                  sectionKey === "aulas");
+                  sectionKey === "aulas" ||
+                  isTipoActivo);
+
+              const cardIcon = isTipoActivo ? getTipoActivoIcon(item) : TravelHotel;
 
               return (
                 <div
@@ -176,7 +185,7 @@ export default function CatalogSection({
                     onKeyDown={(e) => e.key === "Enter" && onEdit?.(item)}
                   >
                     <div className="catalog-section__card-icon">
-                      <Icon icon={TravelHotel} size={32} />
+                      <Icon icon={cardIcon} size={32} />
                     </div>
                     <div className="catalog-section__card-content">
                       <p className="catalog-section__card-title">{nombre}</p>

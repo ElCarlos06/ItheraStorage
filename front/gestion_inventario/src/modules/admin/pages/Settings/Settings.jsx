@@ -7,6 +7,7 @@ import Icon from "../../../../components/Icon/Icon";
 import "./Settings.css";
 import { getProfileFromToken } from "../../../../api/authApi";
 import { imagenPerfilApi } from "../../../../api/imagenPerfilApi";
+import { toast } from "../../../../utils/toast.jsx";
 
 export default function Settings({
   profile: profileProp,
@@ -15,6 +16,7 @@ export default function Settings({
 }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     const data = getProfileFromToken();
@@ -24,17 +26,40 @@ export default function Settings({
 
   const [dragOver, setDragOver] = useState(false);
 
+  const handleUpload = (file) => {
+    if (!file || !profile?.correo) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten imágenes (PNG, JPG)");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no debe superar 5MB");
+      return;
+    }
+    setUploadingPhoto(true);
+    imagenPerfilApi
+      .upload(profile.correo, file)
+      .then((res) => {
+        toast.success("Foto de perfil actualizada correctamente");
+        window.dispatchEvent(new CustomEvent("profile-photo-updated"));
+      })
+      .catch((err) => {
+        toast.error(err?.message ?? "Error al subir la foto");
+      })
+      .finally(() => setUploadingPhoto(false));
+  };
+
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (file) imagenPerfilApi.upload(profile.correo, file);
+    if (file) handleUpload(file);
+    e.target.value = ""; // permite volver a elegir el mismo archivo
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file?.type.startsWith("image/"))
-      imagenPerfilApi.upload(profile.correo, file);
+    if (file?.type.startsWith("image/")) handleUpload(file);
   };
 
   const handleDragOver = (e) => {
@@ -65,11 +90,11 @@ export default function Settings({
               </p>
             </div>
             <div
-              className={`settings-upload ${dragOver ? "settings-upload--dragover" : ""}`}
+              className={`settings-upload ${dragOver ? "settings-upload--dragover" : ""} ${uploadingPhoto ? "settings-upload--loading" : ""}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={() => document.getElementById("photo-upload")?.click()}
+              onClick={() => !uploadingPhoto && document.getElementById("photo-upload")?.click()}
             >
               <input
                 id="photo-upload"
@@ -78,6 +103,7 @@ export default function Settings({
                 onChange={handleFileSelect}
                 className="settings-upload__input"
                 aria-label="Subir foto de perfil"
+                disabled={uploadingPhoto}
               />
               <Icon
                 icon={GenericUpload}
@@ -85,7 +111,7 @@ export default function Settings({
                 className="settings-upload__icon"
               />
               <p className="settings-upload__text">
-                Arrastra una imagen o haz clic para subir
+                {uploadingPhoto ? "Subiendo…" : "Arrastra una imagen o haz clic para subir"}
               </p>
               <p className="settings-upload__hint">PNG, JPG hasta 5MB</p>
             </div>

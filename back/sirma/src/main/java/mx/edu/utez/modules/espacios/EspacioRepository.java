@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface EspacioRepository extends JpaRepository<Espacio, Long> {
     Page<Espacio> findAllByEsActivoTrue(Pageable pageable);
     List<Espacio> findByEdificioId(Long edificioId);
+    List<Espacio> findByEdificioIdAndEsActivoTrue(Long edificioId);
     boolean existsByEdificioIdAndNombreEspacioAndEsActivoTrue(Long edificioId, String nombreEspacio);
     boolean existsByEdificioIdAndNombreEspacioAndEsActivoTrueAndIdNot(Long edificioId, String nombreEspacio, Long id);
     Optional<Espacio> findFirstByEdificioIdAndNombreEspacioAndEsActivoFalse(Long edificioId, String nombreEspacio);

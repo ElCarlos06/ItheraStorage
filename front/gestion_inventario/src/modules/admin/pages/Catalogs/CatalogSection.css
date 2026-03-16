@@ -59,7 +59,9 @@
 }
 
 .catalog-section__card-wrap:hover .catalog-section__card {
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15), 0 2px 3px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .catalog-section__card-icon {
@@ -148,6 +150,12 @@
   gap: 10px;
   align-items: center;
   margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.catalog-section__card-wrap:hover .catalog-section__card-actions {
+  opacity: 1;
 }
 
 .catalog-section__action-btn {
@@ -214,12 +222,13 @@
   justify-content: center;
 }
 
-.catalog-section__list:has(.catalog-empty) {
+.catalog-section__list:has(.empty-state) {
   flex: 1;
 }
 
-.catalog-section__list:has(.catalog-empty) .catalog-empty {
+.catalog-section__list:has(.empty-state) .empty-state {
   align-self: stretch;
   flex: 1;
   min-height: 200px;
 }
+

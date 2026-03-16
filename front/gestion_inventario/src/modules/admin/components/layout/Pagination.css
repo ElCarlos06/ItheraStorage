@@ -4,8 +4,8 @@
   align-items: center;
   padding: 1rem 0;
   width: 100%;
-  color: #6B7280; /* Text mute color */
-  font-size: 0.875rem; /* 14px */
+  color: var(--moon-trunks);
+  font-size: 0.875rem;
 }
 
 .pagination-info {
@@ -16,7 +16,7 @@
 
 .pagination-bold {
   font-weight: 600;
-  color: #374151; /* Darker text for numbers */
+  color: var(--moon-content-text);
 }
 
 .pagination-controls {
@@ -31,22 +31,26 @@
   align-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 8px; /* Slightly rounded square */
-  border: 1px solid #E5E7EB; /* Light gray border */
-  background-color: #F9FAFB;
-  color: #9CA3AF;
+  border-radius: 8px;
+  border: 1px solid var(--moon-piccolo);
+  background-color: var(--moon-piccolo-10);
+  color: var(--moon-piccolo);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .pagination-btn:hover:not(.disabled) {
-  background-color: #F3F4F6;
-  color: #4B5563;
+  background-color: var(--moon-piccolo);
+  color: white;
+  border-color: var(--moon-piccolo);
 }
 
 .pagination-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  border-color: var(--moon-content-border);
+  background-color: var(--moon-gohan);
+  color: var(--moon-trunks);
 }
 
 .pagination-page-info {
@@ -56,21 +60,9 @@
   min-width: 48px;
   height: 36px;
   border-radius: 8px;
-  background-color: #F3F4F6;
+  background-color: var(--moon-piccolo-10);
   padding: 0 0.75rem;
   font-size: 0.875rem;
-  color: #374151;
-  font-weight: 500;
-}
-
-.pagination-btn-next {
-  background-color: #8B5CF6; /* Purple color from screenshot */
-  border-color: #8B5CF6;
-  color: white;
-}
-
-.pagination-btn-next:hover:not(.disabled) {
-  background-color: #7C3AED;
-  border-color: #7C3AED;
-  color: white;
+  color: var(--moon-piccolo);
+  font-weight: 600;
 }

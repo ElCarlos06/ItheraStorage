@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface EdificioRepository extends JpaRepository<Edificio, Long> {
     Page<Edificio> findAllByEsActivoTrue(Pageable pageable);
     List<Edificio> findByCampusId(Long campusId);
+    List<Edificio> findByCampusIdAndEsActivoTrue(Long campusId);
     boolean existsByCampusIdAndNombreAndEsActivoTrue(Long campusId, String nombre);
     boolean existsByCampusIdAndNombreAndEsActivoTrueAndIdNot(Long campusId, String nombre, Long id);
     Optional<Edificio> findFirstByCampusIdAndNombreAndEsActivoFalse(Long campusId, String nombre);

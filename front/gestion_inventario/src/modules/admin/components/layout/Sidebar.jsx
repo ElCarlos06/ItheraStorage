@@ -35,13 +35,23 @@ export default function Sidebar() {
     window.location.replace("/");
   };
 
-  useEffect(() => {
+  const cargarAvatar = () => {
     if (profile?.correo) {
       imagenPerfilApi
         .getByCorreo(profile.correo)
         .then((res) => setAvatarUrl(res.data?.urlCloudinary))
         .catch(() => setAvatarUrl(null));
     }
+  };
+
+  useEffect(() => {
+    cargarAvatar();
+  }, [profile?.correo]);
+
+  useEffect(() => {
+    const handler = () => cargarAvatar();
+    window.addEventListener("profile-photo-updated", handler);
+    return () => window.removeEventListener("profile-photo-updated", handler);
   }, [profile?.correo]);
 
   return (

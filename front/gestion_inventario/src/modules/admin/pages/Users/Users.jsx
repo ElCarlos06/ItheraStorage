@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
-import UsersEmptyState from "./UsersEmptyState";
+import EmptyState from "../../../../components/EmptyState/EmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import Button from "../../../../components/Button/Button";
 import Pagination from "../../components/layout/Pagination";
@@ -211,7 +211,11 @@ export default function Users({
         ) : (
           <div className="users-view__list">
             {showEmptyState ? (
-              <UsersEmptyState hasSearch={!!search.trim()} />
+              <EmptyState
+                message="No hay usuarios para mostrar"
+                hasSearch={!!search.trim()}
+                searchMessage="No hay usuarios o no coinciden con la búsqueda."
+              />
             ) : (
               filtered.map((user, idx) => (
                 <div

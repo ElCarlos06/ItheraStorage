@@ -64,23 +64,39 @@ const SECTIONS = {
   },
 };
 
-function mapCampusItems(campus = []) {
+function mapCampusItems(campus = [], edificios = [], espacios = []) {
+  const edifPorCampus = {};
+  const aulasPorCampus = {};
+  (edificios ?? []).forEach((e) => {
+    const cid = e.campus?.id;
+    if (cid) edifPorCampus[cid] = (edifPorCampus[cid] ?? 0) + 1;
+  });
+  (espacios ?? []).forEach((s) => {
+    const cid = s.edificio?.campus?.id;
+    if (cid) aulasPorCampus[cid] = (aulasPorCampus[cid] ?? 0) + 1;
+  });
   return (campus ?? []).map((c) => ({
     id: c.id,
     nombre: c.nombre ?? c.name,
     descripcion: c.descripcion,
-    edificios: 0, // Los totales reales deberían venir del DTO del backend
-    aulas: 0,
+    edificios: edifPorCampus[c.id] ?? 0,
+    aulas: aulasPorCampus[c.id] ?? 0,
   }));
 }
 
-function mapEdificioItems(edificios = []) {
+function mapEdificioItems(edificios = [], espacios = []) {
+  const aulasPorEdificio = {};
+  (espacios ?? []).forEach((s) => {
+    const eid = s.edificio?.id;
+    if (eid) aulasPorEdificio[eid] = (aulasPorEdificio[eid] ?? 0) + 1;
+  });
   return (edificios ?? []).map((e) => ({
     id: e.id,
     nombre: e.nombre ?? e.name,
     campus: e.campus?.nombre,
+    idCampus: e.campus?.id,
     edificios: 0,
-    aulas: 0,
+    aulas: aulasPorEdificio[e.id] ?? 0,
   }));
 }
 
@@ -89,6 +105,7 @@ function mapAulaItems(espacios = []) {
     id: s.id,
     nombre: s.nombreEspacio ?? s.nombre,
     edificio: s.edificio?.nombre,
+    idEdificio: s.edificio?.id,
     campus: s.edificio?.campus?.nombre,
     aulas: 0,
   }));
@@ -104,7 +121,9 @@ export default function Catalogs() {
   const [modalBuildingOpen, setModalBuildingOpen] = useState(false);
   const [modalClassroomOpen, setModalClassroomOpen] = useState(false);
   const [editLocation, setEditLocation] = useState(null);
+  const [editTipoActivo, setEditTipoActivo] = useState(null);
   const [confirmDeleteLocation, setConfirmDeleteLocation] = useState(null);
+  const [confirmDeleteTipoActivo, setConfirmDeleteTipoActivo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]); 
@@ -125,12 +144,13 @@ export default function Catalogs() {
   const hasLocations = items.length > 0;
 
   const tiposActivosItems = useMemo(() => {
+    const activos = items.filter((t) => t.esActivo !== false);
     if (subTab === "muebles") {
-      return items.filter((t) => t.tipoBien === "Mueble");
+      return activos.filter((t) => t.tipoBien === "Mueble");
     }
 
     if (subTab === "vehiculos") {
-      return items.filter((t) => t.tipoBien === "Inmueble");
+      return activos.filter((t) => t.tipoBien === "Inmueble");
     }
 
     return [];
@@ -151,26 +171,40 @@ export default function Catalogs() {
       const page = currentPage - 1;
       let res;
       let mapped = [];
+
       if (subTab === "campus") {
-        res = await ubicacionesApi.getCampus(page, pageSize);
-        mapped = mapCampusItems(res?.data?.content ?? []);
+        const [campusRes, edificiosRes, espaciosRes] = await Promise.all([
+          ubicacionesApi.getCampus(page, pageSize),
+          ubicacionesApi.getEdificios(0, 500),
+          ubicacionesApi.getEspacios(0, 500),
+        ]);
+        res = campusRes;
+        const edificios = edificiosRes?.data?.content ?? edificiosRes?.data ?? [];
+        const espacios = espaciosRes?.data?.content ?? espaciosRes?.data ?? [];
+        mapped = mapCampusItems(campusRes?.data?.content ?? [], edificios, espacios);
       } else if (subTab === "edificios") {
-        res = await ubicacionesApi.getEdificios(page, pageSize);
-        mapped = mapEdificioItems(res?.data?.content ?? []);
+        const [edificiosRes, espaciosRes] = await Promise.all([
+          ubicacionesApi.getEdificios(page, pageSize),
+          ubicacionesApi.getEspacios(0, 500),
+        ]);
+        res = edificiosRes;
+        const espacios = espaciosRes?.data?.content ?? espaciosRes?.data ?? [];
+        mapped = mapEdificioItems(edificiosRes?.data?.content ?? [], espacios);
       } else if (subTab === "aulas") {
         res = await ubicacionesApi.getEspacios(page, pageSize);
         mapped = mapAulaItems(res?.data?.content ?? []);
       }
+
       setItems(mapped);
       setTotalPages(res?.data?.totalPages ?? 0);
       setTotalElements(res?.data?.totalElements ?? 0);
 
-      // Cargar listas auxiliares para los modales si es necesario
-      if (subTab === "edificios" || subTab === "aulas") {
-        ubicacionesApi.getCampus(0, 100).then(r => setCampusList(r?.data?.content ?? []));
+      // Cargar listas auxiliares para los modales
+      if (subTab === "edificios" || subTab === "aulas" || subTab === "campus") {
+        ubicacionesApi.getCampus(0, 200).then((r) => setCampusList(r?.data?.content ?? []));
       }
-      if (subTab === "aulas") {
-        ubicacionesApi.getEdificios(0, 100).then(r => setEdificiosList(r?.data?.content ?? []));
+      if (subTab === "aulas" || subTab === "campus") {
+        ubicacionesApi.getEdificios(0, 500).then((r) => setEdificiosList(r?.data?.content ?? r?.data ?? []));
       }
     } catch (err) {
       setError(err?.message ?? "Error al cargar ubicaciones");
@@ -207,7 +241,7 @@ export default function Catalogs() {
 
   const handleMainTab = (id) => {
     setMainTab(id);
-    setCurrentPage(1); // Reset page on tab change
+    setCurrentPage(1); 
     const tab = MAIN_TABS.find((t) => t.id === id);
     if (tab?.sub?.[0]) setSubTab(tab.sub[0]);
   };
@@ -226,6 +260,26 @@ export default function Catalogs() {
     if (subTab === "campus") setModalCampusOpen(true);
     else if (subTab === "edificios") setModalBuildingOpen(true);
     else if (subTab === "aulas") setModalClassroomOpen(true);
+  };
+
+  const handleEditTipoActivo = (item) => {
+    if (!item) return;
+    setEditTipoActivo(item);
+    setModalTipoActivoOpen(true);
+  };
+
+  const handleDeleteTipoActivo = (item) => setConfirmDeleteTipoActivo(item);
+
+  const handleConfirmDeleteTipoActivo = async () => {
+    if (!confirmDeleteTipoActivo?.id) return;
+    try {
+      await tipoActivosApi.toggleStatusTipoActivo(confirmDeleteTipoActivo.id);
+      toast.success("Tipo de activo eliminado correctamente");
+      setConfirmDeleteTipoActivo(null);
+      cargarTiposActivos();
+    } catch (err) {
+      toast.error(err?.message ?? "Error al eliminar");
+    }
   };
 
   const handleGuardarCampus = async (data) => {
@@ -366,7 +420,7 @@ export default function Catalogs() {
               iconSize={30}
               onClick={() =>
                 mainTab === "tipos-activos"
-                  ? setModalTipoActivoOpen(true)
+                  ? (setEditTipoActivo(null), setModalTipoActivoOpen(true))
                   : isLocations
                     ? handleNewLocation()
                     : null
@@ -380,20 +434,26 @@ export default function Catalogs() {
 
       <RegisterTipoActivoModal
         open={modalTipoActivoOpen}
-        onClose={() => setModalTipoActivoOpen(false)}
+        onClose={() => {
+          setModalTipoActivoOpen(false);
+          setEditTipoActivo(null);
+        }}
+        initialData={editTipoActivo}
         onGuardar={async (data) => {
           try {
-            await tipoActivosApi.crearTipoActivo(data);
-
+            if (editTipoActivo?.id) {
+              await tipoActivosApi.actualizarTipoActivo(editTipoActivo.id, data);
+              toast.success("Tipo de activo actualizado correctamente");
+            } else {
+              await tipoActivosApi.crearTipoActivo(data);
+              toast.success("Tipo de activo guardado correctamente");
+            }
             await cargarTiposActivos();
-
-            toast.success("Tipo de activo guardado correctamente");
-
             setModalTipoActivoOpen(false);
+            setEditTipoActivo(null);
           } catch (error) {
-            console.error(error);
-
-            toast.error("Error al guardar tipo de activo");
+            toast.error(error?.message ?? "Error al guardar tipo de activo");
+            throw error;
           }
         }}
       />
@@ -485,6 +545,18 @@ export default function Catalogs() {
         message={getDeleteMessage()}
       />
 
+      <ConfirmDeleteModal
+        open={!!confirmDeleteTipoActivo}
+        onClose={() => setConfirmDeleteTipoActivo(null)}
+        onConfirm={handleConfirmDeleteTipoActivo}
+        title="¿Confirmar eliminación?"
+        message={
+          confirmDeleteTipoActivo
+            ? `Se eliminará el tipo de activo "${confirmDeleteTipoActivo.nombre ?? "este elemento"}". Esta acción no se puede deshacer.`
+            : ""
+        }
+      />
+
       {error && (
         <ErrorBanner message={error} onDismiss={() => setError(null)} />
       )}
@@ -494,14 +566,25 @@ export default function Catalogs() {
         searchPlaceholder={config.searchPlaceholder}
         emptyMessage={config.emptyMessage}
         sectionKey={currentSection}
+        loadingMessage={mainTab === "tipos-activos" ? "Cargando tipos de activos…" : "Cargando ubicaciones…"}
         items={isLocations ? items : tiposActivosItems}
         loading={loading}
         search={search}
         onSearchChange={setSearch}
         countLabel={config.countLabel}
-        onEdit={isLocations && hasLocations ? handleEditLocation : undefined}
+        onEdit={
+          mainTab === "tipos-activos"
+            ? handleEditTipoActivo
+            : isLocations && hasLocations
+              ? handleEditLocation
+              : undefined
+        }
         onDelete={
-          isLocations && hasLocations ? handleDeleteLocation : undefined
+          mainTab === "tipos-activos"
+            ? handleDeleteTipoActivo
+            : isLocations && hasLocations
+              ? handleDeleteLocation
+              : undefined
         }
         // Configuración de paginación híbrida
         serverPagination={isLocations} // Solo ubicaciones maneja el total real desde el servidor

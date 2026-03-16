@@ -52,7 +52,7 @@ public class MainSecurity {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/auth/**").permitAll() // Permite el login y la doc
                         .requestMatchers("/", "/error", "/email/**", "/preview/**").permitAll()
-                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**").permitAll()
+                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
                         .requestMatchers("/api/register", "/api/register/**").permitAll()
                         .anyRequest().authenticated()

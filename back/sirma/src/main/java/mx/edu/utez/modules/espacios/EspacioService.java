@@ -36,7 +36,7 @@ public class EspacioService {
 
     @Transactional(readOnly = true)
     public ApiResponse findByEdificio(Long edificioId) {
-        List<Espacio> list = espacioRepository.findByEdificioId(edificioId);
+        List<Espacio> list = espacioRepository.findByEdificioIdAndEsActivoTrue(edificioId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 

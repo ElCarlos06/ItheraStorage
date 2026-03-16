@@ -1,8 +1,7 @@
 /**
  * Cliente API base para el backend SIRMA.
- * Contiene la función `request` configurada con la Base URL.
  */
-const API_BASE = "http://localhost:8080";
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 // Código de estado HTTP que indican que la sesión ha expirado o es inválida
 const UNAUTHORIZED = 401;

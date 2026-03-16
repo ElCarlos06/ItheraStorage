@@ -76,13 +76,13 @@
   min-height: 0;
 }
 
-.activos-view__list:has(.activos-empty) {
+.activos-view__list:has(.empty-state) {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.activos-view__list:has(.activos-empty) .activos-empty {
+.activos-view__list:has(.empty-state) .empty-state {
   align-self: stretch;
   flex: 1;
   min-height: 0;

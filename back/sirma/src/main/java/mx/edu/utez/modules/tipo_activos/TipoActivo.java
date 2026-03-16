@@ -30,9 +30,13 @@ public class TipoActivo extends BaseEntity {
     @Column(name = "descripcion", length = 255)
     private String descripcion;
 
+    @Column(name = "marca", length = 100)
+    private String marca;
+
+    @Column(name = "modelo", length = 100)
+    private String modelo;
+
     @Column(name = "es_activo", nullable = false)
     private Boolean esActivo = true;
-
-
 
 }
