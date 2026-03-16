@@ -1,3 +1,4 @@
+import { isValidElement } from "react";
 import Icon from "../Icon/Icon";
 import "./Button.css";
 
@@ -35,13 +36,13 @@ export default function Button({
     >
       {iconLeft && (
         <span className="btn__icon btn__icon--left">
-          {import("react").isValidElement(iconLeft) ? iconLeft : <Icon icon={iconLeft} size={iconSize} />}
+          {isValidElement(iconLeft) ? iconLeft : <Icon icon={iconLeft} size={iconSize} />}
         </span>
       )}
       {content}
       {iconRight && (
         <span className="btn__icon btn__icon--right">
-          {import("react").isValidElement(iconRight) ? iconRight : <Icon icon={iconRight} size={iconSize} />}
+          {isValidElement(iconRight) ? iconRight : <Icon icon={iconRight} size={iconSize} />}
         </span>
       )}
     </button>
