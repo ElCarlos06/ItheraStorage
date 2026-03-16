@@ -1,6 +1,5 @@
 package com.example.activos360.ui.Screens.Login
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,25 +13,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.activos360.ui.components.Buttons
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.WaveHeader
+import com.example.activos360.ui.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onLoginSuccess: (String) -> Unit = {},
+    viewModel: LoginViewModel = viewModel(),
+    onNavigateToForgotPassword: () -> Unit = {}
+) {
     // Estados para los textos
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    //COLOR DE LA OLA, HAY Q ESTABLECERLO COMO PRIMARY PARA DESPUES
+    // 1. OBSERVAMOS EL ESTADO DE NAVEGACIÓN DEL VIEWMODEL
+    val destinoNavegacion by viewModel.navegacionDestino.collectAsState()
+
+    // 2. ESCUCHAMOS LOS CAMBIOS PARA DISPARAR LA NAVEGACIÓN
+    LaunchedEffect(destinoNavegacion) {
+        destinoNavegacion?.let { rutaDestino ->
+            // Pasamos la ruta exacta a la que debe ir el usuario
+            onLoginSuccess(rutaDestino)
+
+            // Limpiamos el estado para no volver a navegar accidentalmente
+            viewModel.navegacionCompletada()
+        }
+    }
+
+    // COLOR DE LA OLA, HAY Q ESTABLECERLO COMO PRIMARY PARA DESPUES
     val primaryColor = Color(0xFF7B88FF)
 
     Column(
@@ -48,8 +64,6 @@ fun LoginScreen() {
 
         // 2. Sección del Logo y Título
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Hay q METER EL LOGO AQUI ENTONCES Y QUITAR EL TEXTO SI TODO VA A SER LOGO
-            // Image(painter = painterResource(id = R.drawable.tu_logo), contentDescription = "Logo")
             Text(
                 text = "Activos 360",
                 color = primaryColor,
@@ -128,25 +142,50 @@ fun LoginScreen() {
                 fontSize = 14.sp,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .clickable { /* TODO: Acción de recuperar password */ }
+                    .clickable {
+                        onNavigateToForgotPassword()
+                    }
                     .padding(8.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Botón Iniciar Sesión  HAY QUE TERMINAR EL COMPONENTE---
-            Buttons(
-                text = "Iniciar Sesión",
-                onClick = {}
-            )
+            // --- MOSTRAR ERROR SI LAS CREDENCIALES FALLAN ---
+            viewModel.errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 8.dp)
+                )
+            }
+
+            // --- Botón Iniciar Sesión ---
+            Button(
+                onClick = {
+                    if (email.isNotBlank() && password.isNotBlank()) {
+                        viewModel.performLogin(email, password)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
+                enabled = !viewModel.isLoading // Se desactiva para evitar múltiples clics
+            ) {
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(text = "Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
         }
     }
-}
-
-
-
-@Composable
-@Preview(showBackground = true)
-fun pre2(){
-    LoginScreen()
 }

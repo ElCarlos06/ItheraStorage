@@ -2,17 +2,7 @@ package com.example.activos360.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,20 +10,44 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.selects.select
-
-
+// --- NUEVOS IMPORTS NECESARIOS ---
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 @Composable
-fun BottomCustomBar() {
+fun BottomCustomBar(
+    navController: NavController,
+    onQrScanned: (String) -> Unit = {}
+) { // 1. Recibimos el controlador
+
+    // 2. Leemos en qué pantalla estamos actualmente
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Definimos los colores para reutilizarlos
+    val colorActivo = Color(0xFF8B93FF)
+    val colorInactivo = Color.Gray
+
+    val context = LocalContext.current
+    val scannerOptions = GmsBarcodeScannerOptions.Builder()
+        .setBarcodeFormats(Barcode.FORMAT_QR_CODE) // Solo buscar QRs para que sea más rápido
+        .enableAutoZoom() // Hace zoom automático si el QR está lejos
+        .build()
+    val scanner = GmsBarcodeScanning.getClient(context, scannerOptions)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -54,25 +68,36 @@ fun BottomCustomBar() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                // --- BOTÓN HOME ---
+                // --- BOTÓN HOME (Apunta al Scanner) ---
+                val isHomeSelected = currentRoute == "scanner" // ¿Estamos en home?
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .weight(1f) // Ocupa espacio equitativo
-                        .clickable { /* Navegar */ }
+                        .weight(1f)
+                        .clickable {
+                            // 3. Agregamos la navegación
+                            navController.navigate("scanner") {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
+                        }
                 ) {
                     // Indicador (solo se muestra si está seleccionado)
                     Box(
                         modifier = Modifier
                             .width(35.dp)
                             .height(4.dp)
-                            .background(Color(0xFF8B93FF), shape = RoundedCornerShape(2.dp))
+                            .background(
+                                color = if (isHomeSelected) colorActivo else Color.Transparent,
+                                shape = RoundedCornerShape(2.dp)
+                            )
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Icon(
                         imageVector = Icons.Default.Home,
                         contentDescription = "Home",
-                        tint = Color(0xFF8B93FF),
+                        tint = if (isHomeSelected) colorActivo else colorInactivo,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -80,38 +105,70 @@ fun BottomCustomBar() {
                 Spacer(modifier = Modifier.width(80.dp))
 
                 // --- BOTÓN PERFIL ---
+                val isPerfilSelected = currentRoute == "perfil" // ¿Estamos en perfil?
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { /* Navegar */ }
+                        .clickable {
+                            // 3. Agregamos la navegación
+                            navController.navigate("perfil") {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
+                        }
                 ) {
-                    // El perfil no tiene rayita si no está seleccionado
-                    // Pero dejamos el espacio para que el icono no suba y baje
-                    //No es neseario el NavigationBarItem we da mas pedo con el navigate
-                    //solo se uede, solo lo llamas en cualquier elemento
-                    // clikiable hsta en un texto se piuede XD
-                    Box(modifier = Modifier.height(4.dp).width(35.dp))
+                    // Espacio o indicador
+                    Box(
+                        modifier = Modifier
+                            .height(4.dp)
+                            .width(35.dp)
+                            .background(
+                                color = if (isPerfilSelected) colorActivo else Color.Transparent,
+                                shape = RoundedCornerShape(2.dp)
+                            )
+                    )
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Perfil",
-                        tint = Color.Gray,
+                        tint = if (isPerfilSelected) colorActivo else colorInactivo,
                         modifier = Modifier.size(28.dp)
                     )
                 }
             }
         }
 
-        // 2. El Botón Central (Scanner)
+        // 2. El Botón Central Flotante (Scanner)
         Surface(
             modifier = Modifier
                 .size(75.dp)
                 .align(Alignment.TopCenter)
-                .offset(y = 5.dp),
+                .offset(y = 5.dp)
+                .clickable {
+                    scanner.startScan()
+                        .addOnSuccessListener { barcode ->
+                            // Cuando escanea con éxito, sacamos el texto del QR
+                            val qrResult = barcode.rawValue ?: ""
+                            onQrScanned(qrResult)
+                            Toast.makeText(context, "QR Escaneado: $qrResult", Toast.LENGTH_LONG).show()
+
+                            // OPCIONAL: Aquí podrías navegar a otra pantalla pasando el QR
+                            // navController.navigate("detalle_activo/$qrResult")
+                        }
+                        .addOnCanceledListener {
+                            // Si el usuario cierra la cámara sin escanear nada
+                            Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            // Si ocurre un error
+                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                },
             shape = CircleShape,
-            color = Color(0xFF8B93FF),
+            color = colorActivo,
             shadowElevation = 12.dp
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -125,8 +182,12 @@ fun BottomCustomBar() {
         }
     }
 }
+
+// --- ACTUALIZAMOS EL PREVIEW PARA QUE NO MARQUE ERROR ---
 @Composable
 @Preview
 fun previwnav() {
-    BottomCustomBar()
+    // Usamos un NavController falso (dummy) solo para que el preview pueda compilar
+    val dummyNavController = rememberNavController()
+    BottomCustomBar(navController = dummyNavController)
 }

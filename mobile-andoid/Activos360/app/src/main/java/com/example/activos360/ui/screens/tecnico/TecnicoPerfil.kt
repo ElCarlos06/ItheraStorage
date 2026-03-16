@@ -36,89 +36,33 @@ import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.components.PerfilHeader
 
 @Composable
-fun TecnicoPerfil() {
+fun UserProfile() {
+    // Simulación de datos
+    val nombreUsuario = "Israel Mena"
+    val correoUsuario = "israel.mena@empresa.com"
+    val rolUsuario = "Técnico"
 
-    androidx.compose.material3.Scaffold(
-        bottomBar = { BottomCustomBar() }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFFF8F9FF))
-        ) {
-            // 1. HEADER (Ahora con menos altura interna)
-            PerfilHeader()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F6FA)),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-            // 2. Título ESTADÍSTICAS (Ajustamos el padding superior a 0 o negativo)
+        PerfilHeader(
+            nombre = nombreUsuario,
+            rol = rolUsuario
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+
             Text(
-                text = "ESTADÍSTICAS",
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .offset(y = (-10).dp), // <-- Subimos el texto un poco para pegarlo a la ola
-                fontSize = 12.sp,
+                text = "Configuración",
                 fontWeight = FontWeight.Bold,
-                color = Color.Gray
-            )
-
-            // 3. SECCIÓN DE ESTADÍSTICAS
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .offset(y = (-5).dp), // <-- Subimos las tarjetas también
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Tarjeta 1: Reparados
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    shadowElevation = 2.dp
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0xFF8B93FF).copy(alpha = 0.12f),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF8B93FF), modifier = Modifier.padding(8.dp))
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("08", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                        Text("Mantenimientos reparados", fontSize = 11.sp, color = Color.Gray, lineHeight = 14.sp)
-                    }
-                }
-
-                // Tarjeta 2: Irreparables
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    shadowElevation = 2.dp
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0xFFFFB2B2).copy(alpha = 0.15f),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(Icons.Default.Cancel, null, tint = Color(0xFFFF7B7B), modifier = Modifier.padding(8.dp))
-                        }
-                        Spacer(modifier = Modifier.height(12.dp)) // Corregí este Spacer que tenías en 1.dp
-                        Text("03", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                        Text("Mantenimientos irreparables", fontSize = 11.sp, color = Color.Gray, lineHeight = 14.sp)
-                    }
-                }
-            }
-
-            // --- SECCIÓN DE CONFIGURACIÓN (Sin cambios de lógica, solo espaciado) ---
-            Text(
-                text = "CONFIGURACIÓN",
-                modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 8.dp),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF747D8C)
+                color = Color.Gray,
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
 
             // Botón Cambiar Contraseña
@@ -126,7 +70,7 @@ fun TecnicoPerfil() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 6.dp)
-                    .clickable { /* Acción */ },
+                    .clickable { /* Acción cambiar contraseña */ },
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White
             ) {
@@ -136,16 +80,16 @@ fun TecnicoPerfil() {
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color(0xFF8B93FF).copy(alpha = 0.1f),
+                        color = Color(0xFFE5E7FF),
                         modifier = Modifier.size(45.dp)
                     ) {
                         Icon(Icons.Default.Password, null, tint = Color(0xFF8B93FF), modifier = Modifier.padding(10.dp))
                     }
                     Text(
-                        text = "Cambiar contraseña",
+                        text = "Cambiar Contraseña",
                         modifier = Modifier.padding(start = 16.dp).weight(1f),
-                        color = Color(0xFF8B93FF),
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.DarkGray
                     )
                     Icon(Icons.Default.ChevronRight, null, tint = Color(0xFF8B93FF))
                 }
@@ -156,7 +100,7 @@ fun TecnicoPerfil() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 6.dp)
-                    .clickable { /* Acción */ },
+                    .clickable { /* Acción de cerrar sesión (navegar a login) */ },
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White
             ) {
@@ -186,6 +130,6 @@ fun TecnicoPerfil() {
 
 @Composable
 @Preview
-fun saquenelrepo(){
-    TecnicoPerfil();
+fun UserProfilePreview() {
+    UserProfile()
 }

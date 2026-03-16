@@ -21,15 +21,11 @@ import com.example.activos360.ui.viewmodel.EmpleadoViewModel
 
 @Composable
 fun TecnicoHome(viewModel: EmpleadoViewModel = viewModel()) {
-    Scaffold(
-        bottomBar = {
-            BottomCustomBar() // <-- Usamos el nombre nuevo
-        }
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -42,6 +38,7 @@ fun TecnicoHome(viewModel: EmpleadoViewModel = viewModel()) {
                 QRScanner()
             }
         }
+
     }
 }
 

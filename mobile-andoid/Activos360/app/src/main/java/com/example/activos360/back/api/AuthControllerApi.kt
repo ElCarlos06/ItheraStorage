@@ -1,6 +1,7 @@
 package com.example.activos360.back.api
 
 import com.example.activos360.back.model.ChangePasswordDTO
+import com.example.activos360.back.model.LoginResponse
 import com.example.activos360.back.model.ModelApiResponse
 import com.example.activos360.back.model.RequestPasswordResetDTO
 import retrofit2.http.*
@@ -32,7 +33,7 @@ interface AuthControllerApi {
      * @return [ModelApiResponse]
      */
     @POST("api/auth/login")
-    suspend fun login(@Body authDTO: com.example.activos360.back.model.AuthDTO): Response<ModelApiResponse>
+    suspend fun login(@Body authDTO: com.example.activos360.back.model.AuthDTO): Response<LoginResponse>
 
     /**
      * POST api/auth/request-password-reset

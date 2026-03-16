@@ -37,7 +37,9 @@ import androidx.compose.ui.unit.sp
 import com.example.activos360.R
 import com.example.activos360.ui.components.Buttons
 @Composable
-fun ScreenPasword() {
+fun ScreenPassword(
+    onBackClick: () -> Unit = {}
+) {
     // Estados para los textos
     var email by remember { mutableStateOf("") }
 
@@ -60,12 +62,14 @@ fun ScreenPasword() {
                 .padding(top = 40.dp)
         ) {
             IconButton(
-                onClick = {},
+                onClick = {
+                    onBackClick()
+                },
                 modifier = Modifier
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar"
+                    contentDescription = "Regresar",
                 )
             }
 
@@ -144,5 +148,5 @@ fun ScreenPasword() {
 @Composable
 @Preview(showBackground = true)
 fun pre3(){
-    ScreenPasword()
+    ScreenPassword()
 }

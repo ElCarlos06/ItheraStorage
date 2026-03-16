@@ -31,12 +31,8 @@ import com.example.activos360.R
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
 
 @Composable
-fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel()) {
+fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol: String) {
     val primaryColor = Color(0xFF7B88FF)
-
-    // Estos datos vendrán de tu State en el ViewModel más adelante
-    val nombre = "Carlos"
-    val rol = "TÉCNICO"
 
     Box(
         modifier = Modifier
@@ -56,7 +52,7 @@ fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel()) {
                 .padding(top = 2.dp), // Espacio para no pegar la foto al borde superior
             horizontalAlignment = Alignment.CenterHorizontally,
 
-        ) {
+            ) {
             // FOTO DE PERFIL
             Box(contentAlignment = Alignment.BottomEnd) {
                 Surface (
@@ -121,5 +117,5 @@ fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel()) {
 @Composable
 @Preview
 fun preheader() {
-    PerfilHeader()
+    PerfilHeader(nombre = "Carlos", rol = "TÉCNICO")
 }

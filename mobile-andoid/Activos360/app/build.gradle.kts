@@ -90,6 +90,9 @@ dependencies {
     // Librería para el ScalarsConverter (líneas rojas de scalars)
     implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
 
+    //escaner parame el qr
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
