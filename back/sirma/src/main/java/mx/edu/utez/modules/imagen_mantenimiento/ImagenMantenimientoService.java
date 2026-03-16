@@ -1,7 +1,7 @@
 package mx.edu.utez.modules.imagen_mantenimiento;
 
-import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.modules.mantenimientos.Mantenimiento;
 import mx.edu.utez.modules.mantenimientos.MantenimientoRepository;
 import mx.edu.utez.util.CloudinaryService;
@@ -22,14 +22,16 @@ import java.util.Optional;
  * @author Ithera Team
  */
 @Service
-@AllArgsConstructor
-public class ImagenMantenimientoService {
+public class ImagenMantenimientoService extends BaseImagenService<ImagenMantenimiento, ImagenMantenimientoRepository> {
 
     private static final String CARPETA_CLOUDINARY = "sirma/mantenimientos";
 
-    private final ImagenMantenimientoRepository imagenMantenimientoRepository;
     private final MantenimientoRepository mantenimientoRepository;
-    private final CloudinaryService cloudinaryService;
+
+    public ImagenMantenimientoService(ImagenMantenimientoRepository repository, MantenimientoRepository mantenimientoRepository, CloudinaryService cloudinaryService) {
+        super(repository, cloudinaryService);
+        this.mantenimientoRepository = mantenimientoRepository;
+    }
 
     /**
      * Sube una imagen relacionada con un mantenimiento.
@@ -48,12 +50,10 @@ public class ImagenMantenimientoService {
 
             ImagenMantenimiento img = new ImagenMantenimiento();
             img.setMantenimiento(found.get());
-            img.setUrlCloudinary((String) resultado.get("secure_url"));
-            img.setPublicIdCloudinary((String) resultado.get("public_id"));
-            img.setNombreArchivo(file.getOriginalFilename());
-            imagenMantenimientoRepository.save(img);
+            img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+            repository.save(img);
 
-            return new ApiResponse("Imagen subida correctamente", img, HttpStatus.CREATED);
+            return new ApiResponse("Imagen subida correctamente", true, HttpStatus.CREATED);
         } catch (IOException e) {
             return new ApiResponse("Error al subir imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -67,27 +67,7 @@ public class ImagenMantenimientoService {
      */
     @Transactional(readOnly = true)
     public ApiResponse listarImagenes(Long mantenimientoId) {
-        List<ImagenMantenimiento> lista = imagenMantenimientoRepository.findByMantenimientoId(mantenimientoId);
+        List<ImagenMantenimiento> lista = repository.findByMantenimientoId(mantenimientoId);
         return new ApiResponse("OK", lista, HttpStatus.OK);
-    }
-
-    /**
-     * Elimina física y lógicamente una imagen de mantenimiento.
-     *
-     * @param imagenId ID de la imagen a borrar.
-     * @return ApiResponse con el estatus de la operación.
-     */
-    @Transactional
-    public ApiResponse eliminarImagen(Long imagenId) {
-        Optional<ImagenMantenimiento> found = imagenMantenimientoRepository.findById(imagenId);
-        if (found.isEmpty())
-            return new ApiResponse("Imagen no encontrada", true, HttpStatus.NOT_FOUND);
-        try {
-            cloudinaryService.delete(found.get().getPublicIdCloudinary());
-            imagenMantenimientoRepository.delete(found.get());
-            return new ApiResponse("Imagen eliminada correctamente", HttpStatus.OK);
-        } catch (IOException e) {
-            return new ApiResponse("Error al eliminar imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 }

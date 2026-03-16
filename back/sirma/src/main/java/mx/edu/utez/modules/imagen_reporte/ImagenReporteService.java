@@ -1,7 +1,7 @@
 package mx.edu.utez.modules.imagen_reporte;
 
-import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.modules.reportes.Reporte;
 import mx.edu.utez.modules.reportes.ReporteRepository;
 import mx.edu.utez.util.CloudinaryService;
@@ -22,14 +22,16 @@ import java.util.Optional;
  * @author Ithera Team
  */
 @Service
-@AllArgsConstructor
-public class ImagenReporteService {
+public class ImagenReporteService extends BaseImagenService<ImagenReporte, ImagenReporteRepository> {
 
     private static final String CARPETA_CLOUDINARY = "sirma/reportes";
 
-    private final ImagenReporteRepository imagenReporteRepository;
     private final ReporteRepository reporteRepository;
-    private final CloudinaryService cloudinaryService;
+
+    public ImagenReporteService(ImagenReporteRepository repository, ReporteRepository reporteRepository, CloudinaryService cloudinaryService) {
+        super(repository, cloudinaryService);
+        this.reporteRepository = reporteRepository;
+    }
 
     /**
      * Sube y registra una imagen como evidencia de un reporte.
@@ -48,10 +50,8 @@ public class ImagenReporteService {
 
             ImagenReporte img = new ImagenReporte();
             img.setReporte(found.get());
-            img.setUrlCloudinary((String) resultado.get("secure_url"));
-            img.setPublicIdCloudinary((String) resultado.get("public_id"));
-            img.setNombreArchivo(file.getOriginalFilename());
-            imagenReporteRepository.save(img);
+            img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+            repository.save(img); // Use 'repository' from base
 
             return new ApiResponse("Imagen subida correctamente", img, HttpStatus.CREATED);
         } catch (IOException e) {
@@ -67,27 +67,9 @@ public class ImagenReporteService {
      */
     @Transactional(readOnly = true)
     public ApiResponse listarImagenes(Long reporteId) {
-        List<ImagenReporte> lista = imagenReporteRepository.findByReporteId(reporteId);
+        List<ImagenReporte> lista = repository.findByReporteId(reporteId); // Use 'repository' from base
         return new ApiResponse("OK", lista, HttpStatus.OK);
     }
 
-    /**
-     * Borra una imagen de evidencia de reporte, tanto de la nube como de la BD.
-     *
-     * @param imagenId ID de la imagen a eliminar.
-     * @return ApiResponse confirmando la eliminación.
-     */
-    @Transactional
-    public ApiResponse eliminarImagen(Long imagenId) {
-        Optional<ImagenReporte> found = imagenReporteRepository.findById(imagenId);
-        if (found.isEmpty())
-            return new ApiResponse("Imagen no encontrada", true, HttpStatus.NOT_FOUND);
-        try {
-            cloudinaryService.delete(found.get().getPublicIdCloudinary());
-            imagenReporteRepository.delete(found.get());
-            return new ApiResponse("Imagen eliminada correctamente", HttpStatus.OK);
-        } catch (IOException e) {
-            return new ApiResponse("Error al eliminar imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    // eliminarImagen method removed as it is inherited as 'delete'
 }

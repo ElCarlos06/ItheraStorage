@@ -1,7 +1,8 @@
 package mx.edu.utez.modules.imagen_perfil;
 
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
 import mx.edu.utez.util.CloudinaryService;
@@ -20,15 +21,18 @@ import java.util.Optional;
  *
  * @author Ithera Team
  */
+@Slf4j
 @Service
-@AllArgsConstructor
-public class ImagenPerfilService {
+public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenPerfilRepository> {
 
 	private static final String CARPETA_CLOUDINARY = "sirma/perfiles";
 
-	private final ImagenPerfilRepository imagenPerfilRepository;
 	private final UserRepository userRepository;
-	private final CloudinaryService cloudinaryService;
+
+	public ImagenPerfilService(ImagenPerfilRepository repository, UserRepository userRepository, CloudinaryService cloudinaryService) {
+		super(repository, cloudinaryService);
+		this.userRepository = userRepository;
+	}
 
 	/**
 	 * Sube y asocia una foto de perfil al usuario indicado.
@@ -47,15 +51,15 @@ public class ImagenPerfilService {
 		String carpetaUsuario = CARPETA_CLOUDINARY + "/" + usuario.getNumeroEmpleado();
 
 		// 1. Eliminar foto anterior si existe (para mantener solo una activa y limpia)
-		Optional<ImagenPerfil> imagenPrevia = imagenPerfilRepository.findByUsuarioId(usuario.getId());
+		Optional<ImagenPerfil> imagenPrevia = repository.findByUsuarioId(usuario.getId());
 		if (imagenPrevia.isPresent()) {
 			ImagenPerfil img = imagenPrevia.get();
 			try {
 				cloudinaryService.delete(img.getPublicIdCloudinary());
-				imagenPerfilRepository.delete(img);
+				repository.delete(img);
 			} catch (IOException e) {
 				// Loggear error pero continuar con la subida si es posible, o retornar error
-				System.err.println("Error al eliminar imagen previa de Cloudinary: " + e.getMessage());
+				log.error("Error al eliminar imagen previa de Cloudinary: {}", e.getMessage());
 			}
 		}
 
@@ -65,10 +69,8 @@ public class ImagenPerfilService {
 
 			ImagenPerfil img = new ImagenPerfil();
 			img.setUsuario(usuario);
-			img.setUrlCloudinary((String) resultado.get("secure_url"));
-			img.setPublicIdCloudinary((String) resultado.get("public_id"));
-			img.setNombreArchivo(file.getOriginalFilename());
-			imagenPerfilRepository.save(img);
+			img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+			repository.save(img);
 
 			return new ApiResponse("Imagen de perfil actualizada correctamente", img, HttpStatus.CREATED);
 		} catch (IOException e) {
@@ -92,32 +94,11 @@ public class ImagenPerfilService {
 
 		User  usuario = found.get();
 
-		Optional<ImagenPerfil> imagen = imagenPerfilRepository.findByUsuarioId(usuario.getId());
+		Optional<ImagenPerfil> imagen = repository.findByUsuarioId(usuario.getId());
 		if (imagen.isPresent()) {
 			return new ApiResponse("OK", imagen.get(), HttpStatus.OK);
 		} else {
 			return new ApiResponse("El usuario no tiene foto de perfil", null, HttpStatus.NOT_FOUND);
-		}
-	}
-
-	/**
-	 * Elimina una foto de perfil usando su identificador de imagen.
-	 *
-	 * @param imagenId ID de la imagen a eliminar.
-	 * @return ApiResponse indicando el resultado.
-	 */
-	@Transactional
-	public ApiResponse eliminarImagen(Long imagenId) {
-		Optional<ImagenPerfil> found = imagenPerfilRepository.findById(imagenId);
-		if (found.isEmpty())
-			return new ApiResponse("Imagen no encontrada", true, HttpStatus.NOT_FOUND);
-
-		try {
-			cloudinaryService.delete(found.get().getPublicIdCloudinary());
-			imagenPerfilRepository.delete(found.get());
-			return new ApiResponse("Imagen de perfil eliminada correctamente", HttpStatus.OK);
-		} catch (IOException e) {
-			return new ApiResponse("Error al eliminar imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

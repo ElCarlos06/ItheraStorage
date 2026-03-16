@@ -33,4 +33,6 @@ public class TipoActivo extends BaseEntity {
     @Column(name = "es_activo", nullable = false)
     private Boolean esActivo = true;
 
+
+
 }

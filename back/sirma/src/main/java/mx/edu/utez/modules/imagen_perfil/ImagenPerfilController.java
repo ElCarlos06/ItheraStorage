@@ -53,7 +53,7 @@ public class ImagenPerfilController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
-        ApiResponse response = imagenPerfilService.eliminarImagen(id);
+        ApiResponse response = imagenPerfilService.delete(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

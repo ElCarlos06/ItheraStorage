@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
+import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.util.CloudinaryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,14 +24,16 @@ import java.util.Optional;
  * @author Ithera Team
  */
 @Service
-@AllArgsConstructor
-public class ImagenActivoService {
+public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenActivoRepository> {
 
     private static final String CARPETA_CLOUDINARY = "sirma/activos";
 
-    private final ImagenActivoRepository imagenActivoRepository;
     private final AssetsRepository assetsRepository;
-    private final CloudinaryService cloudinaryService;
+
+    public ImagenActivoService(ImagenActivoRepository repository, AssetsRepository assetsRepository, CloudinaryService cloudinaryService) {
+        super(repository, cloudinaryService);
+        this.assetsRepository = assetsRepository;
+    }
 
     /**
      * Guarda una imagen asociada a un activo.
@@ -45,16 +49,15 @@ public class ImagenActivoService {
         if (found.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
         try {
-            Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_CLOUDINARY);
+            String CARPETA_ACTIVO = CARPETA_CLOUDINARY + found.get().getEtiqueta();
+            Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_ACTIVO);
 
             ImagenActivo img = new ImagenActivo();
             img.setActivo(found.get());
-            img.setUrlCloudinary((String) resultado.get("secure_url"));
-            img.setPublicIdCloudinary((String) resultado.get("public_id"));
-            img.setNombreArchivo(file.getOriginalFilename());
-            imagenActivoRepository.save(img);
+            img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+            repository.save(img);
 
-            return new ApiResponse("Imagen subida correctamente", img, HttpStatus.CREATED);
+            return new ApiResponse("Imagen registrada correctamente", img, HttpStatus.CREATED);
         } catch (IOException e) {
             return new ApiResponse("Error al subir imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -68,28 +71,7 @@ public class ImagenActivoService {
      */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Long activoId) {
-        List<ImagenActivo> lista = imagenActivoRepository.findByActivoId(activoId);
+        List<ImagenActivo> lista = repository.findByActivoId(activoId);
         return new ApiResponse("OK", lista, HttpStatus.OK);
-    }
-
-    /**
-     * Elimina una imagen del sistema.
-     * Borra el archivo de Cloudinary y el registro de la base de datos.
-     *
-     * @param imagenId ID de la imagen a eliminar.
-     * @return ApiResponse indicando el éxito o fallo de la eliminación.
-     */
-    @Transactional
-    public ApiResponse delete(Long imagenId) {
-        Optional<ImagenActivo> found = imagenActivoRepository.findById(imagenId);
-        if (found.isEmpty())
-            return new ApiResponse("Imagen no encontrada", true, HttpStatus.NOT_FOUND);
-        try {
-            cloudinaryService.delete(found.get().getPublicIdCloudinary());
-            imagenActivoRepository.delete(found.get());
-            return new ApiResponse("Imagen eliminada correctamente", HttpStatus.OK);
-        } catch (IOException e) {
-            return new ApiResponse("Error al eliminar imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 }

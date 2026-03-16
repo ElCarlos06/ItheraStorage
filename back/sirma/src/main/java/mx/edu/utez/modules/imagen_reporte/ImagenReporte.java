@@ -4,10 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import mx.edu.utez.kernel.BaseEntity;
+import mx.edu.utez.modules.imagen.BaseImagen;
 import mx.edu.utez.modules.reportes.Reporte;
-
-import java.time.LocalDateTime;
 
 /**
  * Entidad que representa una evidencia fotográfica de un Reporte de incidencia.
@@ -21,32 +19,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ImagenReporte extends BaseEntity {
+public class ImagenReporte extends BaseImagen {
 
     /** Reporte al cual sirve de evidencia. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_reporte", nullable = false)
     private Reporte reporte;
 
-    /** URL pública de la imagen en Cloudinary. */
-    @Column(name = "url_cloudinary", nullable = false, length = 500)
-    private String urlCloudinary;
-
-    /** Public ID asignado por Cloudinary (necesario para eliminar/transformar). */
-    @Column(name = "public_id_cloudinary", nullable = false, length = 255)
-    private String publicIdCloudinary;
-
-    /** Nombre original del archivo subido por el usuario. */
-    @Column(name = "nombre_archivo", length = 255)
-    private String nombreArchivo;
-
-    /** Fecha de carga de la evidencia. */
-    @Column(name = "fecha_subida", updatable = false)
-    private LocalDateTime fechaSubida;
-
-    @PrePersist
-    protected void onCreate() {
-        fechaSubida = LocalDateTime.now();
-    }
 
 }

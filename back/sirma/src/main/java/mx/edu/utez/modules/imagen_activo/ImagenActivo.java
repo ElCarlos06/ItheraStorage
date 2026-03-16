@@ -1,13 +1,17 @@
 package mx.edu.utez.modules.imagen_activo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import mx.edu.utez.kernel.BaseEntity;
 import mx.edu.utez.modules.assets.Assets;
-
-import java.time.LocalDateTime;
+import mx.edu.utez.modules.imagen.BaseImagen;
 
 /**
  * Entidad que representa la asociación entre una imagen almacenada en Cloudinary y un Activo.
@@ -21,31 +25,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ImagenActivo extends BaseEntity {
+public class ImagenActivo extends BaseImagen {
 
     /** Activo al que pertenece la imagen. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_activo", nullable = false)
     private Assets activo;
-
-    /** URL pública de la imagen en Cloudinary. */
-    @Column(name = "url_cloudinary", nullable = false, length = 500)
-    private String urlCloudinary;
-
-    /** Public ID asignado por Cloudinary (necesario para eliminar/transformar). */
-    @Column(name = "public_id_cloudinary", nullable = false, length = 255)
-    private String publicIdCloudinary;
-
-    /** Nombre original del archivo subido por el usuario. */
-    @Column(name = "nombre_archivo", length = 255)
-    private String nombreArchivo;
-
-    /** Fecha y hora en la que se subió la imagen. Se asigna automáticamente. */
-    @Column(name = "fecha_subida", updatable = false)
-    private LocalDateTime fechaSubida;
-
-    @PrePersist
-    protected void onCreate() {
-        fechaSubida = LocalDateTime.now();
-    }
 }

@@ -25,7 +25,7 @@ public class ImagenActivoController {
      * @param id Identificador del activo.
      * @return ResponseEntity con la lista de imágenes y el estado HTTP correspondiente.
      */
-    @GetMapping("/activo/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> findById(@PathVariable Long id) {
         ApiResponse response = imagenActivoService.findAll(id);
         return new ResponseEntity<>(response, response.getStatus());
@@ -38,7 +38,7 @@ public class ImagenActivoController {
      * @param file Archivo de imagen a subir.
      * @return ResponseEntity con los detalles de la imagen creada y el estado HTTP.
      */
-    @PostMapping("/activo/{id}")
+    @PostMapping("/{id}")
     public ResponseEntity<ApiResponse> save(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         ApiResponse response = imagenActivoService.save(id, file);
         return new ResponseEntity<>(response, response.getStatus());
