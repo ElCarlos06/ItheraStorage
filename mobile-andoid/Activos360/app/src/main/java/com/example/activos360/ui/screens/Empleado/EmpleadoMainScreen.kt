@@ -13,7 +13,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.activos360.ui.Screens.Empleado.HomeEmpleado
+import com.example.activos360.ui.screens.Empleado.HomeEmpleado
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.screens.tecnico.UserProfile
 import com.example.activos360.ui.modals.AssetDetailModal

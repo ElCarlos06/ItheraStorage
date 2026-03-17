@@ -6,13 +6,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.FormatListBulleted
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,9 +30,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val AccentColor = Color(0xFF7B88FF)
+
 @Composable
 fun InfoCard(
-    icon: Int,
+    icon: Int? = null,
+    imageVector: ImageVector? = null,
     label: String,
     value: String
 ) {
@@ -33,7 +44,7 @@ fun InfoCard(
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 6.dp),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFFF8F9FF), // Un gris-azul muy clarito
+        color = Color(0xFFF8F9FF)
     ) {
         Row(
             modifier = Modifier
@@ -43,19 +54,30 @@ fun InfoCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Icono con fondo blanco
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color.White,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(44.dp)
                 ) {
-                    MoonIcon(
-                        icon = icon,
-                        contentDescription = null,
-                        size = 20.dp,
-                        tint = Color(0xFF7B88FF),
-                        modifier = Modifier.padding(10.dp)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when {
+                            imageVector != null -> Icon(
+                                imageVector = imageVector,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                                tint = AccentColor
+                            )
+                            icon != null -> MoonIcon(
+                                icon = icon,
+                                contentDescription = null,
+                                size = 22.dp,
+                                tint = AccentColor
+                            )
+                        }
+                    }
                 }
 
                 Text(
@@ -89,15 +111,19 @@ fun CaracteristicasSeccion(lista: List<String>) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color.White,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(44.dp)
                 ) {
-                    MoonIcon(
-                        icon = MoonIcons.GenericSettings,
-                        contentDescription = null,
-                        size = 20.dp,
-                        tint = Color(0xFF7B88FF),
-                        modifier = Modifier.padding(10.dp)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FormatListBulleted,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = Color(0xFF7B88FF)
+                        )
+                    }
                 }
                 Text(
                     text = "Características",
@@ -126,31 +152,33 @@ fun MainAssetCard(id: String, nombre: String) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp), // Para que se alinee con las demás tarjetas
+            .padding(horizontal = 24.dp),
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, Color(0xFFF1F2F6)), // Un borde muy finito
+        border = BorderStroke(1.dp, Color(0xFFF1F2F6)),
         color = Color.White
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // El cuadrito gris donde vive el icono de la laptop
             Surface(
                 color = Color(0xFFF1F2F6),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.size(56.dp)
             ) {
-                MoonIcon(
-                    icon = MoonIcons.DevicesMacbook,
-                    contentDescription = null,
-                    size = 28.dp,
-                    tint = Color.Gray,
-                    modifier = Modifier.padding(14.dp)
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    MoonIcon(
+                        icon = MoonIcons.DevicesMacbook,
+                        contentDescription = null,
+                        size = 28.dp,
+                        tint = Color(0xFF6B7280)
+                    )
+                }
             }
 
-            // Textos del Activo
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(
                     text = id,
@@ -181,13 +209,13 @@ fun InfoCardPreview() {
     ) {
         // Ejemplo de Marca
         InfoCard(
-            icon = MoonIcons.GenericBookmark,
+            imageVector = Icons.Outlined.BookmarkBorder,
             label = "Marca",
             value = "Apple"
         )
 
         InfoCard(
-            icon = MoonIcons.SoftwareSettings,
+            imageVector = Icons.Outlined.GridView,
             label = "Modelo",
             value = "Pro 16"
         )

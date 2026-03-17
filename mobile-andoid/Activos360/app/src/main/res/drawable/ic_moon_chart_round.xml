@@ -3,12 +3,28 @@
     android:height="24dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
+    <!-- Target: outer circle -->
     <path
-        android:pathData="M6.5,16A9.5,9.5,0,1016,6.5M6.5,16A9.5,9.5,0,0116,6.5M6.5,16h5.112M16,6.5v5.112M11.612,16A4.388,4.388,0,1016,11.612M11.612,16A4.388,4.388,0,0116,11.612"
+        android:pathData="M25.5,16A9.5,9.5,0,1,1,6.5,16A9.5,9.5,0,1,1,25.5,16"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <!-- Inner circle -->
+    <path
+        android:pathData="M20.388,16A4.388,4.388,0,1,1,11.612,16A4.388,4.388,0,1,1,20.388,16"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <!-- Cross hairs -->
+    <path
+        android:pathData="M8,16L24,16M16,8L16,24"
         android:strokeWidth="1.5"
         android:fillColor="#00000000"
         android:strokeColor="#000000"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"/>
 </vector>
-

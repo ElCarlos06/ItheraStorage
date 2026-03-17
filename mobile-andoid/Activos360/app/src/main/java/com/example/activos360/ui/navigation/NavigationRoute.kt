@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.activos360.ui.Screens.Login.LoginScreen
-import com.example.activos360.ui.Screens.Login.ScreenPassword
+import com.example.activos360.ui.screens.Login.LoginScreen
+import com.example.activos360.ui.screens.Login.ScreenPassword
 import com.example.activos360.ui.screens.Empleado.EmpleadoMainScreen
 import com.example.activos360.ui.screens.tecnico.TecnicoMainScreen
 

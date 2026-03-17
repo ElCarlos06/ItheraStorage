@@ -1,4 +1,4 @@
-package com.example.activos360.ui.Screens.Login
+package com.example.activos360.ui.screens.Login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -53,19 +53,13 @@ fun ScreenPassword(
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // LLAMAR A LA FUNCIONM PARA PONERLA HASTA ARRIBA
-
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 40.dp)
         ) {
             IconButton(
-                onClick = {
-                    onBackClick()
-                },
-                modifier = Modifier
+                onClick = { onBackClick() }
             ) {
                 MoonIcon(
                     icon = MoonIcons.ArrowsLeft,
@@ -73,7 +67,6 @@ fun ScreenPassword(
                 )
             }
 
-            // Imagen centrada
             Icon(
                 painter = painterResource(R.drawable.targeta),
                 contentDescription = "Targeta",

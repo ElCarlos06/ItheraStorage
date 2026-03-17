@@ -1,4 +1,4 @@
-package com.example.activos360.ui.Screens.Login
+package com.example.activos360.ui.screens.Login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

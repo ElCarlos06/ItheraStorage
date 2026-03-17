@@ -26,30 +26,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.activos360.ui.components.Buttons
-import com.example.activos360.ui.components.ChipSelector
-import com.example.activos360.ui.components.DropdownSelector
-import com.example.activos360.ui.components.EvidenciasSection
+import com.example.activos360.ui.components.EvidenciasGrid
 import com.example.activos360.ui.components.FieldLabel
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
 
+private val DodoriaWarning = Color(0xFFD33030).copy(alpha = 0.56f)
+private val ButtonColor = Color(0xFF3448F0).copy(alpha = 0.7f)
+
 @Composable
-fun ReportarDanoScreen(
-    activoId: Long,
+fun DevolverActivoScreen(
     activoEtiqueta: String,
     activoNombre: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onDevolver: () -> Unit = {}
 ) {
-    var selectedTipoFalla by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var selectedPrioridad by remember { mutableStateOf("") }
+    var observaciones by remember { mutableStateOf("") }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
-
-    val tiposFalla = listOf("Daño físico", "Falla eléctrica", "Falla de software", "Desgaste", "Otro")
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -64,7 +63,11 @@ fun ReportarDanoScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                Buttons(text = "Reportar", onClick = { onBack() })
+                Buttons(
+                    text = "Devolver",
+                    containerColor = ButtonColor,
+                    onClick = onDevolver
+                )
             }
         }
     ) { paddingValues ->
@@ -74,7 +77,7 @@ fun ReportarDanoScreen(
                 .padding(bottom = paddingValues.calculateBottomPadding())
                 .background(Color.White)
         ) {
-            HeaderRegresar(titulo = "Reportar Daño", onBackClick = onBack)
+            HeaderRegresar(titulo = "Devolver activo", onBackClick = onBack)
 
             Column(
                 modifier = Modifier
@@ -90,31 +93,43 @@ fun ReportarDanoScreen(
 
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
 
-                DropdownSelector(
-                    label = "Tipo de falla",
-                    value = selectedTipoFalla,
-                    placeholder = "Selecciona el tipo de daño",
-                    options = tiposFalla,
-                    onSelect = { selectedTipoFalla = it }
+                EvidenciasGrid(
+                    fotos = fotos,
+                    maxFotos = 3,
+                    onAddClick = { photoPickerLauncher.launch("image/*") },
+                    onRemove = { index ->
+                        fotos = fotos.toMutableList().also { it.removeAt(index) }
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                FieldLabel("Descripción del problema")
+                Text(
+                    text = "Las fotos son obligatorias para procesar la devolución",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = DodoriaWarning,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                FieldLabel("Observaciones")
                 Spacer(modifier = Modifier.height(8.dp))
                 TextField(
-                    value = descripcion,
-                    onValueChange = { descripcion = it },
+                    value = observaciones,
+                    onValueChange = { observaciones = it },
                     placeholder = {
                         Text(
-                            "Describe detalladamente qué sucedió...",
+                            "Escribe cualquier detalle relevante...",
                             color = Color(0xFF9CA3AF),
                             fontSize = 16.sp
                         )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(104.dp),
+                        .height(94.dp),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color(0xFFF8F9FE),
                         focusedContainerColor = Color(0xFFF8F9FE),
@@ -126,25 +141,6 @@ fun ReportarDanoScreen(
                     textStyle = TextStyle(fontSize = 16.sp, color = Color(0xFF2D3436))
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                ChipSelector(
-                    label = "Prioridad",
-                    options = listOf("Baja", "Media", "Alta"),
-                    selected = selectedPrioridad,
-                    onSelect = { selectedPrioridad = it }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                EvidenciasSection(
-                    fotos = fotos,
-                    onAddClick = { photoPickerLauncher.launch("image/*") },
-                    onRemove = { index ->
-                        fotos = fotos.toMutableList().also { it.removeAt(index) }
-                    }
-                )
-
                 Spacer(modifier = Modifier.height(32.dp))
                 }
             }
@@ -154,9 +150,8 @@ fun ReportarDanoScreen(
 
 @Preview(showBackground = true, widthDp = 393, heightDp = 852)
 @Composable
-private fun ReportarDanoPreview() {
-    ReportarDanoScreen(
-        activoId = 1,
+private fun DevolverActivoPreview() {
+    DevolverActivoScreen(
         activoEtiqueta = "ACTIVO #0482",
         activoNombre = "MacBook Pro 16\"",
         onBack = {}

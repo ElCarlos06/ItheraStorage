@@ -60,11 +60,15 @@ fun ConfirmarResguardoScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
                 .fillMaxSize()
                 .padding(bottom = paddingValues.calculateBottomPadding())
                 .background(Color.White)
-                .verticalScroll(rememberScrollState())
         ) {
             HeaderRegresar(titulo = "Confirmación de resguardo", onBackClick = onBack)
 
-            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+            ) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Reutilizamos la MainAssetCard que ya tienes en el otro archivo

@@ -1,4 +1,4 @@
-package com.example.activos360.ui.Screens.Empleado
+package com.example.activos360.ui.screens.Empleado
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

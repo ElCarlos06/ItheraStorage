@@ -24,13 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.GridView
 import com.example.activos360.ui.components.Buttons
-import com.example.activos360.ui.components.Canvas2
 import com.example.activos360.ui.components.CaracteristicasSeccion
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.InfoCard
 import com.example.activos360.ui.components.MainAssetCard
-import com.example.activos360.ui.components.MoonIcons
 
 @Composable
 fun DetallesActivoScreen(
@@ -52,7 +53,7 @@ fun DetallesActivoScreen(
                 } else {
                     Buttons(
                         text = "Devolver",
-                        containerColor = Color(0xFF7B88FF).copy(alpha = 0.7f),
+                        containerColor = Color(0xFF3448F0).copy(alpha = 0.7f),
                         onClick = { }
                     )
                     Spacer(Modifier.height(12.dp))
@@ -67,34 +68,34 @@ fun DetallesActivoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                // Usamos el padding inferior del Scaffold para los botones
                 .padding(bottom = paddingValues.calculateBottomPadding())
                 .background(Color.White)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Header con botón de regreso
             HeaderRegresar(titulo = "Detalles del activo", onBackClick = onBack)
 
-            // Contenedor de las tarjetas
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp) // Espacio después de la ola
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp)
+                ) {
                 // 2. Tarjeta Principal (Laptop + ID)
                 MainAssetCard(id = "ACTIVO #0482", nombre = "MacBook Pro 16\"")
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 3. Filas de Información usando TU COMPONENTE InfoCard
                 InfoCard(
-                    icon = MoonIcons.GenericBookmark,
+                    imageVector = Icons.Outlined.BookmarkBorder,
                     label = "Marca",
                     value = "Apple"
                 )
 
                 InfoCard(
-                    icon = MoonIcons.SoftwareSettings,
+                    imageVector = Icons.Outlined.GridView,
                     label = "Modelo",
                     value = "Pro 16"
                 )
@@ -106,6 +107,7 @@ fun DetallesActivoScreen(
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }

@@ -24,7 +24,7 @@ fun Buttons(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp), // Ajustado a 56 para que se vea pro
+            .height(56.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor
