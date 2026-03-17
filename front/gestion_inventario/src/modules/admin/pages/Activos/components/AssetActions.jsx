@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import Icon from "../../../../../components/Icon/Icon";
 import {
   GenericDelete,
@@ -58,8 +58,8 @@ export default function AssetActions({
       <button
         type="button"
         className="activos-view__action-btn"
-        title="Detalles"
-        aria-label="Detalles"
+        title="Asignación"
+        aria-label="Asignación"
         onClick={(e) => {
           e.stopPropagation();
           onDetalles?.(item);

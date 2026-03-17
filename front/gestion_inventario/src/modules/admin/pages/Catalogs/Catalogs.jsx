@@ -17,7 +17,7 @@ import { GenericPlus } from "@heathmont/moon-icons";
 import { ubicacionesApi } from "../../../../api/ubicacionesApi";
 import "./Catalogs.css";
 import { tipoActivosApi } from "../../../../api/tipoActivosApi.js";
-import { getCached, setCache } from "../../../../utils/apiCache";
+import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
 
 const MAIN_TABS = [
   {
@@ -173,8 +173,9 @@ export default function Catalogs() {
       setItems(c.items);
       setTotalPages(c.totalPages);
       setTotalElements(c.totalElements);
+      return; // No solicitar a API si ya está en caché
     }
-    if (!hasCached) setLoading(true);
+    setLoading(true);
     setError(null);
     try {
       const page = currentPage - 1;
@@ -226,6 +227,7 @@ export default function Catalogs() {
   };
 
   const refreshLocations = () => {
+    clearCache(`catalog-${subTab}-p${currentPage}`);
     cargarUbicaciones();
   };
 
@@ -237,11 +239,11 @@ export default function Catalogs() {
       setItems(c.items);
       setTotalPages(c.totalPages);
       setTotalElements(c.totalElements);
+      return; // No solicitar a API si ya está en caché
     }
-    if (!hasCached) {
-      setLoading(true);
-      setItems([]);
-    }
+    
+    setLoading(true);
+    setItems([]);
     setError(null);
     try {
       const res = await tipoActivosApi.getTipoActivos(
@@ -299,6 +301,7 @@ export default function Catalogs() {
       await tipoActivosApi.toggleStatusTipoActivo(confirmDeleteTipoActivo.id);
       toast.success("Tipo de activo eliminado correctamente");
       setConfirmDeleteTipoActivo(null);
+      clearCache(`catalog-tipos-p${currentPage}`);
       cargarTiposActivos();
     } catch (err) {
       toast.error(err?.message ?? "Error al eliminar");
@@ -471,6 +474,7 @@ export default function Catalogs() {
               await tipoActivosApi.crearTipoActivo(data);
               toast.success("Tipo de activo guardado correctamente");
             }
+            clearCache(`catalog-tipos-p${currentPage}`);
             await cargarTiposActivos();
             setModalTipoActivoOpen(false);
             setEditTipoActivo(null);

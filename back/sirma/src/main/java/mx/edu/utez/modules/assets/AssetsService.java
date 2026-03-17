@@ -12,6 +12,7 @@ import mx.edu.utez.modules.modelos.Modelo;
 import mx.edu.utez.modules.modelos.ModeloRepository;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
+import mx.edu.utez.modules.qr.QRService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 /**
  * Servicio de negocio para la gestión de Activos Fijos.
@@ -40,6 +44,7 @@ public class AssetsService {
     private final EspacioRepository espacioRepository;
     // Inyectamos repositorio de imágenes para detalle extendido
     private final ImagenActivoRepository imagenActivoRepository;
+    private final QRService qrService;
 
     private static final String QR_FILENAME = "QR_CODE";
 
@@ -50,6 +55,7 @@ public class AssetsService {
      * @return ApiResponse con la página de activos encontrados.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "assets_page", key = "#pageable.pageNumber + '-' + #pageable.pageSize", unless = "#result.error")
     public ApiResponse findAll(Pageable pageable) {
         Page<Assets> page = assetsRepository.findByEsActivoTrue(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
@@ -62,6 +68,7 @@ public class AssetsService {
      * @return ApiResponse con el DTO del activo (incluyendo imágenes) o mensaje de error.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "assets", key = "#id", unless = "#result.error")
     public ApiResponse findById(Long id) {
         Optional<Assets> found = assetsRepository.findById(id);
         if (found.isEmpty())
@@ -125,6 +132,7 @@ public class AssetsService {
      * @return ApiResponse con el activo creado.
      */
     @Transactional
+    @CacheEvict(value = {"assets", "assets_page"}, allEntries = true)
     public ApiResponse save(AssetsDTO dto) {
         if (assetsRepository.existsByNumeroSerie(dto.getNumeroSerie()))
             return new ApiResponse("Ya existe un activo con ese número de serie", true, HttpStatus.CONFLICT);
@@ -163,6 +171,7 @@ public class AssetsService {
      * @return ApiResponse con el activo actualizado.
      */
     @Transactional
+    @CacheEvict(value = {"assets", "assets_page"}, allEntries = true)
     public ApiResponse update(Long id, AssetsDTO dto) {
         Optional<Assets> found = assetsRepository.findById(id);
         if (found.isEmpty())
@@ -200,11 +209,16 @@ public class AssetsService {
      * @return ApiResponse confirmando la desactivación.
      */
     @Transactional
+    @CacheEvict(value = {"assets", "assets_page"}, allEntries = true)
     public ApiResponse toggleStatus(Long id) {
         Optional<Assets> found = assetsRepository.findById(id);
         if (found.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
         Assets entity = found.get();
+        
+        // Si el activo se oculta/desactiva, borramos su QR de Cloudinary
+        qrService.deleteQrByAssetId(id);
+        
         entity.setEsActivo(false);
         assetsRepository.save(entity);
         return new ApiResponse("Activo desactivado", entity, HttpStatus.OK);

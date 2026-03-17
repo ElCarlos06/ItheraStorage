@@ -2,9 +2,12 @@ package mx.edu.utez.modules.qr;
 
 import lombok.RequiredArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Controlador REST para la generación de códigos QR y PDFs.
@@ -54,7 +57,12 @@ public class QRController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> generarQrPorActivo(@PathVariable Long id) {
         ApiResponse response = qrService.getQrImageForAsset(id);
-        return new ResponseEntity<>(response, response.getStatus());
+        if (response.isError()) {
+            return new ResponseEntity<>(response, response.getStatus());
+        }
+        return ResponseEntity.status(response.getStatus())
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic())
+                .body(response);
     }
 
     /**
@@ -66,6 +74,11 @@ public class QRController {
     @GetMapping("/{id}/pdf")
     public ResponseEntity<ApiResponse> descargarPdfActivo(@PathVariable Long id) {
         ApiResponse response = qrService.getQrPdfForAsset(id);
-        return new ResponseEntity<>(response, response.getStatus());
+        if (response.isError()) {
+            return new ResponseEntity<>(response, response.getStatus());
+        }
+        return ResponseEntity.status(response.getStatus())
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic())
+                .body(response);
     }
 }

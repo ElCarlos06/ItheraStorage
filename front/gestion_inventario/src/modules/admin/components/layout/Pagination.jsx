@@ -47,7 +47,8 @@ export default function Pagination({
         </button>
 
         <div className="pagination-page-info">
-          <span className="pagination-bold">{currentPage}</span> / {totalPages}
+          <span className="pagination-bold">{currentPage}</span>&nbsp;/&nbsp;
+          {totalPages}
         </div>
 
         <button

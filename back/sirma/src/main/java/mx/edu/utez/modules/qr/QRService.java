@@ -25,6 +25,8 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -210,6 +212,7 @@ public class QRService {
      * Devuelve la imagen PNG del QR asociado al activo (con etiqueta).
      */
     @Transactional
+    @Cacheable(value = "qr_images", key = "#assetId")
     public ApiResponse getQrImageForAsset(Long assetId) {
         String qrContent = resolveQrContent(assetId);
         if (qrContent == null)
@@ -232,6 +235,7 @@ public class QRService {
      * Devuelve el PDF con el QR asociado al activo.
      */
     @Transactional
+    @Cacheable(value = "qr_pdfs", key = "#assetId")
     public ApiResponse getQrPdfForAsset(Long assetId) {
         String qrContent = resolveQrContent(assetId);
         if (qrContent == null)
@@ -277,7 +281,10 @@ public class QRService {
             try {
                 byte[] qrBytes = generateQrByteArray(qrContent, 300, 300);
 
-                var uploadResult = cloudinaryService.upload(qrBytes, CloudinaryPaths.ACTIVOS_QR);
+                // Carpeta por activo: sirma/activos/{ID}
+                String dynamicFolder = CloudinaryPaths.ACTIVOS + "/" + asset.getId();
+                
+                var uploadResult = cloudinaryService.upload(qrBytes, dynamicFolder);
                 String url      = (String) uploadResult.get("secure_url");
                 String publicId = (String) uploadResult.get("public_id");
 
@@ -296,4 +303,35 @@ public class QRService {
 
         return qrContent;
     }
+
+    /**
+     * Elimina la imagen QR asociada al activo de Cloudinary y de la base de datos.
+     * Útil cuando se baja/oculta un activo.
+     * @param assetId ID del activo del cual se desea eliminar el QR.
+     */
+    @Transactional
+    @CacheEvict(value = {"qr_images", "qr_pdfs"}, key = "#assetId")
+    public void deleteQrByAssetId(Long assetId) {
+        Optional<ImagenActivo> qrImgOpt = imagenActivoRepository.findByActivoId(assetId).stream()
+                .filter(img -> QR_FILENAME.equals(img.getNombreArchivo()))
+                .findFirst();
+
+        if (qrImgOpt.isPresent()) {
+            ImagenActivo qrImg = qrImgOpt.get();
+            try {
+                // Borrar de Cloudinary
+                if (qrImg.getPublicIdCloudinary() != null) {
+                    cloudinaryService.delete(qrImg.getPublicIdCloudinary());
+                    log.info("Imagen QR borrada de Cloudinary para activo ID: {}", assetId);
+                }
+                // Borrar de BD
+                imagenActivoRepository.delete(qrImg);
+                log.info("Registro de Imagen QR borrado de BD para activo ID: {}", assetId);
+            } catch (Exception e) {
+                log.error("Error al eliminar imagen QR para activo ID: {}", assetId, e);
+                // No lanzamos excepción para no abortar la transacción principal del activo
+            }
+        }
+    }
 }
+

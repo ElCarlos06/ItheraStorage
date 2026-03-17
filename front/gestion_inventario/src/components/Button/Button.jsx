@@ -39,13 +39,21 @@ export default function Button({
     >
       {iconLeft && (
         <span className="btn__icon btn__icon--left">
-          {isValidElement(iconLeft) ? iconLeft : <Icon icon={iconLeft} size={iconSize} />}
+          {isValidElement(iconLeft) ? (
+            iconLeft
+          ) : (
+            <Icon icon={iconLeft} size={iconSize} />
+          )}
         </span>
       )}
       {content}
       {iconRight && (
         <span className="btn__icon btn__icon--right">
-          {isValidElement(iconRight) ? iconRight : <Icon icon={iconRight} size={iconSize} />}
+          {isValidElement(iconRight) ? (
+            iconRight
+          ) : (
+            <Icon icon={iconRight} size={iconSize} />
+          )}
         </span>
       )}
     </motion.button>

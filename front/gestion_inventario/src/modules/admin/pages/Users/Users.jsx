@@ -25,7 +25,7 @@ import { toast } from "../../../../utils/toast.jsx";
 import { getCurrentUserCorreo, logout } from "../../../../api/authApi";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
-import { getCached, setCache } from "../../../../utils/apiCache";
+import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
 
 const STAT_ICONS = [GenericUser, NotificationsBell, GenericSettings];
 
@@ -94,7 +94,12 @@ export default function Users({
     if (usersProp !== undefined) return;
     const hasCached = !!getCached(cacheKey);
 
-    if (!hasCached) setLoading(true);
+    if (!hasCached) {
+      setLoading(true);
+    } else {
+      // Si tenemos caché fresco y vigente, omitir la petición inicial
+      return;
+    }
 
     usersApi
       .getUsers(currentPage - 1, pageSize)
@@ -114,10 +119,11 @@ export default function Users({
         .catch(() => {});
     }, 30000);
     return () => clearInterval(interval);
-  }, [usersProp, currentPage]);
+  }, [usersProp, currentPage]); // Added cache key to deps conceptually
 
   const refreshUsers = () => {
     if (usersProp !== undefined) return;
+    clearCache(cacheKey); // Invalida el caché actual
     usersApi
       .getUsers(currentPage - 1, pageSize)
       .then(applyUsersResponse)

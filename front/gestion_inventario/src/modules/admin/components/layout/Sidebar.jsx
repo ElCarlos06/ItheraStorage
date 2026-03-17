@@ -14,6 +14,7 @@ import { getProfileFromToken } from "../../../../api/authApi";
 import { useEffect, useMemo, useState } from "react";
 import { imagenPerfilApi } from "../../../../api/imagenPerfilApi";
 import Modal from "../../../../components/Modal/Modal";
+import { UserRound } from "lucide-react";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: GenericHome },
@@ -98,7 +99,7 @@ export default function Sidebar() {
               title="Ver foto de perfil"
             >
               <img
-                src={imgSrc}
+                src={imgSrc || <UserRound />}
                 alt="imagen de perfil"
                 className="admin-sidebar__avatar-img"
               />
@@ -123,8 +124,15 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      <Modal open={showAvatarPreview} onClose={() => setShowAvatarPreview(false)} className="avatar-preview-modal">
-        <div className="avatar-preview-card" onClick={(e) => e.stopPropagation()}>
+      <Modal
+        open={showAvatarPreview}
+        onClose={() => setShowAvatarPreview(false)}
+        className="avatar-preview-modal"
+      >
+        <div
+          className="avatar-preview-card"
+          onClick={(e) => e.stopPropagation()}
+        >
           <img
             src={imgSrc}
             alt="Foto de perfil"

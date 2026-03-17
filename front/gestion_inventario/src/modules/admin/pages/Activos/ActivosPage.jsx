@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
 import { toast } from "../../../../utils/toast.jsx";
-import { getCached, setCache } from "../../../../utils/apiCache";
+import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
 
 const CACHE_KEY = "activos";
 
@@ -60,15 +60,17 @@ export default function ActivosPage() {
 
   useEffect(() => {
     if (cached) {
-      fetchActivos(true);
-    } else {
-      fetchActivos();
+      // Si hay caché válido, no hacemos refetch a menos que esté forzado / no sea "silent".
+      // fetchActivos(true); 
+      return;
     }
-  }, [fetchActivos]);
+    fetchActivos();
+  }, [fetchActivos, cached]);
 
   const handleNuevo = async (data) => {
     try {
       await activosApi.save(data);
+      clearCache(CACHE_KEY);
       await fetchActivos();
     } catch (err) {
       toast.error(err.message ?? "Error al guardar el activo");
@@ -81,6 +83,7 @@ export default function ActivosPage() {
     if (!id) return;
     try {
       await activosApi.update(id, data);
+      clearCache(CACHE_KEY);
       await fetchActivos();
     } catch (err) {
       toast.error(err.message ?? "Error al actualizar el activo");
@@ -94,7 +97,9 @@ export default function ActivosPage() {
     setActivos((prev) => prev.filter((a) => a.id !== id));
     try {
       await activosApi.toggleStatus(id);
+      clearCache(CACHE_KEY);
     } catch (err) {
+      clearCache(CACHE_KEY);
       await fetchActivos();
       toast.error(err.message ?? "Error al eliminar");
       throw err;
