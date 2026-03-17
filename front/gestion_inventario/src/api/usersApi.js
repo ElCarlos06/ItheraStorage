@@ -1,8 +1,12 @@
 import { request } from "./base";
 
 export const usersApi = {
+  /**GET para traer un usuario por id :D */
+  getById: (id) => request(`/api/users/${id}`),
+
   /** GET /api/users - Listar usuarios (requiere auth) */
-  getUsers: (page = 0, size = 10) => request(`/api/users?page=${page}&size=${size}`),
+  getUsers: (page = 0, size = 10) =>
+    request(`/api/users?page=${page}&size=${size}`),
 
   /** GET /api/users/by-email?correo=:correo - Obtener usuario por correo */
   getUserByCorreo: (correo) =>

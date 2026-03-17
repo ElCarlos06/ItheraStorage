@@ -3,6 +3,8 @@ import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
 import { toast } from "../../../../utils/toast.jsx";
 import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
+import { resguardosApi } from "../../../../api/resguardosApi";
+import { getProfileFromToken } from "../../../../api/authApi";
 
 const CACHE_KEY = "activos";
 
@@ -106,6 +108,30 @@ export default function ActivosPage() {
     }
   };
 
+  const handleAsignarResguardo = async (asset, data) => {
+    const adminId = getProfileFromToken()?.id;
+    if (!adminId) {
+      toast.error("No se pudo identificar tu usuario administrador.");
+      return;
+    }
+
+    const payload = {
+      idActivo: asset.id,
+      idUsuarioEmpleado: data.idEmpleado,
+      idUsuarioAdmin: adminId,
+      observacionesAsig: data.observaciones || null,
+    };
+
+    try {
+      await resguardosApi.save(payload);
+      // Opcional: Podrías querer recargar activos si el resguardo cambia su estatus en db
+      // clearCache(CACHE_KEY);
+      // await fetchActivos();
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return (
     <Activos
       activos={activos}
@@ -114,6 +140,7 @@ export default function ActivosPage() {
       onNuevo={handleNuevo}
       onEditar={handleEditar}
       onEliminar={handleEliminar}
+      onDetalles={handleAsignarResguardo}
     />
   );
 }

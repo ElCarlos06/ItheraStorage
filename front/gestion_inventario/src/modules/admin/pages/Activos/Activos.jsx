@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import NewAssetModal from "./NewAssetModal";
+import AssignResguardoModal from "./components/AssignResguardoModal";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
@@ -20,6 +21,7 @@ import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./Activos.css";
 import Pagination from "../../components/layout/Pagination.jsx";
 import ActivosCard from "./components/ActivosCard.jsx";
+import { getProfileFromToken } from "../../../../api/authApi.js";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
 
@@ -40,6 +42,7 @@ export default function Activos({
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
   const [modalEditAsset, setModalEditAsset] = useState(null);
   const [confirmDeleteAsset, setConfirmDeleteAsset] = useState(null);
+  const [modalAssignAsset, setModalAssignAsset] = useState(null);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
@@ -154,7 +157,7 @@ export default function Activos({
                   onEliminar={() => setConfirmDeleteAsset(item)}
                   onEditar={() => setModalEditAsset(item)}
                   onHistorial={onHistorial}
-                  onDetalles={onDetalles}
+                  onDetalles={() => setModalAssignAsset(item)}
                 />
               ))
             )}
@@ -207,6 +210,21 @@ export default function Activos({
         }}
         title="¿Confirmar eliminación?"
         message={`Se eliminará el activo "${confirmDeleteAsset?.nombre ?? confirmDeleteAsset?.codigo ?? "este elemento"}". Esta acción no se puede deshacer.`}
+      />
+      <AssignResguardoModal
+        open={!!modalAssignAsset}
+        onClose={() => setModalAssignAsset(null)}
+        onGuardar={async (data) => {
+          try {
+            // El padre (ActivosPage) manejaría el onDetalles(item, data) o similar
+            // Por ahora llamamos onDetalles por si se maneja aquí
+            await onDetalles?.(modalAssignAsset, data);
+            setModalAssignAsset(null);
+            toast.success("Resguardo asignado correctamente");
+          } catch (err) {
+            toast.error(err.message ?? "Error al asignar resguardo");
+          }
+        }}
       />
     </div>
   );

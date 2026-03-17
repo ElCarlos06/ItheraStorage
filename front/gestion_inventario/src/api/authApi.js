@@ -53,6 +53,7 @@ export const getProfileFromToken = () => {
 
   const payload = parseJwt(token);
   return {
+    id: payload.id, // ID explicitly from the jwt claim
     nombreCompleto: payload.nombre,
     correo: payload.sub,
     rol: payload.role,
