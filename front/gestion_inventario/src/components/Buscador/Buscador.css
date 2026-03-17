@@ -27,6 +27,8 @@
   background: #fff;
   border: 1.466px solid #e2e2e2;
   border-radius: 12px;
+  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .buscador__input::placeholder {
@@ -35,6 +37,7 @@
 
 .buscador__input:focus {
   outline: none;
-  border-color: var(--moon-content-focus);
-  box-shadow: 0 0 0 3px var(--moon-piccolo-10);
+  border-color: var(--moon-piccolo);
+  box-shadow: 0 0 0 3px var(--moon-piccolo-10),
+              0 1px 3px rgba(0, 0, 0, 0.04);
 }

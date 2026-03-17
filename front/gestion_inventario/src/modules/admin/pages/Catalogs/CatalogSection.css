@@ -40,10 +40,12 @@
   cursor: pointer;
   position: relative;
   z-index: 0;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .catalog-section__card-wrap:hover {
   z-index: 1;
+  transform: translateY(-2px);
 }
 
 .catalog-section__card {
@@ -54,14 +56,15 @@
   background: #fff;
   border: 1.337px solid #e2e2e2;
   border-radius: 16px;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 0;
 }
 
 .catalog-section__card-wrap:hover .catalog-section__card {
   box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.08),
-    0 2px 6px rgba(0, 0, 0, 0.04);
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(79, 70, 229, 0.06);
 }
 
 .catalog-section__card-icon {

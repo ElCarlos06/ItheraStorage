@@ -17,6 +17,7 @@ import { GenericPlus } from "@heathmont/moon-icons";
 import { ubicacionesApi } from "../../../../api/ubicacionesApi";
 import "./Catalogs.css";
 import { tipoActivosApi } from "../../../../api/tipoActivosApi.js";
+import { getCached, setCache } from "../../../../utils/apiCache";
 
 const MAIN_TABS = [
   {
@@ -126,9 +127,9 @@ export default function Catalogs() {
   const [confirmDeleteTipoActivo, setConfirmDeleteTipoActivo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [items, setItems] = useState([]); 
-  const [campusList, setCampusList] = useState([]); // Para el select de edificios
-  const [edificiosList, setEdificiosList] = useState([]); // Para el select de aulas
+  const [items, setItems] = useState(() => getCached(`catalog-${subTab}`)?.items ?? []);
+  const [campusList, setCampusList] = useState([]);
+  const [edificiosList, setEdificiosList] = useState([]);
 
   // Pagination states for all views
   const [currentPage, setCurrentPage] = useState(1);
@@ -165,7 +166,15 @@ export default function Catalogs() {
   }, [mainTab, subTab, currentPage]);
 
   const cargarUbicaciones = async () => {
-    setLoading(true);
+    const ck = `catalog-${subTab}-p${currentPage}`;
+    const hasCached = !!getCached(ck);
+    if (hasCached) {
+      const c = getCached(ck);
+      setItems(c.items);
+      setTotalPages(c.totalPages);
+      setTotalElements(c.totalElements);
+    }
+    if (!hasCached) setLoading(true);
     setError(null);
     try {
       const page = currentPage - 1;
@@ -196,8 +205,11 @@ export default function Catalogs() {
       }
 
       setItems(mapped);
-      setTotalPages(res?.data?.totalPages ?? 0);
-      setTotalElements(res?.data?.totalElements ?? 0);
+      const tp = res?.data?.totalPages ?? 0;
+      const te = res?.data?.totalElements ?? 0;
+      setTotalPages(tp);
+      setTotalElements(te);
+      setCache(ck, { items: mapped, totalPages: tp, totalElements: te });
 
       // Cargar listas auxiliares para los modales
       if (subTab === "edificios" || subTab === "aulas" || subTab === "campus") {
@@ -218,22 +230,33 @@ export default function Catalogs() {
   };
 
   const cargarTiposActivos = async () => {
-    setLoading(true);
+    const ck = `catalog-tipos-p${currentPage}`;
+    const hasCached = !!getCached(ck);
+    if (hasCached) {
+      const c = getCached(ck);
+      setItems(c.items);
+      setTotalPages(c.totalPages);
+      setTotalElements(c.totalElements);
+    }
+    if (!hasCached) {
+      setLoading(true);
+      setItems([]);
+    }
     setError(null);
     try {
-      // Limpiamos items para que el usuario vea el estado de carga y no datos viejos
-      setItems([]);
       const res = await tipoActivosApi.getTipoActivos(
         currentPage - 1,
         pageSize,
       );
-
-      setItems(res?.data?.content ?? []);
-      setTotalPages(res?.data?.totalPages ?? 0);
-      setTotalElements(res?.data?.totalElements ?? 0);
+      const content = res?.data?.content ?? [];
+      const tp = res?.data?.totalPages ?? 0;
+      const te = res?.data?.totalElements ?? 0;
+      setItems(content);
+      setTotalPages(tp);
+      setTotalElements(te);
+      setCache(ck, { items: content, totalPages: tp, totalElements: te });
     } catch (err) {
-      console.error("Error cargando tipos de activos", err);
-      setError(err?.message ?? "Error al cargar tipos de activos");
+      if (!hasCached) setError(err?.message ?? "Error al cargar tipos de activos");
     } finally {
       setLoading(false);
     }

@@ -104,13 +104,18 @@
 
 .users-view__card-wrap {
   position: relative;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.users-view__card-wrap:hover {
+  transform: translateY(-2px);
 }
 
 .users-view__card-wrap:hover .users-view__card {
   box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.08),
-    0 2px 6px rgba(0, 0, 0, 0.04);
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(79, 70, 229, 0.06);
 }
 
 .users-view__card {
@@ -118,7 +123,7 @@
   border: 1.466px solid #e2e2e2;
   border-radius: 16px;
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .users-view__card-inner {

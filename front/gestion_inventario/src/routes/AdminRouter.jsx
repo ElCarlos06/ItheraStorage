@@ -1,25 +1,38 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import MainLayout from "../modules/admin/components/layout/MainLayout";
 
-const Dashboard = lazy(() => import("../modules/admin/pages/Dashboard/Dashboard"));
-const ActivosPage = lazy(() => import("../modules/admin/pages/Activos/ActivosPage"));
-const Users = lazy(() => import("../modules/admin/pages/Users/Users"));
-const Requests = lazy(() => import("../modules/admin/pages/Requests/Requests"));
-const Catalogs = lazy(() => import("../modules/admin/pages/Catalogs/Catalogs"));
-const Settings = lazy(() => import("../modules/admin/pages/Settings/Settings"));
+const pageImports = {
+  Dashboard: () => import("../modules/admin/pages/Dashboard/Dashboard"),
+  ActivosPage: () => import("../modules/admin/pages/Activos/ActivosPage"),
+  Users: () => import("../modules/admin/pages/Users/Users"),
+  Requests: () => import("../modules/admin/pages/Requests/Requests"),
+  Catalogs: () => import("../modules/admin/pages/Catalogs/Catalogs"),
+  Settings: () => import("../modules/admin/pages/Settings/Settings"),
+};
 
-function PageLoader() {
-  return (
-    <div style={{ padding: "2rem", textAlign: "center", color: "var(--moon-trunks)" }}>
-      Cargando…
-    </div>
-  );
+const Dashboard = lazy(pageImports.Dashboard);
+const ActivosPage = lazy(pageImports.ActivosPage);
+const Users = lazy(pageImports.Users);
+const Requests = lazy(pageImports.Requests);
+const Catalogs = lazy(pageImports.Catalogs);
+const Settings = lazy(pageImports.Settings);
+
+function usePrefetchRoutes() {
+  useEffect(() => {
+    const id = requestIdleCallback ?? setTimeout;
+    const handle = id(() => {
+      Object.values(pageImports).forEach((fn) => fn());
+    }, { timeout: 2000 });
+    return () => (cancelIdleCallback ?? clearTimeout)(handle);
+  }, []);
 }
 
 export default function AdminRouter() {
+  usePrefetchRoutes();
+
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={null}>
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

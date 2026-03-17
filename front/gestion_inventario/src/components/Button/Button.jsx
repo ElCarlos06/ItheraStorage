@@ -1,4 +1,5 @@
 import { isValidElement } from "react";
+import { motion } from "motion/react";
 import Icon from "../Icon/Icon";
 import "./Button.css";
 
@@ -28,11 +29,13 @@ export default function Button({
   const variantClass = VARIANTS[variant] ?? VARIANTS.primary;
 
   return (
-    <button
+    <motion.button
       type={type}
       onClick={onClick}
       disabled={disabled}
       className={`btn btn--${size} ${variantClass} ${fullWidth ? "btn--full" : ""} ${className}`.trim()}
+      whileTap={disabled ? undefined : { scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
     >
       {iconLeft && (
         <span className="btn__icon btn__icon--left">
@@ -45,6 +48,6 @@ export default function Button({
           {isValidElement(iconRight) ? iconRight : <Icon icon={iconRight} size={iconSize} />}
         </span>
       )}
-    </button>
+    </motion.button>
   );
 }

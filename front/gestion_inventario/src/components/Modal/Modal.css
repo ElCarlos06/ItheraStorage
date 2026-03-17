@@ -7,6 +7,7 @@
   justify-content: center;
   background: rgba(0, 0, 0, 0.5);
   padding: 24px;
+  animation: modal-overlay-in 0.2s ease-out;
 }
 
 .modal-content {
@@ -15,4 +16,21 @@
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   box-shadow: var(--moon-shadow-md);
+  animation: modal-content-in 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
 import { toast } from "../../../../utils/toast.jsx";
+import { getCached, setCache } from "../../../../utils/apiCache";
 
-/** Mapea la respuesta del backend al formato que usa Activos para mostrar */
+const CACHE_KEY = "activos";
+
 function mapActivoToDisplay(item) {
   const espacio = item.espacio ?? {};
   const edificio = espacio.edificio ?? {};
@@ -28,8 +30,9 @@ function mapActivoToDisplay(item) {
 }
 
 export default function ActivosPage() {
-  const [activos, setActivos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached(CACHE_KEY);
+  const [activos, setActivos] = useState(cached ?? []);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState(null);
 
   const fetchActivos = useCallback(async (silent = false) => {
@@ -42,17 +45,25 @@ export default function ActivosPage() {
       const content = res?.data?.content ?? res?.content ?? res?.data ?? [];
       const list = Array.isArray(content) ? content : [];
       const soloActivos = list.filter((a) => a.esActivo !== false);
-      setActivos(soloActivos.map(mapActivoToDisplay));
+      const mapped = soloActivos.map(mapActivoToDisplay);
+      setActivos(mapped);
+      setCache(CACHE_KEY, mapped);
     } catch (err) {
-      setError(err.message ?? "Error al cargar activos");
-      setActivos([]);
+      if (!silent) {
+        setError(err.message ?? "Error al cargar activos");
+        setActivos([]);
+      }
     } finally {
       if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchActivos();
+    if (cached) {
+      fetchActivos(true);
+    } else {
+      fetchActivos();
+    }
   }, [fetchActivos]);
 
   const handleNuevo = async (data) => {

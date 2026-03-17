@@ -25,6 +25,7 @@ import { toast } from "../../../../utils/toast.jsx";
 import { getCurrentUserCorreo, logout } from "../../../../api/authApi";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
+import { getCached, setCache } from "../../../../utils/apiCache";
 
 const STAT_ICONS = [GenericUser, NotificationsBell, GenericSettings];
 
@@ -62,53 +63,54 @@ export default function Users({
   const [modalEditUser, setModalEditUser] = useState(null);
   const [modalUser, setModalUser] = useState(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
-  const [users, setUsers] = useState(Array.isArray(usersProp) ? usersProp : []);
-  const [loading, setLoading] = useState(loadingProp ?? false);
+  const cacheKey = `users-page-${usersProp === undefined ? "auto" : "prop"}`;
+  const cached = getCached(cacheKey);
+  const [users, setUsers] = useState(cached?.users ?? (Array.isArray(usersProp) ? usersProp : []));
+  const [loading, setLoading] = useState(cached ? false : (loadingProp ?? false));
   const [error, setError] = useState(errorProp ?? null);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(cached?.totalPages ?? 0);
+  const [totalElements, setTotalElements] = useState(cached?.totalElements ?? 0);
   const pageSize = 10;
   const stats = Array.isArray(statsProp) ? statsProp : [];
 
   const currentUserCorreo = getCurrentUserCorreo();
 
+  const applyUsersResponse = (res) => {
+    const list = Array.isArray(res)
+      ? res
+      : res?.data?.content || res?.content || res?.data || [];
+    const mapped = list.map(mapUser).filter(Boolean);
+    const tp = res?.data?.totalPages ?? res?.totalPages ?? 1;
+    const te = res?.data?.totalElements ?? res?.totalElements ?? list.length;
+    setUsers(mapped);
+    setTotalPages(tp);
+    setTotalElements(te);
+    setCache(cacheKey, { users: mapped, totalPages: tp, totalElements: te });
+  };
+
   useEffect(() => {
     if (usersProp !== undefined) return;
-    setLoading(true);
+    const hasCached = !!getCached(cacheKey);
+
+    if (!hasCached) setLoading(true);
+
     usersApi
       .getUsers(currentPage - 1, pageSize)
-      .then((res) => {
-        const list = Array.isArray(res)
-          ? res
-          : res?.data?.content || res?.content || res?.data || [];
-        setUsers(list.map(mapUser).filter(Boolean));
-        setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
-        setTotalElements(
-          res?.data?.totalElements ?? res?.totalElements ?? list.length,
-        );
-      })
+      .then(applyUsersResponse)
       .catch((err) => {
-        setError(err.message);
-        setUsers([]);
+        if (!hasCached) {
+          setError(err.message);
+          setUsers([]);
+        }
       })
       .finally(() => setLoading(false));
 
     const interval = setInterval(() => {
       usersApi
         .getUsers(currentPage - 1, pageSize)
-        .then((res) => {
-          const list = Array.isArray(res)
-            ? res
-            : res?.data?.content || res?.content || res?.data || [];
-          setUsers(list.map(mapUser).filter(Boolean));
-          setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
-          setTotalElements(
-            res?.data?.totalElements ?? res?.totalElements ?? list.length,
-          );
-        })
+        .then(applyUsersResponse)
         .catch(() => {});
     }, 30000);
     return () => clearInterval(interval);
@@ -118,16 +120,7 @@ export default function Users({
     if (usersProp !== undefined) return;
     usersApi
       .getUsers(currentPage - 1, pageSize)
-      .then((res) => {
-        const list = Array.isArray(res)
-          ? res
-          : res?.data?.content || res?.content || res?.data || [];
-        setUsers(list.map(mapUser).filter(Boolean));
-        setTotalPages(res?.data?.totalPages ?? res?.totalPages ?? 1);
-        setTotalElements(
-          res?.data?.totalElements ?? res?.totalElements ?? list.length,
-        );
-      })
+      .then(applyUsersResponse)
       .catch(() => {});
   };
 

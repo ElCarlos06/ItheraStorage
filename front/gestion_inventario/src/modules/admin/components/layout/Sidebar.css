@@ -62,12 +62,19 @@
   font-size: 16px;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.15s, color 0.15s;
+  position: relative;
+  transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-sidebar__item:hover {
   background: var(--moon-gohan);
   color: var(--moon-bulma);
+}
+
+.admin-sidebar__item:active {
+  transform: scale(0.97);
 }
 
 .admin-sidebar__item--active {
@@ -119,12 +126,88 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--moon-shadow-sm);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-sidebar__avatar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 2px 12px rgba(92, 51, 207, 0.25);
+}
+
+.admin-sidebar__avatar:active {
+  transform: scale(0.95);
+}
+
+.admin-sidebar__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.admin-sidebar__user-info-link {
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-sidebar__user-info-link:hover .admin-sidebar__user-name {
+  color: var(--moon-piccolo-60);
 }
 
 .admin-sidebar__user-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+/* ── Avatar Preview Modal ── */
+.avatar-preview-modal {
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.avatar-preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+}
+
+.avatar-preview-card__img {
+  width: 220px;
+  height: 220px;
+  border-radius: 20px;
+  object-fit: cover;
+  box-shadow: var(--moon-shadow-md);
+}
+
+.avatar-preview-card__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar-preview-card__name {
+  font-family: var(--moon-font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.avatar-preview-card__role {
+  font-family: var(--moon-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .admin-sidebar__user-name {
