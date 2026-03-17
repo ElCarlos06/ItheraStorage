@@ -17,6 +17,9 @@ import com.example.activos360.ui.screens.Empleado.HomeEmpleado
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.screens.tecnico.UserProfile
 import com.example.activos360.ui.modals.AssetDetailModal
+import com.example.activos360.core.util.QrParse
+import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScreen
+import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
 
 @Composable
 fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
@@ -57,6 +60,44 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
             composable("perfil") {
                 UserProfile()
             }
+
+            composable("detalles_activo/{id}") { backStackEntry ->
+                val idStr = backStackEntry.arguments?.getString("id") ?: "0"
+
+                DetallesActivoScreen(
+                    activoId = idStr.toLong(),
+                    onBack = { navControllerPrincipal.popBackStack() },
+                    onResguardarClick = {
+                        // Cuando le da a Resguardar, VIAJAMOS al checklist con el mismo ID
+                        navControllerPrincipal.navigate("confirmar_resguardo/$idStr")
+                    },
+                    onReportarDanoClick = { id, etiqueta, nombre ->
+                        /* tu lógica de daño */
+                    },
+                    onDevolverActivoClick = { idActivo, etiqueta, nombre ->
+                        navControllerPrincipal.navigate("devolver_activo/$etiqueta/$nombre")
+                    }
+                )
+            }
+
+// RUTA 2: Pantalla del Checklist
+            composable("confirmar_resguardo/{id}") { backStackEntry ->
+                val idStr = backStackEntry.arguments?.getString("id") ?: "0"
+
+                ConfirmarResguardoScreen(
+
+                    activoId = idStr.toLong(),
+                    onBack = { navControllerPrincipal.popBackStack() },
+                    onConfirmed = {
+                        // ¡ÉXITO! El back ya cambió el estatus.
+                        // Regresamos al empleado al Home principal y limpiamos la pila
+                        navControllerPrincipal.navigate("scanner") {
+                            popUpTo(navControllerPrincipal.graph.startDestinationId) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
         }
     }
 
@@ -68,7 +109,8 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
                 showModal = false // Cerramos el modal
 
                 // NAVEGAMOS A LA VISTA COMPLETA PASANDO EL ID
-                navControllerPrincipal.navigate("detalles_activo/$codigoEscaneado")
+                val id = QrParse.extractActivoId(codigoEscaneado) ?: 0L
+                navControllerPrincipal.navigate("detalles_activo/$id")
             }
         )
     }

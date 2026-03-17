@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.activos360.core.auth.TokenManager
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -36,7 +37,8 @@ class LoginViewModel : ViewModel() {
     // Configuración con MoshiConverterFactory
     // 2. SE LO PASAMOS A RETROFIT
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/") // IP para el emulador
+        //.baseUrl("http://10.0.2.2:8080/") // IP para el emulador
+        .baseUrl("http://192.168.0.82:8080/") // IP para el real
         .addConverterFactory(MoshiConverterFactory.create(moshi)) // <-- Ahora sí funcionará
         .build()
 
@@ -57,37 +59,23 @@ class LoginViewModel : ViewModel() {
                 val response = api.login(request)
 
                 if (response.isSuccessful) {
-                    // 1. Obtenemos el "envoltorio" completo (ModelApiResponse)
-                    val apiResponse = response.body()
-
-                    if (apiResponse != null && apiResponse.error == false) {
-
-                        // 2. Extraemos el objeto "data" como Mapa
-                        val token = apiResponse.data?.token
-
-                        if (token != null) {
-                            // 4. Decodificamos el token para sacar el rol
-                            val rolDelBackend = extraerRolDelToken(token)
-
-                            if (rolDelBackend != null) {
-                                loggedRole = rolDelBackend
-
-                                // 5. Disparamos la navegación dependiendo del rol
-                                when (rolDelBackend.uppercase()) {
-                                    // NOTA: Cambia "RutaEmpleado" y "RutaTecnico" por los nombres reales
-                                    // que tengas definidos en tu archivo NavigationRoute.kt
-                                    "EMPLEADO" -> _navegacionDestino.value = "home_empleado"
-                                    "TECNICO" -> _navegacionDestino.value = "home_admin"
-                                    else -> errorMessage = "Rol desconocido: $rolDelBackend"
-                                }
-                            } else {
-                                errorMessage = "Se obtuvo el token pero no se pudo extraer el rol."
+                    val body = response.body()
+                    val token = body?.data?.token
+                    if (!token.isNullOrBlank()) {
+                        TokenManager.saveToken(token)
+                        val rolDelBackend = extraerRolDelToken(token)
+                        if (rolDelBackend != null) {
+                            loggedRole = rolDelBackend
+                            when (rolDelBackend.uppercase()) {
+                                "EMPLEADO" -> _navegacionDestino.value = "home_empleado"
+                                "TECNICO" -> _navegacionDestino.value = "home_admin"
+                                else -> errorMessage = "Rol desconocido: $rolDelBackend"
                             }
                         } else {
-                            errorMessage = "Login exitoso, pero no se encontró el token en la respuesta."
+                            errorMessage = "Login exitoso, pero no se pudo extraer el rol del token."
                         }
                     } else {
-                        errorMessage = apiResponse?.message ?: "Error en la respuesta del servidor."
+                        errorMessage = body?.message ?: "Login exitoso, pero no se encontró el token."
                     }
                 } else {
                     // Si el servidor responde 401, 403, etc.

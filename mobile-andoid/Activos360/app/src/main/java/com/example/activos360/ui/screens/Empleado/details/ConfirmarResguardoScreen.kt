@@ -32,13 +32,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Buttons
 import com.example.activos360.ui.components.EvidenciasSection
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
+import com.example.activos360.ui.viewmodel.AssetDetailViewModel
 
 @Composable
-fun ConfirmarResguardoScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
+fun ConfirmarResguardoScreen(
+    activoId: Long,
+    onBack: () -> Unit,
+    onConfirmed: () -> Unit,
+    viewModel: AssetDetailViewModel = viewModel()
+) {
     val checks = remember { mutableStateListOf(false, false, false, false) }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
@@ -51,7 +58,27 @@ fun ConfirmarResguardoScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
     Scaffold(
         bottomBar = {
             Box(modifier = Modifier.padding(24.dp)) {
-                Buttons(text = "Confirmar Resguardo", onClick = onConfirm)
+                Buttons(
+                    text = "Confirmar Resguardo",
+                    onClick = {
+                        val observaciones = buildString {
+                            append("Checklist: ")
+                            append(
+                                checks.joinToString(prefix = "[", postfix = "]") { ok ->
+                                    if (ok) "OK" else "NO"
+                                }
+                            )
+                            append(" | Evidencias: ${fotos.size} foto(s)")
+                        }
+                        viewModel.confirmarResguardo(
+                            activoId = activoId,
+                            observaciones = observaciones, // La variable de tu TextField
+                            onSuccess = {
+                                onConfirmed() // Si el back responde bien, ejecutamos esto para salir
+                            }
+                        )
+                    }
+                )
             }
         }
     ) { paddingValues ->
@@ -72,7 +99,7 @@ fun ConfirmarResguardoScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Reutilizamos la MainAssetCard que ya tienes en el otro archivo
-                MainAssetCard(id = "ACTIVO #0482", nombre = "MacBook Pro 16\"")
+                MainAssetCard(id = "ACTIVO #$activoId", nombre = "Activo")
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -113,6 +140,6 @@ fun ConfirmarResguardoScreen(onBack: () -> Unit, onConfirm: () -> Unit) {
 @Composable
 @Preview
 fun previewConfirmarResguardo() {
-    ConfirmarResguardoScreen({}, {})
+    ConfirmarResguardoScreen(activoId = 1, onBack = {}, onConfirmed = {})
 }
 

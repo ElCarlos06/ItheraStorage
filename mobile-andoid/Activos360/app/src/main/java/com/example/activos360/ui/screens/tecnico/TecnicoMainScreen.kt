@@ -17,6 +17,7 @@ import com.example.activos360.ui.screens.Empleado.TecnicoHome
 
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.modals.AssetDetailModal
+import com.example.activos360.core.util.QrParse
 
 @Composable
 fun TecnicoMainScreen(navControllerPrincipal: NavController) {
@@ -69,7 +70,8 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
                 showModal = false // Cerramos el modal
 
                 // NAVEGAMOS A LA VISTA COMPLETA PASANDO EL ID
-                navControllerPrincipal.navigate("detalles_activo/$codigoEscaneado")
+                val id = QrParse.extractActivoId(codigoEscaneado) ?: 0L
+                navControllerPrincipal.navigate("detalles_activo/$id")
             }
         )
     }

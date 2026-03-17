@@ -4,59 +4,167 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.activos360.back.model.ResguardoDTO
+import com.example.activos360.core.auth.TokenManager
+import com.example.activos360.core.network.ApiProvider
+import com.example.activos360.core.util.asListOfMaps
+import com.example.activos360.core.util.asMap
+import com.example.activos360.core.util.long
+import com.example.activos360.core.util.string
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
-// se define una clase AssetUIState que contiene un estado para los datos del Activo
-data class AssetUIState(
-    val nombre: String = "",
-    val idEtiqueta: String = "",
+data class AssetDetailUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val activo: Map<String, Any?>? = null,
+    val resguardos: List<Map<String, Any?>> = emptyList(),
+    val canResguardar: Boolean = false,
+    val resguardoPendienteId: Long? = null,
+
+    // --- LO QUE INVENTÓ CURSOR Y AHORA HACEMOS REALIDAD ---
     val isVisible: Boolean = false,
-    val isLoading: Boolean = false
+    val idEtiqueta: String = ""
 )
 
 class AssetDetailViewModel : ViewModel() {
-
-    // aqui se usa el  State de Compose para que la UI reaccione automáticamente cuando sacnees el QR o algo así
-    var uiState by mutableStateOf(AssetUIState())
+    var uiState by mutableStateOf(AssetDetailUiState())
         private set
 
-    // función que se dispara cuando el QR detecta algo
-    fun onAssetScanned(etiqueta: String) {
-        // aqui nomas simula que trae algo we, aqui es donde se conecta a la BD y busca el activo
-        uiState = uiState.copy(isLoading = true)
+    fun showModal(codigoQr: String) {
+        uiState = uiState.copy(isVisible = true, idEtiqueta = codigoQr)
+    }
 
-        // Simulando que buscamos en la BD el código: $Etiqueta_producto
-        // Esto es un ejemplo, luego vendrá de tu repositorio o del model ahi si no c 
-        if (etiqueta.isNotEmpty()) {
-            uiState = AssetUIState(
-                nombre = "MacBook Pro 16\"",
-                idEtiqueta = etiqueta,
-                isVisible = true, // Abrimos el modal
-                isLoading = false
-            )
+    fun dismissModal() {
+        uiState = uiState.copy(isVisible = false, idEtiqueta = "")
+    }
+
+    fun loadActivo(activoId: Long) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            try {
+                val activoDeferred = async { ApiProvider.assetsApi.findById15(activoId) }
+                val resguardoDeferred = async { ApiProvider.resguardoApi.findByActivo(activoId) }
+
+                val activoResp = activoDeferred.await()
+                val resguardoResp = resguardoDeferred.await()
+
+                val activoData = if (activoResp.isSuccessful) {
+                    activoResp.body()?.data.asMap()
+                } else null
+
+                val resguardosList = if (resguardoResp.isSuccessful) {
+                    resguardoResp.body()?.data.asListOfMaps() ?: emptyList()
+                } else emptyList()
+
+                val (canResguardar, resguardoPendienteId) = computeResguardar(activoData, resguardosList)
+
+                uiState = uiState.copy(
+                    isLoading = false,
+                    activo = activoData,
+                    resguardos = resguardosList,
+                    canResguardar = canResguardar,
+                    resguardoPendienteId = resguardoPendienteId
+                )
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    errorMessage = e.localizedMessage ?: "Error de conexión"
+                )
+            }
         }
     }
 
-    // 4. Función para cerrar el modal
-    fun dismissModal() {
-        uiState = uiState.copy(isVisible = true)
+    private fun computeResguardar(
+        activo: Map<String, Any?>?,
+        resguardos: List<Map<String, Any?>>
+    ): Pair<Boolean, Long?> {
+        val userId = TokenManager.getUserIdFromToken() ?: return false to null
+
+        // Backend en BD puede guardar "Disponible" / "En proceso" / "Resguardado" (o minúsculas).
+        val estadoCustodia = activo?.string("estadoCustodia")?.trim()?.lowercase()
+
+        val pendiente = resguardos
+            .asSequence()
+            .mapNotNull { r ->
+                val estado = r.string("estadoResguardo")?.trim()?.lowercase()
+                val empleadoId = (r["usuarioEmpleado"].asMap())?.long("id")
+                val resguardoId = r.long("id")
+                if (estado == "pendiente" && empleadoId == userId && resguardoId != null) {
+                    Triple(resguardoId, empleadoId, estado)
+                } else null
+            }
+            .firstOrNull()
+
+        // Regla de negocio solicitada: mostrar botón si "en proceso" y pertenece al empleado.
+        // Interpretación práctica con el backend actual:
+        // - "en proceso" puede venir como estadoCustodia == "en proceso"
+        // - "pertenece" lo inferimos por Resguardo Pendiente para ese empleado.
+        val enProceso = when {
+            estadoCustodia == null -> false
+            estadoCustodia == "en proceso" -> true
+            estadoCustodia == "en_proceso" -> true
+            estadoCustodia.contains("proceso") -> true
+            estadoCustodia == "asignado" -> true
+            else -> false
+        }
+        val can = enProceso && pendiente != null
+        return can to pendiente?.first
     }
 
+    fun confirmarResguardo(
+        activoId: Long,
+        observaciones: String? = null,
+        onSuccess: (() -> Unit)? = null
+    ) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
+            try {
+                // Re-leer resguardos por si cambió mientras estaba en la pantalla
+                val resguardoResp = ApiProvider.resguardoApi.findByActivo(activoId)
+                val resguardosList = if (resguardoResp.isSuccessful) {
+                    resguardoResp.body()?.data.asListOfMaps() ?: emptyList()
+                } else emptyList()
 
-    // Agrega esto a tu AssetDetailViewModel o crea ResguardosViewModel
-    var isResguardosModalVisible by mutableStateOf(false)
-        private set
+                val userId = TokenManager.getUserIdFromToken()
+                    ?: throw IllegalStateException("Sesión inválida: no se pudo leer el id del usuario")
 
-    fun showResguardos() { isResguardosModalVisible = true }
-    fun dismissResguardos() { isResguardosModalVisible = false }
+                val pendiente = resguardosList.firstOrNull { r ->
+                    val estado = r.string("estadoResguardo")?.trim()?.lowercase()
+                    val empleadoId = (r["usuarioEmpleado"].asMap())?.long("id")
+                    estado == "pendiente" && empleadoId == userId
+                } ?: throw IllegalStateException("No existe un resguardo pendiente para este activo y usuario")
 
-    fun confirmarResguardo() {
-        // 1. Cerramos el modal
-        isResguardosModalVisible = false
-        // 2. Aquí podrías disparar un evento para que la UI se mueva al escáner
-        // o simplemente cerrar el modal y que el usuario ya esté viendo la cámara.
+                val resguardoId = pendiente.long("id")
+                    ?: throw IllegalStateException("El resguardo no trae id")
+
+                val activoMap = pendiente["activo"].asMap()
+                val empleadoMap = pendiente["usuarioEmpleado"].asMap()
+                val adminMap = pendiente["usuarioAdmin"].asMap()
+
+                val dto = ResguardoDTO(
+                    idActivo = activoMap?.long("id") ?: activoId,
+                    idUsuarioEmpleado = empleadoMap?.long("id") ?: userId,
+                    idUsuarioAdmin = adminMap?.long("id") ?: error("Resguardo sin usuarioAdmin.id"),
+                    estadoResguardo = "Confirmado",
+                    observacionesConf = observaciones
+                )
+
+                val updateResp = ApiProvider.resguardoApi.update5(resguardoId, dto)
+                if (!updateResp.isSuccessful) {
+                    throw IllegalStateException("No se pudo confirmar el resguardo (${updateResp.code()})")
+                }
+
+                uiState = uiState.copy(isLoading = false)
+                onSuccess?.invoke()
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    errorMessage = e.localizedMessage ?: "Error al confirmar resguardo"
+                )
+            }
+        }
     }
-
-
-
-}
+ }
 

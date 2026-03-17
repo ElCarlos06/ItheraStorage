@@ -1,45 +1,59 @@
 package com.example.activos360.ui.screens.Empleado.details
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.GridView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Buttons
 import com.example.activos360.ui.components.CaracteristicasSeccion
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.InfoCard
 import com.example.activos360.ui.components.MainAssetCard
+import com.example.activos360.ui.viewmodel.AssetDetailViewModel
 
 @Composable
 fun DetallesActivoScreen(
+    activoId: Long,
     onBack: () -> Unit = {},
     onResguardarClick: () -> Unit = {},
-    onReportarDanoClick: () -> Unit = {}
+    onReportarDanoClick: (Long, String, String) -> Unit = { _, _, _ -> },
+    onDevolverActivoClick: (Long, String, String) -> Unit = { _, _, _ -> },
+    viewModel: AssetDetailViewModel = viewModel()
 ) {
-    val esMio = false
+    val uiState = viewModel.uiState
+
+    LaunchedEffect(activoId) {
+        viewModel.loadActivo(activoId)
+    }
+
+    val activo = uiState.activo.orEmpty()
+    val etiqueta = (activo["etiqueta"] as? String).orEmpty()
+    val numeroSerie = (activo["numeroSerie"] as? String).orEmpty()
+    val idModelo = (activo["idModelo"] as? Number)?.toLong()
+        ?: (activo["idModelo"] as? String)?.toLongOrNull()
+    val estadoOperativo = (activo["estadoOperativo"] as? String).orEmpty()
+    val estadoCustodia = (activo["estadoCustodia"] as? String).orEmpty()
+    val nombreMostrado = etiqueta.ifBlank { "Activo #$activoId" }
 
     Scaffold(
         bottomBar = {
@@ -48,19 +62,8 @@ fun DetallesActivoScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                if (!esMio) {
+                if (uiState.canResguardar) {
                     Buttons(text = "Resguardar", onClick = onResguardarClick)
-                } else {
-                    Buttons(
-                        text = "Devolver",
-                        containerColor = Color(0xFF3448F0).copy(alpha = 0.7f),
-                        onClick = { }
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Buttons(
-                        text = "Reportar daño",
-                        onClick = onReportarDanoClick
-                    )
                 }
             }
         }
@@ -84,29 +87,100 @@ fun DetallesActivoScreen(
                         .fillMaxWidth()
                         .padding(top = 24.dp)
                 ) {
-                // 2. Tarjeta Principal (Laptop + ID)
-                MainAssetCard(id = "ACTIVO #0482", nombre = "MacBook Pro 16\"")
-                Spacer(modifier = Modifier.height(16.dp))
+                    if (uiState.isLoading) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF7B88FF))
+                        }
+                    }
 
-                InfoCard(
-                    imageVector = Icons.Outlined.BookmarkBorder,
-                    label = "Marca",
-                    value = "Apple"
-                )
+                    uiState.errorMessage?.let { msg ->
+                        Text(
+                            text = msg,
+                            color = Color(0xFFD33030),
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
 
-                InfoCard(
-                    imageVector = Icons.Outlined.GridView,
-                    label = "Modelo",
-                    value = "Pro 16"
-                )
+                    // Tarjeta principal
+                    MainAssetCard(id = "ACTIVO #$activoId", nombre = nombreMostrado)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                // 4. Sección de Características
-                // Aquí usamos un diseño similar pero expandido
-                CaracteristicasSeccion(
-                    lista = listOf("Característica 1", "Característica 2", "Característica 3")
-                )
+                    InfoCard(
+                        imageVector = Icons.Outlined.BookmarkBorder,
+                        label = "Etiqueta",
+                        value = etiqueta.ifBlank { "-" }
+                    )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    InfoCard(
+                        imageVector = Icons.Outlined.GridView,
+                        label = "Modelo (id)",
+                        value = idModelo?.toString() ?: "-"
+                    )
+
+                    CaracteristicasSeccion(
+                        lista = listOfNotNull(
+                            "Número de serie: ${numeroSerie.ifBlank { "-" }}",
+                            "Estado operativo: ${estadoOperativo.ifBlank { "-" }}",
+                            "Estatus: ${estadoCustodia.ifBlank { "-" }}"
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    val estatusActual = estadoCustodia.lowercase()
+
+                    when (estatusActual) {
+                        "en proceso" -> {
+                            // Solo si está en proceso Y te pertenece (canResguardar)
+                            if (uiState.canResguardar) {
+                                Buttons(
+                                    text = "Resguardar Activo",
+                                    onClick = { onResguardarClick() }
+                                )
+                            } else {
+                                // Está en proceso pero asignado a OTRO empleado. Solo lectura.
+                                Text(
+                                    text = "Este activo está en proceso de asignación pero no esta a tu cargo.",
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        }
+
+                        "resguardado" -> {
+                            // Si ya está resguardado, AHORA SÍ puede reportar daño o devolver
+                            // (Podrías validar aquí si está resguardado por el empleado actual)
+                            Buttons(
+                                text = "Reportar daño",
+                                onClick = { onReportarDanoClick(activoId, "ACTIVO #$activoId", nombreMostrado) }
+                            )
+                            Buttons(
+                                text = "Devolver Activo",
+                                onClick = { onDevolverActivoClick(activoId, "ACTIVO #$activoId", nombreMostrado) }
+                            )
+                        }
+
+                        "disponible" -> {
+                            // No le pertenece a nadie, es de solo lectura.
+                            Text(
+                                text = "El Activo esta disponible, pero no esta a tu cargo.",
+                                color = Color.Gray,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+
+                        else -> {
+                            // Cualquier otro estatus (ej. reportado, en mantenimiento)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
@@ -117,5 +191,5 @@ fun DetallesActivoScreen(
 @Preview(showBackground = true, widthDp = 393, heightDp = 852)
 @Composable
 fun preview() {
-    DetallesActivoScreen()
+    DetallesActivoScreen(activoId = 1)
 }

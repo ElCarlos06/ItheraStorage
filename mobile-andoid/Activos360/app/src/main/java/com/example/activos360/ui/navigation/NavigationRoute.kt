@@ -1,12 +1,18 @@
 package com.example.activos360.ui.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.activos360.ui.screens.Login.LoginScreen
 import com.example.activos360.ui.screens.Login.ScreenPassword
 import com.example.activos360.ui.screens.Empleado.EmpleadoMainScreen
+import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScreen
+import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
+import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import com.example.activos360.ui.screens.tecnico.TecnicoMainScreen
 
 @Composable
@@ -36,6 +42,58 @@ fun Navigation() {
         // RUTA DEL TÉCNICO
         composable("home_admin") {
             TecnicoMainScreen(navController)
+        }
+
+        composable(
+            route = "detalles_activo/{activoId}",
+            arguments = listOf(navArgument("activoId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val activoIdStr = backStackEntry.arguments?.getString("activoId").orEmpty()
+            val activoId = activoIdStr.toLongOrNull() ?: 0L
+            DetallesActivoScreen(
+                activoId = activoId,
+                onBack = { navController.popBackStack() },
+                onResguardarClick = { navController.navigate("confirmar_resguardo/$activoId") },
+                onReportarDanoClick = { id, etiqueta, nombre ->
+                    navController.navigate(
+                        "reportar_dano/$id/${Uri.encode(etiqueta)}/${Uri.encode(nombre)}"
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = "confirmar_resguardo/{activoId}",
+            arguments = listOf(navArgument("activoId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val activoId = backStackEntry.arguments?.getLong("activoId") ?: 0L
+            ConfirmarResguardoScreen(
+                activoId = activoId,
+                onBack = { navController.popBackStack() },
+                onConfirmed = {
+                    // regresamos a detalles y refrescamos
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "reportar_dano/{activoId}/{activoEtiqueta}/{activoNombre}",
+            arguments = listOf(
+                navArgument("activoId") { type = NavType.LongType },
+                navArgument("activoEtiqueta") { type = NavType.StringType },
+                navArgument("activoNombre") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val activoId = backStackEntry.arguments?.getLong("activoId") ?: 0L
+            val etiqueta = backStackEntry.arguments?.getString("activoEtiqueta").orEmpty()
+            val nombre = backStackEntry.arguments?.getString("activoNombre").orEmpty()
+            ReportarDanoScreen(
+                activoId = activoId,
+                activoEtiqueta = etiqueta,
+                activoNombre = nombre,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable("forgot_password") {
