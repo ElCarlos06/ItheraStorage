@@ -40,9 +40,9 @@ import com.example.activos360.ui.components.MainAssetCard
 @Composable
 fun DetallesActivoScreen(
     onBack: () -> Unit = {},
-    onResguardarClick: () -> Unit = {}
+    onResguardarClick: () -> Unit = {},
+    onReportarDanoClick: () -> Unit = {}
 ) {
-    // Estado temporal para alternar entre Vista 2 y Vista 4
     val esMio = false
 
     Scaffold(
@@ -53,19 +53,17 @@ fun DetallesActivoScreen(
                     .padding(24.dp)
             ) {
                 if (!esMio) {
-                    // VISTA 2: Botón único para resguardar
                     Buttons(text = "Resguardar", onClick = onResguardarClick)
                 } else {
-                    // VISTA 4: Botones cuando el activo ya es del usuario
                     Buttons(
                         text = "Devolver",
                         containerColor = Color(0xFF7B88FF).copy(alpha = 0.7f),
-                        onClick = { /* Lógica para devolver */ }
+                        onClick = { }
                     )
                     Spacer(Modifier.height(12.dp))
                     Buttons(
                         text = "Reportar daño",
-                        onClick = { /* Lógica para reporte */ }
+                        onClick = onReportarDanoClick
                     )
                 }
             }
@@ -119,8 +117,8 @@ fun DetallesActivoScreen(
 }
 
 
+@Preview(showBackground = true, widthDp = 393, heightDp = 852)
 @Composable
-@Preview
 fun preview() {
     DetallesActivoScreen()
 }

@@ -38,38 +38,32 @@ fun HeaderRegresar(
     val primaryColor = Color(0xFF7B88FF)
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Tu ola
         WaveHeader(color = primaryColor)
 
-        // Contenido encima
         Column(
             modifier = Modifier
                 .padding(start = 24.dp, top = 20.dp, end = 24.dp)
         ) {
-
-            // --- BOTÓN ALARGADO (Cápsula) ---
             Surface(
                 onClick = onBackClick,
-                shape = RoundedCornerShape(50), // Forma de cápsula
-                color = Color.White.copy(alpha = 0.3f), // Transparencia
+                shape = RoundedCornerShape(50),
+                color = Color.White.copy(alpha = 0.3f),
                 modifier = Modifier
-                    .width(70.dp) // Lo hacemos más ancho
-                    .height(45.dp) // Mantenemos la altura
+                    .width(70.dp)
+                    .height(45.dp)
             ) {
-                // Centramos la flecha dentro de la cápsula
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Regresar",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp) // Tamaño estándar de icono
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Título dinámico
             Text(
                 text = titulo,
                 color = Color.White,

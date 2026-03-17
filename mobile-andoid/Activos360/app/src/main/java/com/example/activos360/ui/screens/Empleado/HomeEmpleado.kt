@@ -49,7 +49,6 @@ fun HomeEmpleado(
         // 3. La lógica de tu modal por encima de todo
         if (assetState.isVisible) {
             AssetDetailModal(
-                nombreActivo = assetState.nombre,
                 idActivo = assetState.idEtiqueta,
                 onDismiss = { assetViewModel.dismissModal() },
                 onVerDetallesClick = {
