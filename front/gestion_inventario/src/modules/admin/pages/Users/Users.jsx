@@ -12,7 +12,6 @@ import {
   NotificationsBell,
   GenericDelete,
   GenericEdit,
-  SecurityPassport,
   GenericPlus,
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
@@ -44,6 +43,7 @@ function mapUser(u) {
     idArea: u.area?.id ?? u.idArea ?? u.id_area,
     rol: typeof roleName === "string" ? roleName : (roleName?.nombre ?? "-"),
     area: typeof areaName === "string" ? areaName : (areaName?.nombre ?? "-"),
+    esActivo: u.esActivo ?? u.es_activo ?? true,
   };
 }
 
@@ -56,7 +56,6 @@ export default function Users({
   onNuevo,
   onEliminar,
   onEditar,
-  onDetalles,
 }) {
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
@@ -65,13 +64,19 @@ export default function Users({
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
   const cacheKey = `users-page-${usersProp === undefined ? "auto" : "prop"}`;
   const cached = getCached(cacheKey);
-  const [users, setUsers] = useState(cached?.users ?? (Array.isArray(usersProp) ? usersProp : []));
-  const [loading, setLoading] = useState(cached ? false : (loadingProp ?? false));
+  const [users, setUsers] = useState(
+    cached?.users ?? (Array.isArray(usersProp) ? usersProp : []),
+  );
+  const [loading, setLoading] = useState(
+    cached ? false : (loadingProp ?? false),
+  );
   const [error, setError] = useState(errorProp ?? null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(cached?.totalPages ?? 0);
-  const [totalElements, setTotalElements] = useState(cached?.totalElements ?? 0);
+  const [totalElements, setTotalElements] = useState(
+    cached?.totalElements ?? 0,
+  );
   const pageSize = 10;
   const stats = Array.isArray(statsProp) ? statsProp : [];
 
@@ -132,6 +137,9 @@ export default function Users({
 
   const filtered = useMemo(() => {
     let list = Array.isArray(users) ? users : [];
+
+    list = list.filter((u) => u.esActivo !== false);
+
     if (currentUserCorreo) {
       list = list.filter(
         (u) =>
@@ -158,6 +166,11 @@ export default function Users({
   };
 
   const showEmptyState = filtered.length === 0;
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   return (
     <div
@@ -216,7 +229,7 @@ export default function Users({
                 searchMessage="No hay usuarios o no coinciden con la búsqueda."
               />
             ) : (
-              filtered.map((user, idx) => (
+              paginatedUsers.map((user, idx) => (
                 <div
                   key={user?.id ?? `user-${idx}`}
                   className="users-view__card-wrap"
@@ -297,14 +310,6 @@ export default function Users({
                           >
                             <Icon icon={GenericEdit} size={30} />
                           </button>
-                          <button
-                            type="button"
-                            className="users-view__action-btn"
-                            title="Detalles"
-                            onClick={() => onDetalles?.(user)}
-                          >
-                            <Icon icon={SecurityPassport} size={30} />
-                          </button>
                         </div>
                       </div>
                     </Tooltip>
@@ -316,8 +321,8 @@ export default function Users({
             {!showEmptyState && (
               <Pagination
                 currentPage={currentPage}
-                totalPages={totalPages}
-                totalElements={totalElements - 1}
+                totalPages={Math.ceil(filtered.length / pageSize)}
+                totalElements={filtered.length}
                 pageSize={pageSize}
                 onPageChange={(page) => setCurrentPage(page)}
               />
@@ -351,6 +356,7 @@ export default function Users({
         open={!!confirmDeleteUser}
         onClose={() => setConfirmDeleteUser(null)}
         onConfirm={async () => {
+          console.log("Eliminando usuario con id:", confirmDeleteUser?.id);
           if (!confirmDeleteUser?.id) return;
           try {
             await usersApi.toggleStatusUser(confirmDeleteUser.id);

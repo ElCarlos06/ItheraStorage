@@ -1,0 +1,38 @@
+.assign-resguardo-modal__label {
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.assign-resguardo-modal__textarea {
+  min-height: 120px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modificamos el boton primary explicitamente si hay un color particular en el mockup (Morado pastel) */
+.assign-resguardo-modal .form-modal__footer .btn--primary {
+  background-color: #8b8df2;
+  color: #fff;
+  border-radius: 12px;
+}
+
+.assign-resguardo-modal .form-modal__footer .btn--primary:hover {
+  background-color: #797be8;
+}
+
+/* Adjust radius for buttons inside footer as shown in the mockup */
+.assign-resguardo-modal .form-modal__footer .btn {
+  border-radius: 12px;
+  padding: 10px 20px;
+}
+
+.assign-resguardo-modal .form-modal__field {
+  box-sizing: border-box;
+  max-width: 100%;
+  width: 100%;
+}

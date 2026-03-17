@@ -56,7 +56,9 @@
   border-radius: 12px;
   cursor: pointer;
   color: var(--moon-content-text-secondary);
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .form-modal__close:hover {
@@ -80,10 +82,17 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-modal__field--flex {
   flex: 1;
+  min-width: 0;
+}
+
+.form-modal__form > *:not(.form-modal__footer) {
+  width: 100%;
   min-width: 0;
 }
 
