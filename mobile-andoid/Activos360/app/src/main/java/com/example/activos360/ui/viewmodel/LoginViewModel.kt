@@ -6,18 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activos360.core.auth.TokenManager
-import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import com.example.activos360.back.api.AuthControllerApi
+import com.example.activos360.core.network.ApiProvider
 import com.example.activos360.back.model.AuthDTO
-
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.squareup.moshi.Moshi
 import android.util.Base64
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.net.URLEncoder
 
 class LoginViewModel : ViewModel() {
 
@@ -25,24 +21,12 @@ class LoginViewModel : ViewModel() {
     var loggedRole by mutableStateOf<String?>(null)
     var errorMessage by mutableStateOf<String?>(null)
 
+    var usuarioLogueadoCorreo by mutableStateOf("")
+    var usuarioLogueadoNombre by mutableStateOf("Usuario")
+
     // Estado para manejar la navegación desde la UI
     private val _navegacionDestino = MutableStateFlow<String?>(null)
     val navegacionDestino: StateFlow<String?> = _navegacionDestino
-
-    // 1. CREAMOS EL ADAPTADOR DE MOSHI PARA KOTLIN
-    private val moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
-
-    // Configuración con MoshiConverterFactory
-    // 2. SE LO PASAMOS A RETROFIT
-    private val retrofit = Retrofit.Builder()
-        //.baseUrl("http://10.0.2.2:8080/") // IP para el emulador
-        .baseUrl("http://192.168.0.82:8080/") // IP para el real
-        .addConverterFactory(MoshiConverterFactory.create(moshi)) // <-- Ahora sí funcionará
-        .build()
-
-    private val api = retrofit.create(AuthControllerApi::class.java)
 
     fun performLogin(email: String, pass: String) {
         viewModelScope.launch {
@@ -56,30 +40,47 @@ class LoginViewModel : ViewModel() {
                     password = pass
                 )
                 // Llamada a tu interfaz AuthControllerApi
-                val response = api.login(request)
+                val response = ApiProvider.authApi.login(request)
 
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    val token = body?.data?.token
-                    if (!token.isNullOrBlank()) {
-                        TokenManager.saveToken(token)
-                        val rolDelBackend = extraerRolDelToken(token)
-                        if (rolDelBackend != null) {
-                            loggedRole = rolDelBackend
-                            when (rolDelBackend.uppercase()) {
-                                "EMPLEADO" -> _navegacionDestino.value = "home_empleado"
-                                "TECNICO" -> _navegacionDestino.value = "home_admin"
-                                else -> errorMessage = "Rol desconocido: $rolDelBackend"
-                            }
-                        } else {
-                            errorMessage = "Login exitoso, pero no se pudo extraer el rol del token."
+                // Para 2xx: body() viene; para 4xx/5xx: parseamos errorBody como JSON de ApiResponse
+                val apiResponse = if (response.isSuccessful) {
+                    response.body()
+                } else {
+                    val raw = response.errorBody()?.string()
+                    raw?.let { ApiProvider.parseModelApiResponse(it) }
+                }
+
+                if (apiResponse == null) {
+                    errorMessage = "Error de servidor (${response.code()})"
+                    return@launch
+                }
+
+                // Caso 1: primer login bloqueado (403) → navegar a crear contraseña (modo correo+temp)
+                val dataMap = apiResponse.data as? Map<*, *>
+                val requiresChange = (dataMap?.get("requiresPasswordChange") as? Boolean) == true
+                val correo = dataMap?.get("correo") as? String
+                if (requiresChange && !correo.isNullOrBlank()) {
+                    _navegacionDestino.value = "create_password?correo=${URLEncoder.encode(correo, "UTF-8")}"
+                    return@launch
+                }
+
+                // Caso 2: login normal → token en data.token
+                val token = (dataMap?.get("token") as? String)
+                if (!token.isNullOrBlank()) {
+                    TokenManager.saveToken(token)
+                    val rolDelBackend = extraerRolDelToken(token)
+                    if (rolDelBackend != null) {
+                        loggedRole = rolDelBackend
+                        when (rolDelBackend.uppercase()) {
+                            "EMPLEADO" -> _navegacionDestino.value = "home_empleado"
+                            "TECNICO" -> _navegacionDestino.value = "home_admin"
+                            else -> errorMessage = "Rol desconocido: $rolDelBackend"
                         }
                     } else {
-                        errorMessage = body?.message ?: "Login exitoso, pero no se encontró el token."
+                        errorMessage = "Login exitoso, pero no se pudo extraer el rol del token."
                     }
                 } else {
-                    // Si el servidor responde 401, 403, etc.
-                    errorMessage = "Credenciales incorrectas"
+                    errorMessage = apiResponse.message ?: "Credenciales incorrectas"
                 }
             } catch (e: Exception) {
                 // Si el backend está apagado o no hay internet

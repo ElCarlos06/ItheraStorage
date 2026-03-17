@@ -1,8 +1,10 @@
 package com.example.activos360.core.network
 
 import com.example.activos360.back.api.AssetsControllerApi
+import com.example.activos360.back.api.AuthControllerApi
 import com.example.activos360.back.api.ResguardoControllerApi
 import com.example.activos360.core.auth.TokenManager
+import com.example.activos360.back.model.ModelApiResponse
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Interceptor
@@ -18,6 +20,14 @@ object ApiProvider {
         Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
+    }
+
+    fun parseModelApiResponse(json: String): ModelApiResponse? {
+        return try {
+            moshi.adapter(ModelApiResponse::class.java).fromJson(json)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private val authInterceptor = Interceptor { chain ->
@@ -49,5 +59,6 @@ object ApiProvider {
 
     val assetsApi: AssetsControllerApi by lazy { retrofit.create(AssetsControllerApi::class.java) }
     val resguardoApi: ResguardoControllerApi by lazy { retrofit.create(ResguardoControllerApi::class.java) }
+    val authApi: AuthControllerApi by lazy { retrofit.create(AuthControllerApi::class.java) }
 }
 

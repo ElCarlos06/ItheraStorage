@@ -15,11 +15,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.activos360.ui.screens.Empleado.HomeEmpleado
 import com.example.activos360.ui.components.BottomCustomBar
-import com.example.activos360.ui.screens.tecnico.UserProfile
 import com.example.activos360.ui.modals.AssetDetailModal
 import com.example.activos360.core.util.QrParse
 import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScreen
 import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
+import com.example.activos360.ui.screens.Login.ScreeanCreatePassword
 
 @Composable
 fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
@@ -58,7 +58,17 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
 
             // Ruta del Perfil
             composable("perfil") {
-                UserProfile()
+                UserProfile(
+                    onNavigateToChangePassword = {
+                        navControllerPrincipal.navigate("crear_password") // La ruta hacia ScreeanCreatePassword
+                    },
+                    onLogout = {
+                        // Aquí limpias el stack para que no pueda volver atrás con el botón del celular
+                        navControllerPrincipal.navigate("login") {
+                            popUpTo(0) // Limpia todo el historial de navegación
+                        }
+                    }
+                )
             }
 
             composable("detalles_activo/{id}") { backStackEntry ->
@@ -96,6 +106,10 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
                         }
                     }
                 )
+            }
+
+            composable("crear_password") {
+                ScreeanCreatePassword()
             }
 
         }

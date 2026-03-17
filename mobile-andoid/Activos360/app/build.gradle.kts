@@ -93,6 +93,9 @@ dependencies {
     //escaner parame el qr
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
+    //para las img
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

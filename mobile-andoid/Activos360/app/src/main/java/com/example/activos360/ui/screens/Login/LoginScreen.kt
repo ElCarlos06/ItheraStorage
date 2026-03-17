@@ -20,12 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.WaveHeader
+import com.example.activos360.ui.viewmodel.EmpleadoViewModel
 import com.example.activos360.ui.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: (String) -> Unit = {},
     viewModel: LoginViewModel = viewModel(),
+    empleadoViewModel: EmpleadoViewModel = viewModel(),
     onNavigateToForgotPassword: () -> Unit = {}
 ) {
     // Estados para los textos
@@ -39,6 +41,13 @@ fun LoginScreen(
     // 2. ESCUCHAMOS LOS CAMBIOS PARA DISPARAR LA NAVEGACIÓN
     LaunchedEffect(destinoNavegacion) {
         destinoNavegacion?.let { rutaDestino ->
+
+            empleadoViewModel.cargarDatosUsuario(
+                nombre = viewModel.usuarioLogueadoNombre,
+                rol = viewModel.loggedRole ?: "Empleado",
+                correo = viewModel.usuarioLogueadoCorreo
+            )
+            
             // Pasamos la ruta exacta a la que debe ir el usuario
             onLoginSuccess(rutaDestino)
 

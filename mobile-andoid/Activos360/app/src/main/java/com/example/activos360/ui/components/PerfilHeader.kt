@@ -28,10 +28,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.R
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
+// import coil.compose.AsyncImage
 
 @Composable
 fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol: String) {
     val primaryColor = Color(0xFF7B88FF)
+
+    val fotoUsuario = viewModel.fotoUsuario
 
     Box(
         modifier = Modifier
@@ -61,11 +64,29 @@ fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol
                     color = Color.White.copy(alpha = 0.3f), // Fondo por si no hay foto
                     border = androidx.compose.foundation.BorderStroke(3.dp, Color.White)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.targeta), // Cambia por tu recurso
-                        contentDescription = "Foto de perfil",
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                    )
+                    // Validamos si hay foto real
+                    if (fotoUsuario != null) {
+                        // AQUÍ IDEALMENTE USAS COIL PARA CARGAR LA URL DEL BACKEND:
+                        // AsyncImage(
+                        //     model = fotoUsuario,
+                        //     contentDescription = "Foto de perfil",
+                        //     contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        // )
+
+                        // Mientras no tengas Coil, dejamos un placeholder o la imagen fija
+                        Image(
+                            painter = painterResource(id = R.drawable.targeta),
+                            contentDescription = "Foto de perfil",
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        // Si el usuario no tiene foto, ponemos una imagen por defecto
+                        Image(
+                            painter = painterResource(id = R.drawable.targeta), // Cámbialo por un ícono de usuario por defecto
+                            contentDescription = "Foto por defecto",
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    }
                 }
 
                 // Botón de editar (el circulito blanco con el lápiz)

@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.example.activos360.ui.screens.Login.LoginScreen
+import com.example.activos360.ui.screens.Login.ScreeanCreatePassword
 import com.example.activos360.ui.screens.Login.ScreenPassword
 import com.example.activos360.ui.screens.Empleado.EmpleadoMainScreen
 import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScreen
@@ -30,6 +31,9 @@ fun Navigation() {
                         // ESTO ES PARA QUE NO VUELVA A LA PANTALLA DE LOGIN
                         popUpTo("login") { inclusive = true }
                     }
+                },
+                onNavigateToForgotPassword = {
+                    navController.navigate("forgot_password")
                 }
             )
         }
@@ -40,6 +44,11 @@ fun Navigation() {
         }
 
         // RUTA DEL TÉCNICO
+        composable("home_tecnico") {
+            TecnicoMainScreen(navController)
+        }
+
+        // Alias para no romper navegación vieja (LoginViewModel aún usa home_admin)
         composable("home_admin") {
             TecnicoMainScreen(navController)
         }
@@ -100,6 +109,34 @@ fun Navigation() {
             ScreenPassword(
                 onBackClick = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla para restablecer con token (similar al front web)
+        composable(
+            route = "create_password?token={token}&correo={correo}",
+            arguments = listOf(navArgument("token") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            }, navArgument("correo") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            })
+        ) { backStackEntry ->
+            val token = backStackEntry.arguments?.getString("token")
+            val correo = backStackEntry.arguments?.getString("correo")
+            ScreeanCreatePassword(
+                tokenFromLink = token?.takeIf { it.isNotBlank() },
+                correoFromFirstLogin = correo?.takeIf { it.isNotBlank() },
+                onBackClick = { navController.popBackStack() },
+                onPasswordUpdated = {
+                    // al completar, regresamos a login
+                    navController.navigate("login") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             )
         }
