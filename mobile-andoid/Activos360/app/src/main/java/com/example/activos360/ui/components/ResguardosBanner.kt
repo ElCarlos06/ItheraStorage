@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,11 +60,11 @@ fun ResguardosBanner(
                     color = Color(0xFF2D3436)
                 )
 
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
+                MoonIcon(
+                    icon = MoonIcons.ArrowsRight,
                     contentDescription = null,
                     tint = Color(0xFF7B88FF),
-                    modifier = Modifier.size(18.dp)
+                    size = 18.dp
                 )
             }
         }

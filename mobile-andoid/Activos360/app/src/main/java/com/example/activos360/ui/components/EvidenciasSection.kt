@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -149,10 +147,11 @@ fun FotoThumbnail(uri: Uri, onRemove: () -> Unit) {
                 modifier = Modifier.size(18.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Default.Close, "Eliminar",
+                    MoonIcon(
+                        icon = MoonIcons.ControlsClose,
+                        contentDescription = "Eliminar",
                         tint = Color.White,
-                        modifier = Modifier.size(12.dp)
+                        size = 12.dp
                     )
                 }
             }

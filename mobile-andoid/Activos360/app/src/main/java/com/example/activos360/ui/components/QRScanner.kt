@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -128,11 +125,11 @@ fun QRScanner(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(48.dp)
             ) {
                 IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.Lightbulb,
+                    MoonIcon(
+                        icon = MoonIcons.GenericIdea,
                         contentDescription = "Flash",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        size = 24.dp
                     )
                 }
             }
@@ -142,11 +139,11 @@ fun QRScanner(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(48.dp)
             ) {
                 IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.Keyboard,
+                    MoonIcon(
+                        icon = MoonIcons.DevicesKeyboard,
                         contentDescription = "Manual",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        size = 24.dp
                     )
                 }
             }

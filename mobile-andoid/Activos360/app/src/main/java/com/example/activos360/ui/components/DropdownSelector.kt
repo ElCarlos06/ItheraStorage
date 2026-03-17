@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -54,7 +52,7 @@ fun DropdownSelector(
                 readOnly = true,
                 placeholder = { Text(placeholder, color = TextDark, fontSize = 16.sp) },
                 trailingIcon = {
-                    Icon(Icons.Default.KeyboardArrowDown, null, tint = TextDark)
+                    MoonIcon(icon = MoonIcons.ControlsChevronDown, contentDescription = null, tint = TextDark, size = 20.dp)
                 },
                 modifier = Modifier
                     .menuAnchor(MenuAnchorType.PrimaryNotEditable)

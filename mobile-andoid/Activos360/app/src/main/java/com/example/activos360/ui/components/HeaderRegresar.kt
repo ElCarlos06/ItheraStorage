@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,11 +51,11 @@ fun HeaderRegresar(
                     .height(45.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                    MoonIcon(
+                        icon = MoonIcons.ArrowsLeft,
                         contentDescription = "Regresar",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        size = 24.dp
                     )
                 }
             }

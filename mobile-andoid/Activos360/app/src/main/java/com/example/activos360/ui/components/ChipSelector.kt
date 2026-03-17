@@ -21,8 +21,17 @@ import androidx.compose.ui.unit.sp
 
 private val CardBg = Color(0xFFF8F9FE)
 private val TextDark = Color(0xFF2D3436)
-private val SelectedBorder = Color(0xFFFFB319)
-private val SelectedBg = Color(0xFFFFB319).copy(alpha = 0.12f)
+
+private val ColorBaja = Color(0xFF2E7D32)
+private val ColorMedia = Color(0xFFFFB319)
+private val ColorAlta = Color(0xFFD3304A)
+
+private fun chipColor(option: String): Color = when (option.lowercase()) {
+    "baja" -> ColorBaja
+    "media" -> ColorMedia
+    "alta" -> ColorAlta
+    else -> ColorMedia
+}
 
 @Composable
 fun ChipSelector(
@@ -40,16 +49,17 @@ fun ChipSelector(
         ) {
             options.forEach { option ->
                 val isSelected = selected == option
+                val accent = chipColor(option)
                 Surface(
                     onClick = { onSelect(option) },
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) SelectedBg else CardBg,
+                    color = if (isSelected) accent.copy(alpha = 0.12f) else CardBg,
                     border = BorderStroke(
                         1.dp,
-                        if (isSelected) SelectedBorder else Color.Transparent
+                        if (isSelected) accent else Color.Transparent
                     )
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -57,7 +67,7 @@ fun ChipSelector(
                             text = option,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (isSelected) SelectedBorder else TextDark
+                            color = if (isSelected) accent else TextDark
                         )
                     }
                 }

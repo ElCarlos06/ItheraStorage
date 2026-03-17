@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -76,10 +75,11 @@ fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol
                     color = Color.White,
                     shadowElevation = 4.dp
                 ) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Edit,
+                    MoonIcon(
+                        icon = MoonIcons.GenericEdit,
                         contentDescription = "Editar",
                         tint = primaryColor,
+                        size = 18.dp,
                         modifier = Modifier.padding(6.dp)
                     )
                 }

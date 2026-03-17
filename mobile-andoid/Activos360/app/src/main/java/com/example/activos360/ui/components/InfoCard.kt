@@ -11,19 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Laptop
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,7 +24,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun InfoCard(
-    icon: ImageVector,
+    icon: Int,
     label: String,
     value: String
 ) {
@@ -56,11 +49,12 @@ fun InfoCard(
                     color = Color.White,
                     modifier = Modifier.size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = icon,
+                    MoonIcon(
+                        icon = icon,
                         contentDescription = null,
-                        modifier = Modifier.padding(10.dp),
-                        tint = Color(0xFF7B88FF)
+                        size = 20.dp,
+                        tint = Color(0xFF7B88FF),
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
 
@@ -97,11 +91,12 @@ fun CaracteristicasSeccion(lista: List<String>) {
                     color = Color.White,
                     modifier = Modifier.size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
+                    MoonIcon(
+                        icon = MoonIcons.GenericSettings,
                         contentDescription = null,
-                        modifier = Modifier.padding(10.dp),
-                        tint = Color(0xFF7B88FF)
+                        size = 20.dp,
+                        tint = Color(0xFF7B88FF),
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
                 Text(
@@ -146,11 +141,12 @@ fun MainAssetCard(id: String, nombre: String) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.size(56.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Laptop, // Asegúrate de tener la dependencia de Icons
+                MoonIcon(
+                    icon = MoonIcons.DevicesMacbook,
                     contentDescription = null,
-                    modifier = Modifier.padding(14.dp),
-                    tint = Color.Gray
+                    size = 28.dp,
+                    tint = Color.Gray,
+                    modifier = Modifier.padding(14.dp)
                 )
             }
 
@@ -185,15 +181,13 @@ fun InfoCardPreview() {
     ) {
         // Ejemplo de Marca
         InfoCard(
-            icon = Icons.Default.Bookmark,
+            icon = MoonIcons.GenericBookmark,
             label = "Marca",
             value = "Apple"
         )
 
-        // Ejemplo de Modelo
         InfoCard(
-            icon = Icons.Default.GridView
-            ,
+            icon = MoonIcons.SoftwareSettings,
             label = "Modelo",
             value = "Pro 16"
         )

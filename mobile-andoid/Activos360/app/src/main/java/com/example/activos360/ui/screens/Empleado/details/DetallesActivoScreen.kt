@@ -13,12 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,6 +30,7 @@ import com.example.activos360.ui.components.CaracteristicasSeccion
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.InfoCard
 import com.example.activos360.ui.components.MainAssetCard
+import com.example.activos360.ui.components.MoonIcons
 
 @Composable
 fun DetallesActivoScreen(
@@ -93,13 +88,13 @@ fun DetallesActivoScreen(
 
                 // 3. Filas de Información usando TU COMPONENTE InfoCard
                 InfoCard(
-                    icon = Icons.Default.BookmarkBorder,
+                    icon = MoonIcons.GenericBookmark,
                     label = "Marca",
                     value = "Apple"
                 )
 
                 InfoCard(
-                    icon = Icons.Default.GridView,
+                    icon = MoonIcons.SoftwareSettings,
                     label = "Modelo",
                     value = "Pro 16"
                 )

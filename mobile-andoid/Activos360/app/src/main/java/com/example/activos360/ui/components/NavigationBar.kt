@@ -5,10 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -94,11 +90,11 @@ fun BottomCustomBar(
                             )
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Icon(
-                        imageVector = Icons.Default.Home,
+                    MoonIcon(
+                        icon = MoonIcons.GenericHome,
                         contentDescription = "Home",
                         tint = if (isHomeSelected) colorActivo else colorInactivo,
-                        modifier = Modifier.size(28.dp)
+                        size = 28.dp
                     )
                 }
 
@@ -131,11 +127,11 @@ fun BottomCustomBar(
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
-                    Icon(
-                        imageVector = Icons.Default.Person,
+                    MoonIcon(
+                        icon = MoonIcons.GenericUser,
                         contentDescription = "Perfil",
                         tint = if (isPerfilSelected) colorActivo else colorInactivo,
-                        modifier = Modifier.size(28.dp)
+                        size = 28.dp
                     )
                 }
             }
@@ -172,11 +168,11 @@ fun BottomCustomBar(
             shadowElevation = 12.dp
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.QrCodeScanner,
+                MoonIcon(
+                    icon = MoonIcons.SecurityQrCode,
                     contentDescription = "Scan",
                     tint = Color.White,
-                    modifier = Modifier.size(35.dp)
+                    size = 35.dp
                 )
             }
         }

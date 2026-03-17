@@ -14,13 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Password
 import androidx.compose.material3.Icon
+import com.example.activos360.ui.components.MoonIcon
+import com.example.activos360.ui.components.MoonIcons
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,7 +79,7 @@ fun UserProfile() {
                         color = Color(0xFFE5E7FF),
                         modifier = Modifier.size(45.dp)
                     ) {
-                        Icon(Icons.Default.Password, null, tint = Color(0xFF8B93FF), modifier = Modifier.padding(10.dp))
+                        MoonIcon(icon = MoonIcons.SecurityKey, contentDescription = null, tint = Color(0xFF8B93FF), size = 24.dp, modifier = Modifier.padding(10.dp))
                     }
                     Text(
                         text = "Cambiar Contraseña",
@@ -91,7 +87,7 @@ fun UserProfile() {
                         fontWeight = FontWeight.SemiBold,
                         color = Color.DarkGray
                     )
-                    Icon(Icons.Default.ChevronRight, null, tint = Color(0xFF8B93FF))
+                    MoonIcon(icon = MoonIcons.ControlsChevronRight, contentDescription = null, tint = Color(0xFF8B93FF), size = 20.dp)
                 }
             }
 
@@ -113,7 +109,7 @@ fun UserProfile() {
                         color = Color(0xFFFFE5E5),
                         modifier = Modifier.size(45.dp)
                     ) {
-                        Icon(Icons.Default.Logout, null, tint = Color(0xFFE74C3C), modifier = Modifier.padding(10.dp))
+                        MoonIcon(icon = MoonIcons.SoftwareLogOut, contentDescription = null, tint = Color(0xFFE74C3C), size = 24.dp, modifier = Modifier.padding(10.dp))
                     }
                     Text(
                         text = "Cerrar sesión",
@@ -121,7 +117,7 @@ fun UserProfile() {
                         color = Color(0xFFE74C3C),
                         fontWeight = FontWeight.SemiBold
                     )
-                    Icon(Icons.Default.ChevronRight, null, tint = Color(0xFFFFB2B2))
+                    MoonIcon(icon = MoonIcons.ControlsChevronRight, contentDescription = null, tint = Color(0xFFFFB2B2), size = 20.dp)
                 }
             }
         }

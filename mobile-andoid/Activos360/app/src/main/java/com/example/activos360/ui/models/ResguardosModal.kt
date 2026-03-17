@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material3.Button
+import com.example.activos360.ui.components.MoonIcon
+import com.example.activos360.ui.components.MoonIcons
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -87,11 +87,12 @@ fun ResguardoItemCard(onConfirmClick: () -> Unit) {
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Laptop,
+                    MoonIcon(
+                        icon = MoonIcons.DevicesMacbook,
                         contentDescription = null,
-                        modifier = Modifier.padding(12.dp),
-                        tint = Color.Gray
+                        size = 24.dp,
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(12.dp)
                     )
                 }
 
