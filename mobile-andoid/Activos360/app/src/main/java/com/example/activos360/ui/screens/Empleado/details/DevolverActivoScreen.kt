@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,24 +32,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Buttons
 import com.example.activos360.ui.components.EvidenciasGrid
 import com.example.activos360.ui.components.FieldLabel
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
+import com.example.activos360.ui.viewmodel.DevolverViewModel
 
 private val DodoriaWarning = Color(0xFFD33030).copy(alpha = 0.56f)
 private val ButtonColor = Color(0xFF3448F0).copy(alpha = 0.7f)
 
 @Composable
 fun DevolverActivoScreen(
+    activoId: Long,
     activoEtiqueta: String,
     activoNombre: String,
     onBack: () -> Unit,
-    onDevolver: () -> Unit = {}
+    onDevolverSuccess: () -> Unit = {}
 ) {
     var observaciones by remember { mutableStateOf("") }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
+
+    val viewModel: DevolverViewModel = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -63,10 +70,26 @@ fun DevolverActivoScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
+                if (uiState.errorMessage != null) {
+                    Text(
+                        text = uiState.errorMessage!!,
+                        color = DodoriaWarning,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
                 Buttons(
-                    text = "Devolver",
+                    text = if (uiState.isLoading) "Procesando..." else "Devolver",
                     containerColor = ButtonColor,
-                    onClick = onDevolver
+                    onClick = {
+                        if (fotos.isEmpty()) return@Buttons
+                        viewModel.devolver(
+                            activoId = activoId,
+                            observaciones = observaciones,
+                            onSuccess = onDevolverSuccess
+                        )
+                    },
+                    enabled = !uiState.isLoading && fotos.isNotEmpty()
                 )
             }
         }
@@ -152,6 +175,7 @@ fun DevolverActivoScreen(
 @Composable
 private fun DevolverActivoPreview() {
     DevolverActivoScreen(
+        activoId = 1,
         activoEtiqueta = "ACTIVO #0482",
         activoNombre = "MacBook Pro 16\"",
         onBack = {}

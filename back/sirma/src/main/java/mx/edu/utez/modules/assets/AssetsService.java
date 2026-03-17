@@ -19,12 +19,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 /**
  * Servicio de negocio para la gestión de Activos Fijos.
@@ -147,16 +149,16 @@ public class AssetsService {
             return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
 
         Assets entity = new Assets();
-        entity.setEtiqueta(dto.getEtiqueta());
-        entity.setNumeroSerie(dto.getNumeroSerie());
+        entity.setEtiqueta(truncate(dto.getEtiqueta(), 50));
+        entity.setNumeroSerie(truncate(dto.getNumeroSerie(), 100));
         entity.setTipoActivo(tipoActivo.get());
         entity.setModelo(modelo);
         entity.setEspacio(espacio.get());
-        entity.setEstadoCustodia(dto.getEstadoCustodia() != null ? dto.getEstadoCustodia() : "Disponible");
-        entity.setEstadoOperativo(dto.getEstadoOperativo() != null ? dto.getEstadoOperativo() : "OK");
-        entity.setDescripcion(dto.getDescripcion());
-        entity.setCosto(dto.getCosto());
-        entity.setQrCodigo(dto.getQrCodigo());
+        entity.setEstadoCustodia(normalizeEstadoCustodia(dto.getEstadoCustodia() != null ? dto.getEstadoCustodia() : "Disponible"));
+        entity.setEstadoOperativo(truncate(dto.getEstadoOperativo() != null ? dto.getEstadoOperativo() : "OK", 10));
+        entity.setDescripcion(truncate(dto.getDescripcion(), 255));
+        entity.setCosto(safeCosto(dto.getCosto()));
+        entity.setQrCodigo(truncate(dto.getQrCodigo(), 255));
         entity.setFechaAlta(dto.getFechaAlta() != null ? LocalDate.parse(dto.getFechaAlta()) : LocalDate.now());
         entity.setEsActivo(true);
         assetsRepository.save(entity);
@@ -187,19 +189,55 @@ public class AssetsService {
             return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
 
         Assets entity = found.get();
-        entity.setEtiqueta(dto.getEtiqueta());
-        entity.setNumeroSerie(dto.getNumeroSerie());
+        entity.setEtiqueta(truncate(dto.getEtiqueta(), 50));
+        entity.setNumeroSerie(truncate(dto.getNumeroSerie(), 100));
         entity.setTipoActivo(tipoActivo.get());
         entity.setModelo(modelo);
         entity.setEspacio(espacio.get());
-        if (dto.getEstadoCustodia() != null) entity.setEstadoCustodia(dto.getEstadoCustodia());
-        if (dto.getEstadoOperativo() != null) entity.setEstadoOperativo(dto.getEstadoOperativo());
-        entity.setDescripcion(dto.getDescripcion());
-        entity.setCosto(dto.getCosto());
-        entity.setQrCodigo(dto.getQrCodigo());
+        if (dto.getEstadoCustodia() != null) entity.setEstadoCustodia(normalizeEstadoCustodia(dto.getEstadoCustodia()));
+        if (dto.getEstadoOperativo() != null) entity.setEstadoOperativo(truncate(dto.getEstadoOperativo(), 10));
+        entity.setDescripcion(truncate(dto.getDescripcion(), 255));
+        entity.setCosto(safeCosto(dto.getCosto()));
+        entity.setQrCodigo(truncate(dto.getQrCodigo(), 255));
         if (dto.getEsActivo() != null) entity.setEsActivo(dto.getEsActivo());
         assetsRepository.save(entity);
         return new ApiResponse("Activo actualizado", entity, HttpStatus.OK);
+    }
+
+    /**
+     * Invalida la caché de un activo tras cambios de estado (custodia/operativo).
+     * Llamar desde ResguardoService y ReporteService después de actualizar.
+     */
+    @Caching(evict = {
+        @CacheEvict(value = "assets", key = "#id"),
+        @CacheEvict(value = "assets_page", allEntries = true)
+    })
+    public void evictAssetCache(Long id) {
+        // La anotación realiza la evicción
+    }
+
+    /** Trunca un string al máximo de caracteres para evitar Data truncated en MySQL. */
+    private static String truncate(String s, int maxLen) {
+        if (s == null) return null;
+        if (s.length() <= maxLen) return s;
+        return s.substring(0, maxLen);
+    }
+
+    /** Normaliza estado_custodia a valores exactos del ENUM en BD: Disponible | En Proceso | Resguardado | Baja */
+    private static String normalizeEstadoCustodia(String s) {
+        if (s == null) return "Disponible";
+        String lower = s.trim().toLowerCase();
+        if (lower.contains("disponible") || "disp".equals(lower)) return "Disponible";
+        if (lower.contains("proceso") || "proc".equals(lower)) return "En Proceso";
+        if (lower.contains("resguard") || "resg".equals(lower)) return "Resguardado";
+        if (lower.contains("baja")) return "Baja";
+        return s;
+    }
+
+    /** Redondea costo a 2 decimales y limita a DECIMAL(10,2) para evitar Data truncated. */
+    private static java.math.BigDecimal safeCosto(java.math.BigDecimal costo) {
+        if (costo == null) return null;
+        return costo.setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -219,8 +257,10 @@ public class AssetsService {
         // Si el activo se oculta/desactiva, borramos su QR de Cloudinary
         qrService.deleteQrByAssetId(id);
         
+        // Al desactivar, el estado pasa a Disponible (solo actualiza estas 2 columnas)
+        assetsRepository.updateEstadoYActivo(id, "Disponible", false);
+        entity.setEstadoCustodia("Disponible");
         entity.setEsActivo(false);
-        assetsRepository.save(entity);
         return new ApiResponse("Activo desactivado", entity, HttpStatus.OK);
     }
 

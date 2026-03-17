@@ -37,8 +37,12 @@ export default function AssignResguardoModal({ open, onClose, onGuardar }) {
       .getUsers(0, 100)
       .then((res) => {
         const content = res?.data?.content ?? res?.content ?? res?.data ?? [];
+        const esEmpleado = (u) => {
+          const rol = (u.role?.nombre ?? u.rol?.nombre ?? "").toString().toLowerCase();
+          return rol === "empleado";
+        };
         const activos = content.filter(
-          (u) => u.esActivo ?? u.es_activo ?? true,
+          (u) => (u.esActivo ?? u.es_activo ?? true) && esEmpleado(u),
         );
 
         setUsersOptions(toOptions(activos));

@@ -24,7 +24,8 @@ function mapActivoToDisplay(item) {
     idCampus: campus?.id,
     idEdificio: edificio?.id,
     idEspacio: espacio?.id,
-    status: item.estadoCustodia ?? item.status ?? "disponible",
+    // DFR: Reportado = custodia Resguardado + operativo Reportado
+    status: item.estadoOperativo === "Reportado" ? "Reportado" : (item.estadoCustodia ?? item.status ?? "disponible"),
     campus: typeof campus === "string" ? campus : (campus.nombre ?? "—"),
     edificio: typeof edificio === "string" ? edificio : (edificio.nombre ?? "—"),
     aula: espacio.nombreEspacio ?? item.aula ?? "—",
@@ -62,12 +63,11 @@ export default function ActivosPage() {
 
   useEffect(() => {
     if (cached) {
-      // Si hay caché válido, no hacemos refetch a menos que esté forzado / no sea "silent".
-      // fetchActivos(true); 
-      return;
+      fetchActivos(true); // Refrescar en background si hay caché
+    } else {
+      fetchActivos();
     }
-    fetchActivos();
-  }, [fetchActivos, cached]);
+  }, [fetchActivos]);
 
   const handleNuevo = async (data) => {
     try {
@@ -124,9 +124,9 @@ export default function ActivosPage() {
 
     try {
       await resguardosApi.save(payload);
-      // Opcional: Podrías querer recargar activos si el resguardo cambia su estatus en db
-      // clearCache(CACHE_KEY);
-      // await fetchActivos();
+      clearCache(CACHE_KEY);
+      await fetchActivos(true); // Refrescar sin spinner para ver el nuevo estatus
+      toast.success("Resguardo asignado correctamente");
     } catch (err) {
       throw err;
     }

@@ -2,7 +2,10 @@ package com.example.activos360.core.network
 
 import com.example.activos360.back.api.AssetsControllerApi
 import com.example.activos360.back.api.AuthControllerApi
+import com.example.activos360.back.api.PrioridadControllerApi
+import com.example.activos360.back.api.ReporteControllerApi
 import com.example.activos360.back.api.ResguardoControllerApi
+import com.example.activos360.back.api.TipoFallaControllerApi
 import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.back.model.ModelApiResponse
 import com.squareup.moshi.Moshi
@@ -60,5 +63,8 @@ object ApiProvider {
     val assetsApi: AssetsControllerApi by lazy { retrofit.create(AssetsControllerApi::class.java) }
     val resguardoApi: ResguardoControllerApi by lazy { retrofit.create(ResguardoControllerApi::class.java) }
     val authApi: AuthControllerApi by lazy { retrofit.create(AuthControllerApi::class.java) }
+    val reporteApi: ReporteControllerApi by lazy { retrofit.create(ReporteControllerApi::class.java) }
+    val tipoFallaApi: TipoFallaControllerApi by lazy { retrofit.create(TipoFallaControllerApi::class.java) }
+    val prioridadApi: PrioridadControllerApi by lazy { retrofit.create(PrioridadControllerApi::class.java) }
 }
 

@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.net.Uri
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -18,7 +19,9 @@ import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.modals.AssetDetailModal
 import com.example.activos360.core.util.QrParse
 import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScreen
+import com.example.activos360.ui.screens.Empleado.details.DevolverActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
+import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import com.example.activos360.ui.screens.Login.ScreeanCreatePassword
 
 @Composable
@@ -82,10 +85,14 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
                         navControllerPrincipal.navigate("confirmar_resguardo/$idStr")
                     },
                     onReportarDanoClick = { id, etiqueta, nombre ->
-                        /* tu lógica de daño */
+                        navControllerPrincipal.navigate(
+                            "reportar_dano/$id/${Uri.encode(etiqueta)}/${Uri.encode(nombre)}"
+                        )
                     },
                     onDevolverActivoClick = { idActivo, etiqueta, nombre ->
-                        navControllerPrincipal.navigate("devolver_activo/$etiqueta/$nombre")
+                        navControllerPrincipal.navigate(
+                            "devolver_activo/$idActivo/${Uri.encode(etiqueta)}/${Uri.encode(nombre)}"
+                        )
                     }
                 )
             }
@@ -110,6 +117,40 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
 
             composable("crear_password") {
                 ScreeanCreatePassword()
+            }
+
+            composable("reportar_dano/{activoId}/{etiqueta}/{nombre}") { backStackEntry ->
+                val activoId = backStackEntry.arguments?.getString("activoId")?.toLongOrNull() ?: 0L
+                val etiqueta = Uri.decode(backStackEntry.arguments?.getString("etiqueta").orEmpty())
+                val nombre = Uri.decode(backStackEntry.arguments?.getString("nombre").orEmpty())
+                ReportarDanoScreen(
+                    activoId = activoId,
+                    activoEtiqueta = etiqueta,
+                    activoNombre = nombre,
+                    onBack = { navControllerPrincipal.popBackStack() },
+                    onReportarSuccess = {
+                        navControllerPrincipal.navigate("scanner") {
+                            popUpTo(navControllerPrincipal.graph.startDestinationId) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable("devolver_activo/{activoId}/{etiqueta}/{nombre}") { backStackEntry ->
+                val activoId = backStackEntry.arguments?.getString("activoId")?.toLongOrNull() ?: 0L
+                val etiqueta = Uri.decode(backStackEntry.arguments?.getString("etiqueta").orEmpty())
+                val nombre = Uri.decode(backStackEntry.arguments?.getString("nombre").orEmpty())
+                DevolverActivoScreen(
+                    activoId = activoId,
+                    activoEtiqueta = etiqueta,
+                    activoNombre = nombre,
+                    onBack = { navControllerPrincipal.popBackStack() },
+                    onDevolverSuccess = {
+                        navControllerPrincipal.navigate("scanner") {
+                            popUpTo(navControllerPrincipal.graph.startDestinationId) { inclusive = true }
+                        }
+                    }
+                )
             }
 
         }

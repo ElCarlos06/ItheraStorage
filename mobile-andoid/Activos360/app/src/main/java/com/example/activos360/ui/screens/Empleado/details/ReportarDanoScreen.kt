@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Buttons
 import com.example.activos360.ui.components.ChipSelector
 import com.example.activos360.ui.components.DropdownSelector
@@ -36,20 +38,30 @@ import com.example.activos360.ui.components.EvidenciasSection
 import com.example.activos360.ui.components.FieldLabel
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
+import com.example.activos360.ui.viewmodel.ReportarViewModel
+
+private val DodoriaWarning = Color(0xFFD33030).copy(alpha = 0.56f)
 
 @Composable
 fun ReportarDanoScreen(
     activoId: Long,
     activoEtiqueta: String,
     activoNombre: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onReportarSuccess: () -> Unit = {}
 ) {
-    var selectedTipoFalla by remember { mutableStateOf("") }
+    var selectedTipoNombre by remember { mutableStateOf("") }
+    var selectedPrioridadNivel by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var selectedPrioridad by remember { mutableStateOf("") }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
-    val tiposFalla = listOf("Daño físico", "Falla eléctrica", "Falla de software", "Desgaste", "Otro")
+    val viewModel: ReportarViewModel = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
+
+    val tiposFalla = uiState.tiposFalla
+    val prioridades = uiState.prioridades
+    val tipoOptions = tiposFalla.map { it.nombre }
+    val prioridadOptions = prioridades.map { it.nivel }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -64,7 +76,33 @@ fun ReportarDanoScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                Buttons(text = "Reportar", onClick = { onBack() })
+                if (uiState.errorMessage != null) {
+                    Text(
+                        text = uiState.errorMessage!!,
+                        color = DodoriaWarning,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+                Buttons(
+                    text = if (uiState.isLoading) "Enviando..." else "Reportar",
+                    onClick = {
+                        val idTipo = tiposFalla.find { it.nombre == selectedTipoNombre }?.id
+                        val idPrioridad = prioridades.find { it.nivel == selectedPrioridadNivel }?.id
+                        if (idTipo == null || idPrioridad == null || descripcion.isBlank()) return@Buttons
+                        viewModel.reportar(
+                            activoId = activoId,
+                            idTipoFalla = idTipo,
+                            idPrioridad = idPrioridad,
+                            descripcionFalla = descripcion.trim(),
+                            onSuccess = onReportarSuccess
+                        )
+                    },
+                    enabled = !uiState.isLoading &&
+                        selectedTipoNombre.isNotBlank() &&
+                        selectedPrioridadNivel.isNotBlank() &&
+                        descripcion.isNotBlank()
+                )
             }
         }
     ) { paddingValues ->
@@ -92,10 +130,10 @@ fun ReportarDanoScreen(
 
                 DropdownSelector(
                     label = "Tipo de falla",
-                    value = selectedTipoFalla,
-                    placeholder = "Selecciona el tipo de daño",
-                    options = tiposFalla,
-                    onSelect = { selectedTipoFalla = it }
+                    value = selectedTipoNombre,
+                    placeholder = if (tipoOptions.isEmpty()) "Cargando..." else "Selecciona el tipo de daño",
+                    options = tipoOptions,
+                    onSelect = { selectedTipoNombre = it }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -130,9 +168,9 @@ fun ReportarDanoScreen(
 
                 ChipSelector(
                     label = "Prioridad",
-                    options = listOf("Baja", "Media", "Alta"),
-                    selected = selectedPrioridad,
-                    onSelect = { selectedPrioridad = it }
+                    options = prioridadOptions.ifEmpty { listOf("Baja", "Media", "Alta") },
+                    selected = selectedPrioridadNivel,
+                    onSelect = { selectedPrioridadNivel = it }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))

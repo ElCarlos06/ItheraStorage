@@ -32,7 +32,7 @@ public class AssetsController {
     public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
         ApiResponse response = assetsService.findAll(pageable);
         return ResponseEntity.status(response.getStatus())
-                .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic())
+                .cacheControl(CacheControl.noStore().mustRevalidate())
                 .body(response);
     }
 

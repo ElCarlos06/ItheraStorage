@@ -216,11 +216,9 @@ export default function Activos({
         onClose={() => setModalAssignAsset(null)}
         onGuardar={async (data) => {
           try {
-            // El padre (ActivosPage) manejaría el onDetalles(item, data) o similar
-            // Por ahora llamamos onDetalles por si se maneja aquí
             await onDetalles?.(modalAssignAsset, data);
             setModalAssignAsset(null);
-            toast.success("Resguardo asignado correctamente");
+            // El toast lo muestra ActivosPage.handleAsignarResguardo
           } catch (err) {
             toast.error(err.message ?? "Error al asignar resguardo");
           }

@@ -87,16 +87,21 @@ fun DetallesActivoScreen(
                         .fillMaxWidth()
                         .padding(top = 24.dp)
                 ) {
-                    if (uiState.isLoading) {
+                    if (uiState.isLoading && activo.isEmpty()) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp),
+                                .padding(48.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             CircularProgressIndicator(color = Color(0xFF7B88FF))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Cargando detalles...",
+                                color = Color.Gray
+                            )
                         }
-                    }
+                    } else if (!uiState.isLoading || activo.isNotEmpty()) {
 
                     uiState.errorMessage?.let { msg ->
                         Text(
@@ -136,7 +141,7 @@ fun DetallesActivoScreen(
                     val estatusActual = estadoCustodia.lowercase()
 
                     when (estatusActual) {
-                        "en proceso" -> {
+                        "en proceso", "enproceso", "proc" -> {
                             // Solo si está en proceso Y te pertenece (canResguardar)
                             if (uiState.canResguardar) {
                                 Buttons(
@@ -153,20 +158,20 @@ fun DetallesActivoScreen(
                             }
                         }
 
-                        "resguardado" -> {
+                        "resguardado", "resguardo", "resg" -> {
                             // Si ya está resguardado, AHORA SÍ puede reportar daño o devolver
                             // (Podrías validar aquí si está resguardado por el empleado actual)
                             Buttons(
                                 text = "Reportar daño",
-                                onClick = { onReportarDanoClick(activoId, "ACTIVO #$activoId", nombreMostrado) }
+                                onClick = { onReportarDanoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
                             )
                             Buttons(
                                 text = "Devolver Activo",
-                                onClick = { onDevolverActivoClick(activoId, "ACTIVO #$activoId", nombreMostrado) }
+                                onClick = { onDevolverActivoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
                             )
                         }
 
-                        "disponible" -> {
+                        "disponible", "disp" -> {
                             // No le pertenece a nadie, es de solo lectura.
                             Text(
                                 text = "El Activo esta disponible, pero no esta a tu cargo.",
@@ -181,6 +186,7 @@ fun DetallesActivoScreen(
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
+                    }
                 }
             }
         }

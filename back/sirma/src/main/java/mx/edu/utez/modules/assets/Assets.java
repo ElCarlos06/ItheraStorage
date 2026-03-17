@@ -50,11 +50,11 @@ public class Assets extends BaseEntity {
     private Espacio espacio;
 
     /** Estado de custodia (ej. Disponible, Asignado, En Mantenimiento). */
-    @Column(name = "estado_custodia", nullable = false)
+    @Column(name = "estado_custodia", nullable = false, length = 50)
     private String estadoCustodia = "Disponible";
 
     /** Condición operativa del activo (ej. OK, Falla, Obsoleto). */
-    @Column(name = "estado_operativo", nullable = false)
+    @Column(name = "estado_operativo", nullable = false, length = 50)
     private String estadoOperativo = "OK";
 
     /** Descripción detallada del activo. */

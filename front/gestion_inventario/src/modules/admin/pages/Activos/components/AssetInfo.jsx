@@ -5,13 +5,19 @@ import { resguardosApi } from "../../../../../api/resguardosApi";
 export const statusLabel = (s) => {
   const labels = {
     disponible: "Disponible",
+    disp: "Disponible",
     resguardado: "Resguardado",
+    resguardo: "Resguardado",
+    resg: "Resguardado",
     mantenimiento: "Mantenimiento",
     "en proceso": "En proceso",
+    enproceso: "En proceso",
+    proc: "En proceso",
     baja: "Baja",
     reportado: "Reportado",
+    rep: "Reportado",
   };
-  return labels[s] ?? s;
+  return labels[String(s || "").toLowerCase().trim()] ?? s;
 };
 
 export default function AssetInfo({ item }) {

@@ -104,6 +104,8 @@ class AssetDetailViewModel : ViewModel() {
         val enProceso = when {
             estadoCustodia == null -> false
             estadoCustodia == "en proceso" -> true
+            estadoCustodia == "enproceso" -> true
+            estadoCustodia == "proc" -> true
             estadoCustodia == "en_proceso" -> true
             estadoCustodia.contains("proceso") -> true
             estadoCustodia == "asignado" -> true

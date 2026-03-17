@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
+import mx.edu.utez.modules.assets.AssetsService;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ public class ResguardoService {
 
     private final ResguardoRepository resguardoRepository;
     private final AssetsRepository assetsRepository;
+    private final AssetsService assetsService;
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
@@ -84,6 +86,12 @@ public class ResguardoService {
         entity.setObservacionesAsig(dto.getObservacionesAsig());
         entity.setEstadoResguardo("Pendiente");
         resguardoRepository.save(entity);
+
+        // Flujo de estatus: al asignar a empleado → En Proceso (valor exacto del ENUM)
+        Long activoId = activo.get().getId();
+        assetsRepository.updateEstadoCustodia(activoId, "En Proceso");
+        assetsService.evictAssetCache(activoId);
+
         return new ApiResponse("Resguardo registrado", entity, HttpStatus.CREATED);
     }
 
@@ -98,10 +106,18 @@ public class ResguardoService {
         if (dto.getObservacionesDev() != null) entity.setObservacionesDev(dto.getObservacionesDev());
         if (dto.getEstadoResguardo() != null) {
             entity.setEstadoResguardo(dto.getEstadoResguardo());
-            if ("Confirmado".equals(dto.getEstadoResguardo()))
+            if ("Confirmado".equals(dto.getEstadoResguardo())) {
                 entity.setFechaConfirmacion(LocalDateTime.now());
-            if ("Devuelto".equals(dto.getEstadoResguardo()))
+                Long activoId = entity.getActivo().getId();
+                assetsRepository.updateEstadoCustodia(activoId, "Resguardado");
+                assetsService.evictAssetCache(activoId);
+            }
+            if ("Devuelto".equals(dto.getEstadoResguardo())) {
                 entity.setFechaDevolucion(LocalDateTime.now());
+                Long activoId = entity.getActivo().getId();
+                assetsRepository.updateEstadoCustodia(activoId, "Disponible");
+                assetsService.evictAssetCache(activoId);
+            }
         }
         resguardoRepository.save(entity);
         return new ApiResponse("Resguardo actualizado", entity, HttpStatus.OK);

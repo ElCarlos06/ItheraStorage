@@ -18,10 +18,12 @@ import androidx.compose.ui.unit.sp
 fun Buttons(
     text: String,
     containerColor: Color = Color(0xFF8B93FF), // Color por defecto
+    enabled: Boolean = true,
     onClick: () -> Unit
 ){
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp),
