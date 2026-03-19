@@ -18,5 +18,6 @@ public interface CampusRepository extends JpaRepository<Campus, Long> {
     Page<Campus> findAllByEsActivoTrue(Pageable pageable);
     boolean existsByNombreAndEsActivoTrue(String nombre);
     boolean existsByNombreAndEsActivoTrueAndIdNot(String nombre, Long id);
+    Optional<Campus> findByNombre(String nombre);
     Optional<Campus> findFirstByNombreAndEsActivoFalse(String nombre);
 }

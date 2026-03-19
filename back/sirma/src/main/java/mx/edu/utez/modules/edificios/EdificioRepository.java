@@ -16,4 +16,5 @@ public interface EdificioRepository extends JpaRepository<Edificio, Long> {
     boolean existsByCampusIdAndNombreAndEsActivoTrue(Long campusId, String nombre);
     boolean existsByCampusIdAndNombreAndEsActivoTrueAndIdNot(Long campusId, String nombre, Long id);
     Optional<Edificio> findFirstByCampusIdAndNombreAndEsActivoFalse(Long campusId, String nombre);
+    Optional<Edificio> findByCampusIdAndNombre(Long campusId, String nombre);
 }

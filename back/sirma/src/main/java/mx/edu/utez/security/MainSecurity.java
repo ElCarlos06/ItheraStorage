@@ -44,7 +44,7 @@ public class MainSecurity {
      * @throws Exception Si ocurre un error durante la configuración de seguridad
      */
     @Bean
-    public SecurityFilterChain filterInternal(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterInternal(HttpSecurity http) {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> c.configurationSource(corsRegistry()))
@@ -52,9 +52,10 @@ public class MainSecurity {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/auth/**").permitAll() // Permite el login y la doc
                         .requestMatchers("/", "/error", "/email/**", "/preview/**").permitAll()
-                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
                         .requestMatchers("/api/register", "/api/register/**").permitAll()
+                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**").hasAnyAuthority("ROLE_Administrador")
+                        .requestMatchers("/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**").hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico", "ROLE_Empleado")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

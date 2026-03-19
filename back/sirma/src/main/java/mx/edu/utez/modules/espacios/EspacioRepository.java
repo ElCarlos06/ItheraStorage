@@ -16,4 +16,5 @@ public interface EspacioRepository extends JpaRepository<Espacio, Long> {
     boolean existsByEdificioIdAndNombreEspacioAndEsActivoTrue(Long edificioId, String nombreEspacio);
     boolean existsByEdificioIdAndNombreEspacioAndEsActivoTrueAndIdNot(Long edificioId, String nombreEspacio, Long id);
     Optional<Espacio> findFirstByEdificioIdAndNombreEspacioAndEsActivoFalse(Long edificioId, String nombreEspacio);
+    Optional<Espacio> findByEdificioIdAndNombreEspacio(Long edificioId, String nombreEspacio);
 }

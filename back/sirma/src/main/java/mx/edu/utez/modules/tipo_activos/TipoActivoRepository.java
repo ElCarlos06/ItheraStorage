@@ -13,5 +13,6 @@ public interface TipoActivoRepository extends JpaRepository<TipoActivo, Long> {
     Optional<TipoActivo> findFirstByNombreAndEsActivoFalse(String nombre);
 
     Page<TipoActivo> findByEsActivoTrue(Pageable pageable);
+    
+    Optional<TipoActivo> findByNombre(String nombre);
 }
-
