@@ -1,6 +1,6 @@
 import { request } from "./base";
 
-const parseJwt = (token) => {
+export const parseJwt = (token) => {
   const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
   return JSON.parse(atob(base64));
 };

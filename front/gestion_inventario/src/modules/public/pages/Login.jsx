@@ -5,7 +5,7 @@ import InputField from "../components/InputField";
 import PasswordInput from "../components/PasswordInput";
 import LogoHeader from "../components/LogoHeader";
 import ProgressBar from "../components/ProgressBar";
-import { authApi } from "../../../api/authApi";
+import { authApi, parseJwt } from "../../../api/authApi";
 import {
   validarCorreoLogin,
   validarContrasenaLogin,
@@ -64,11 +64,21 @@ export default function Login() {
         return;
       }
 
+      const token = data.data?.token;
+
+      if (!token) {
+        setErrores((prev) => ({
+          ...prev,
+          _form: "No se recibió un token válido",
+        }));
+        return;
+      }
+
       // Validamos el rol, si no es admin, la función devolverá false y terminamos aquí
-      if (!roleHandler(data.rol)) return;
+      if (!roleHandler(parseJwt(token))) return;
 
       // Guarda el token recibido del backend en sessionStorage
-      sessionStorage.setItem("token", data.token ?? data.data?.token ?? "");
+      sessionStorage.setItem("token", token);
 
       // Recarga completa para que App.jsx detecte el token y monte AdminRouter
       window.location.replace("/");
@@ -100,7 +110,7 @@ export default function Login() {
   };
 
   const roleHandler = (r) => {
-    if (r !== "ADMIN") {
+    if (r.role !== "Administrador") {
       setErrores((prev) => ({
         ...prev,
         _form: "Tu no deberias de estar aquí",
