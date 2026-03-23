@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import NewAssetModal from "./NewAssetModal";
 import AssignResguardoModal from "./components/AssignResguardoModal";
 import PageHeader from "../../components/dashboard/PageHeader";
@@ -22,6 +22,7 @@ import "./Activos.css";
 import Pagination from "../../components/layout/Pagination.jsx";
 import ActivosCard from "./components/ActivosCard.jsx";
 import { getProfileFromToken } from "../../../../api/authApi.js";
+import { importApi } from "../../../../api/importApi.js";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
 
@@ -31,7 +32,7 @@ export default function Activos({
   loading: loadingProp = false,
   error: errorProp = null,
   onSearch,
-  onImportExcel,
+  onRefresh,
   onNuevo,
   onEliminar,
   onEditar,
@@ -40,6 +41,7 @@ export default function Activos({
 }) {
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
+  const fileInputRef = useRef(null);
   const [modalEditAsset, setModalEditAsset] = useState(null);
   const [confirmDeleteAsset, setConfirmDeleteAsset] = useState(null);
   const [modalAssignAsset, setModalAssignAsset] = useState(null);
@@ -87,6 +89,23 @@ export default function Activos({
     window.scrollTo(0, 0);
   };
 
+  const handleUploadExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await importApi.upload(file);
+      toast.success("Activos importados correctamente");
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      toast.error(error.message || "Error al importar el archivo");
+    } finally {
+      e.target.value = null;
+    }
+  };
+
   return (
     <div
       className={`activos-page ${showEmptyState ? "activos-page--empty" : ""}`}
@@ -116,11 +135,18 @@ export default function Activos({
             />
           </div>
           <div className="activos-view__actions">
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept=".xlsx, .xls"
+              onChange={handleUploadExcel}
+            />
             <Button
               variant="secondary"
               iconLeft={FilesImport}
               iconSize={30}
-              onClick={() => onImportExcel?.()}
+              onClick={() => fileInputRef.current?.click()}
             >
               Importar Excel
             </Button>

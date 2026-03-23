@@ -50,8 +50,14 @@ export async function request(endpoint, options = {}) {
     );
   }
 
+  const AUTH_ENPOINTS = ["/api/auth/login", "/api/auth/register"];
+  const isAuthEndpoint = AUTH_ENPOINTS.includes(endpoint);
+
   // Manejo de sesión, en cuanto le llegue un 401 o 403, se cierra sesión
-  if (res.status === UNAUTHORIZED || res.status === FORBIDDEN) {
+  if (
+    (res.status === UNAUTHORIZED || res.status === FORBIDDEN) &&
+    !isAuthEndpoint
+  ) {
     sessionStorage.removeItem("token");
     // Redirigir a login (raíz) si no estamos ya ahí
     if (window.location.pathname !== "/") {

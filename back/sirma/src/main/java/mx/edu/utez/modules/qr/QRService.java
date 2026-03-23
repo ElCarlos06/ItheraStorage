@@ -281,8 +281,9 @@ public class QRService {
             try {
                 byte[] qrBytes = generateQrByteArray(qrContent, 300, 300);
 
-                // Carpeta por activo: sirma/activos/{ID}
-                String dynamicFolder = CloudinaryPaths.ACTIVOS + "/" + asset.getId();
+                // Carpeta por activo: sirma/activos/{ID}/qr
+                // El usuario solicitó: "por cada activo, haya una carpeta de qro q el qr este peggado a la carpeta del activo"
+                String dynamicFolder = CloudinaryPaths.ACTIVOS + "/" + asset.getId() + "/qr";
                 
                 var uploadResult = cloudinaryService.upload(qrBytes, dynamicFolder);
                 String url      = (String) uploadResult.get("secure_url");

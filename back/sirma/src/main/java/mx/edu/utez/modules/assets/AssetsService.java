@@ -6,10 +6,6 @@ import mx.edu.utez.modules.espacios.Espacio;
 import mx.edu.utez.modules.espacios.EspacioRepository;
 import mx.edu.utez.modules.imagen_activo.ImagenActivo;
 import mx.edu.utez.modules.imagen_activo.ImagenActivoRepository;
-import mx.edu.utez.modules.marcas.Marca;
-import mx.edu.utez.modules.marcas.MarcaRepository;
-import mx.edu.utez.modules.modelos.Modelo;
-import mx.edu.utez.modules.modelos.ModeloRepository;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
 import mx.edu.utez.modules.qr.QRService;
@@ -41,8 +37,6 @@ public class AssetsService {
 
     private final AssetsRepository assetsRepository;
     private final TipoActivoRepository tipoActivoRepository;
-    private final ModeloRepository modeloRepository;
-    private final MarcaRepository marcaRepository;
     private final EspacioRepository espacioRepository;
     // Inyectamos repositorio de imágenes para detalle extendido
     private final ImagenActivoRepository imagenActivoRepository;
@@ -114,7 +108,6 @@ public class AssetsService {
         dto.setEtiqueta(entity.getEtiqueta());
         dto.setNumeroSerie(entity.getNumeroSerie());
         dto.setIdTipoActivo(entity.getTipoActivo().getId());
-        dto.setIdModelo(entity.getModelo().getId());
         dto.setIdEspacio(entity.getEspacio().getId());
         dto.setEstadoCustodia(entity.getEstadoCustodia());
         dto.setEstadoOperativo(entity.getEstadoOperativo());
@@ -141,9 +134,6 @@ public class AssetsService {
         Optional<TipoActivo> tipoActivo = tipoActivoRepository.findById(dto.getIdTipoActivo());
         if (tipoActivo.isEmpty())
             return new ApiResponse("Tipo de activo no encontrado", true, HttpStatus.NOT_FOUND);
-        Modelo modelo = resolveModelo(dto, tipoActivo.get());
-        if (modelo == null)
-            return new ApiResponse("El tipo de activo debe tener marca y modelo definidos en Catálogos", true, HttpStatus.BAD_REQUEST);
         Optional<Espacio> espacio = espacioRepository.findById(dto.getIdEspacio());
         if (espacio.isEmpty())
             return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
@@ -152,7 +142,6 @@ public class AssetsService {
         entity.setEtiqueta(truncate(dto.getEtiqueta(), 50));
         entity.setNumeroSerie(truncate(dto.getNumeroSerie(), 100));
         entity.setTipoActivo(tipoActivo.get());
-        entity.setModelo(modelo);
         entity.setEspacio(espacio.get());
         entity.setEstadoCustodia(normalizeEstadoCustodia(dto.getEstadoCustodia() != null ? dto.getEstadoCustodia() : "Disponible"));
         entity.setEstadoOperativo(truncate(dto.getEstadoOperativo() != null ? dto.getEstadoOperativo() : "OK", 10));
@@ -181,9 +170,6 @@ public class AssetsService {
         Optional<TipoActivo> tipoActivo = tipoActivoRepository.findById(dto.getIdTipoActivo());
         if (tipoActivo.isEmpty())
             return new ApiResponse("Tipo de activo no encontrado", true, HttpStatus.NOT_FOUND);
-        Modelo modelo = resolveModelo(dto, tipoActivo.get());
-        if (modelo == null)
-            return new ApiResponse("El tipo de activo debe tener marca y modelo definidos en Catálogos", true, HttpStatus.BAD_REQUEST);
         Optional<Espacio> espacio = espacioRepository.findById(dto.getIdEspacio());
         if (espacio.isEmpty())
             return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
@@ -192,7 +178,6 @@ public class AssetsService {
         entity.setEtiqueta(truncate(dto.getEtiqueta(), 50));
         entity.setNumeroSerie(truncate(dto.getNumeroSerie(), 100));
         entity.setTipoActivo(tipoActivo.get());
-        entity.setModelo(modelo);
         entity.setEspacio(espacio.get());
         if (dto.getEstadoCustodia() != null) entity.setEstadoCustodia(normalizeEstadoCustodia(dto.getEstadoCustodia()));
         if (dto.getEstadoOperativo() != null) entity.setEstadoOperativo(truncate(dto.getEstadoOperativo(), 10));
@@ -262,34 +247,6 @@ public class AssetsService {
         entity.setEstadoCustodia("Disponible");
         entity.setEsActivo(false);
         return new ApiResponse("Activo desactivado", entity, HttpStatus.OK);
-    }
-
-    /** 
-     * Resuelve y obtiene (o crea) el Modelo asociado al activo.
-     * Si no se proporciona idModelo, busca o crea la Marca y el Modelo basados en los strings del TipoActivo.
-     *
-     * @param dto DTO del activo con datos de modelo/marca.
-     * @param tipo Tipo de activo seleccionado.
-     * @return Entidad Modelo resuelta o null si faltan datos.
-     */
-    private Modelo resolveModelo(AssetsDTO dto, TipoActivo tipo) {
-        if (dto.getIdModelo() != null) {
-            return modeloRepository.findById(dto.getIdModelo()).orElse(null);
-        }
-        String marcaNombre = trim(tipo.getMarca());
-        String modeloNombre = trim(tipo.getModelo());
-        if (marcaNombre == null || modeloNombre == null) return null;
-        Marca marca = marcaRepository.findByNombre(marcaNombre).orElseGet(() -> {
-            Marca m = new Marca();
-            m.setNombre(marcaNombre);
-            return marcaRepository.save(m);
-        });
-        return modeloRepository.findFirstByMarcaIdAndNombre(marca.getId(), modeloNombre).orElseGet(() -> {
-            Modelo mod = new Modelo();
-            mod.setMarca(marca);
-            mod.setNombre(modeloNombre);
-            return modeloRepository.save(mod);
-        });
     }
 
     private static String trim(String s) {

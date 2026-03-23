@@ -39,7 +39,7 @@ export default function PasswordRecovery() {
                 <p>
                   {forzarCambio
                     ? "Usa la contraseña temporal que recibiste por correo e ingresa tu nueva contraseña."
-                    : "Ingresa tu correo y te enviaremos una contraseña temporal por email."}
+                    : "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña."}
                 </p>
               </div>
 

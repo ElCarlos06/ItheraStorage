@@ -44,19 +44,7 @@ public class UserController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    /**
-     * Crea un nuevo usuario en el sistema.
-     *
-     * @param dto Objeto de transferencia de datos con la información del usuario a crear.
-     * @return ResponseEntity con el usuario creado y estado CREATED.
-     */
-    @PostMapping
-    public ResponseEntity<ApiResponse> save(@Valid @RequestBody UserDTO dto) {
-        ApiResponse response = userService.save(dto);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    /**
+        /**
      * Actualiza la información de un usuario existente.
      *
      * @param id  ID del usuario a modificar.

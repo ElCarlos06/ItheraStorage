@@ -4,15 +4,11 @@ import lombok.RequiredArgsConstructor;
 import mx.edu.utez.security.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -41,7 +37,6 @@ public class MainSecurity {
      * Deshabilita CSRF, configura CORS y define rutas públicas/privadas.
      * @param http Objeto HttpSecurity para configurar las políticas de seguridad
      * @return SecurityFilterChain configurada para la aplicación
-     * @throws Exception Si ocurre un error durante la configuración de seguridad
      */
     @Bean
     public SecurityFilterChain filterInternal(HttpSecurity http) {
@@ -53,9 +48,11 @@ public class MainSecurity {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/auth/**").permitAll() // Permite el login y la doc
                         .requestMatchers("/", "/error", "/email/**", "/preview/**").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
-                        .requestMatchers("/api/register", "/api/register/**").permitAll()
-                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**").hasAnyAuthority("ROLE_Administrador")
-                        .requestMatchers("/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**").hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico", "ROLE_Empleado")
+                        .requestMatchers("/api/register", "/api/register/**").hasAnyAuthority("ROLE_Administrador") // Solo el admin puede crear usuarios
+                        .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/imports/").hasAnyAuthority("ROLE_Administrador")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activos/**").hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico", "ROLE_Empleado")
+                        .requestMatchers("/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**")
+                        .hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -82,25 +79,5 @@ public class MainSecurity {
         src.registerCorsConfiguration("/**", config);
 
         return src;
-    }
-
-    /**
-     * Proveedor de codificador de contraseñas usando BCrypt.
-     * @return instancia de PasswordEncoder
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * Expone el AuthenticationManager configurado por Spring Security.
-     * @param authenticationConfiguration configuración auto-provista
-     * @return AuthenticationManager para inyectar en servicios
-     * @throws Exception si falla la carga de la configuración
-     */
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
     }
 }

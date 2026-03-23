@@ -79,3 +79,9 @@
   color: var(--moon-piccolo);
   background: var(--moon-piccolo-10);
 }
+
+/* Oculta el icono del "ojo" nativo que agregan navegadores como Edge */
+.input-wrap__input::-ms-reveal,
+.input-wrap__input::-ms-clear {
+  display: none;
+}

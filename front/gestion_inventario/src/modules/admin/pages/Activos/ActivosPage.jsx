@@ -141,6 +141,10 @@ export default function ActivosPage() {
       onEditar={handleEditar}
       onEliminar={handleEliminar}
       onDetalles={handleAsignarResguardo}
+      onRefresh={async () => {
+        clearCache(CACHE_KEY);
+        await fetchActivos();
+      }}
     />
   );
 }

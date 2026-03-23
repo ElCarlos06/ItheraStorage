@@ -8,6 +8,7 @@ import mx.edu.utez.modules.users.UserRepository;
 import mx.edu.utez.security.jwt.JwtProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,10 +32,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class AuthService {
 
-    private static final String PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!";
-    private static final int PASSWORD_LENGTH = 12;
-    private static final SecureRandom RANDOM = new SecureRandom();
-
     private final AuthenticationManager authManager;
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
@@ -54,9 +51,19 @@ public class AuthService {
      */
     public ApiResponse login(AuthDTO dto) {
         // 1. Spring Security valida credenciales contra la BD (lanza excepción si son incorrectas)
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getCorreo(), dto.getPassword())
-        );
+        Authentication auth;
+
+        try {
+             auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(dto.getCorreo(), dto.getPassword())
+            );
+        } catch (BadCredentialsException bcd) {
+            return new ApiResponse(
+                    "Credenciales incorrectas. Verifica tu correo y contraseña.",
+                    true,
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
 
         // 2. Recuperar entidad para verificar primer_login
         User user = userRepository.findByCorreoIgnoreCase(dto.getCorreo())

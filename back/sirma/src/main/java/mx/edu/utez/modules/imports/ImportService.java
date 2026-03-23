@@ -11,10 +11,6 @@ import mx.edu.utez.modules.edificios.Edificio;
 import mx.edu.utez.modules.edificios.EdificioRepository;
 import mx.edu.utez.modules.espacios.Espacio;
 import mx.edu.utez.modules.espacios.EspacioRepository;
-import mx.edu.utez.modules.marcas.Marca;
-import mx.edu.utez.modules.marcas.MarcaRepository;
-import mx.edu.utez.modules.modelos.Modelo;
-import mx.edu.utez.modules.modelos.ModeloRepository;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
 import org.apache.poi.ss.usermodel.*;
@@ -30,8 +26,15 @@ import java.util.*;
 
 /**
  * Servicio especializado en la importación masiva de activos desde archivos Excel (.xlsx).
- * Implementa validaciones exhaustivas, manejo de errores detallado y optimizaciones para garantizar una importación eficiente y confiable.
- *  @author: Ithera Team
+ * Implementa validaciones exhaustivas, manejo de errores detallado y optimizaciones
+ * para garantizar una importación eficiente y confiable.
+ *
+ * <p><b>Formato esperado del archivo .xlsx (fila 1 = encabezados, datos desde fila 2):</b></p>
+ * <pre>
+ * Etiqueta*, Número de Serie*, Tipo(Nombre*, Marca*, Bien*, Modelo*)*, Campus*, Edificio*, Espacio*
+ * </pre>
+ *
+ * @author Ithera Team
  */
 @Log4j2
 @Service
@@ -40,8 +43,6 @@ public class ImportService {
 
     private final AssetsRepository assetsRepository;
     private final TipoActivoRepository tipoActivoRepository;
-    private final MarcaRepository marcaRepository;
-    private final ModeloRepository modeloRepository;
     private final CampusRepository campusRepository;
     private final EdificioRepository edificioRepository;
     private final EspacioRepository espacioRepository;
@@ -61,7 +62,7 @@ public class ImportService {
             return new ApiResponse("Archivo no proporcionado o vacío", true, HttpStatus.BAD_REQUEST);
 
         if (!SHEETS_TYPE.equals(file.getContentType()))
-            return new ApiResponse("Tipo de archivo no soportado. Debe ser .xlsx", true, HttpStatus.BAD_REQUEST);
+            return new ApiResponse("Tipo de archivo no soportado. Debe ser .xlsx o similar", true, HttpStatus.BAD_REQUEST);
 
         return handleExcel(file);
     }
@@ -82,16 +83,19 @@ public class ImportService {
      * @param file Archivo Excel validado
      * @return ApiResponse con confirmación o detalle de errores por fila
      */
-    private ApiResponse handleExcel(MultipartFile file) {
+    @Transactional(rollbackFor = {Exception.class})
+    protected ApiResponse handleExcel(MultipartFile file) {
         List<Assets> activosGuardar = new ArrayList<>();
         List<String> errores = new ArrayList<>();
 
+        // Sets para detectar duplicados dentro del propio archivo sin consultar la BD
         Set<String> etiquetasEnLote = new HashSet<>();
         Set<String> seriesEnLote = new HashSet<>();
 
+        // Cachés en memoria para evitar consultas repetidas a los catálogos.
+        // La clave del tipoCache combina tipo+marca+modelo para identificar
+        // el TipoActivo, ya que dos tipos pueden tener el mismo nombre pero distinta marca/modelo.
         final Map<String, TipoActivo> tipoCache = new HashMap<>();
-        final Map<String, Marca> marcaCache = new HashMap<>();
-        final Map<String, Modelo> modeloCache = new HashMap<>();
         final Map<String, Campus> campusCache = new HashMap<>();
         final Map<String, Edificio> edificioCache = new HashMap<>();
         final Map<String, Espacio> espacioCache = new HashMap<>();
@@ -99,90 +103,90 @@ public class ImportService {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
 
-            // Iterar filas
             for (Row row : sheet) {
 
                 if (row.getRowNum() == 0 || isRowEmpty(row))
                     continue; // Saltar cabecera y filas vacías
 
-
                 try {
-                    // 1. Extraer valores básicos
-                    String etiqueta = getCellValue(row.getCell(0));
-                    String serie = getCellValue(row.getCell(1));
-                    String tipoStr = getCellValue(row.getCell(2));
-                    String marcaStr = getCellValue(row.getCell(3));
-                    String modeloStr = getCellValue(row.getCell(4));
-                    String campusStr = getCellValue(row.getCell(5));
-                    String edificioStr = getCellValue(row.getCell(6));
-                    String espacioStr = getCellValue(row.getCell(7));
+                    // 1. Extraer valores de cada celda según su columna
+                    String etiqueta    = getCellValue(row.getCell(0));
+                    String serie       = getCellValue(row.getCell(1));
+                    String nombreStr   = getCellValue(row.getCell(2)); // Atributo de TipoActivo
+                    String marcaStr    = getCellValue(row.getCell(3)); // Atributo de TipoActivo
+                    String bienStr     = getCellValue(row.getCell(4)); // Atributo de TipoActivo (era "tipoStr")
+                    String modeloStr   = getCellValue(row.getCell(5)); // Atributo de TipoActivo
+                    String campusStr   = getCellValue(row.getCell(6));
+                    String edificioStr = getCellValue(row.getCell(7));
+                    String espacioStr  = getCellValue(row.getCell(8));
 
-                    // 2. Validar campos obligatorios
-                    if (etiqueta.isEmpty() ||
-                            serie.isEmpty() ||
-                            tipoStr.isEmpty() ||
-                            marcaStr.isEmpty() ||
-                            modeloStr.isEmpty() ||
-                            campusStr.isEmpty() ||
+                    // 2. Validar que todos los campos obligatorios (*) tengan valor
+                    if (etiqueta.isEmpty()    ||
+                            serie.isEmpty()       ||
+                            nombreStr.isEmpty()   ||
+                            marcaStr.isEmpty()    ||
+                            bienStr.isEmpty()     ||
+                            modeloStr.isEmpty()   ||
+                            campusStr.isEmpty()   ||
                             edificioStr.isEmpty() ||
                             espacioStr.isEmpty()
                     )
                         throw new IllegalArgumentException("Faltan campos obligatorios (*)");
 
-
-                    // 3. Validar duplicados en el LOTE (usando HashSet)
+                    // 3. Validar duplicados dentro del lote (sin tocar la BD)
                     if (!etiquetasEnLote.add(etiqueta))
                         throw new IllegalArgumentException("La etiqueta '" + etiqueta + "' está repetida en el archivo.");
 
                     if (!seriesEnLote.add(serie))
                         throw new IllegalArgumentException("El número de serie '" + serie + "' está repetido en el archivo.");
 
-
-                    // 4. Validar duplicados en la BD
+                    // 4. Validar duplicados contra la BD
                     if (assetsRepository.existsByEtiqueta(etiqueta))
                         throw new IllegalArgumentException("La etiqueta '" + etiqueta + "' ya existe en el sistema.");
 
                     if (assetsRepository.existsByNumeroSerie(serie))
                         throw new IllegalArgumentException("El número de serie '" + serie + "' ya existe en el sistema.");
 
+                    // 5. Resolución de catálogos con caché (HashMap para evitar N+1)
 
-                    // 5. Resolución de catálogos optimizada (usando HashMap Caché)
-                    TipoActivo tipoActivo = tipoCache.computeIfAbsent(tipoStr, k ->
-                            tipoActivoRepository.findByNombre(k).orElseThrow(() -> new IllegalArgumentException("El Tipo '" + k + "' no existe."))
-                    );
-
-                    Marca marca = marcaCache.computeIfAbsent(marcaStr, k ->
-                            marcaRepository.findByNombre(k).orElseThrow(() -> new IllegalArgumentException("La Marca '" + k + "' no existe."))
-                    );
-
-                    String modeloKey = marca.getId() + "-" + modeloStr;
-                    Modelo modelo = modeloCache.computeIfAbsent(modeloKey, k ->
-                            modeloRepository.findFirstByMarcaIdAndNombre(marca.getId(), modeloStr)
-                                    .orElseThrow(() -> new IllegalArgumentException("El Modelo '" + modeloStr + "' no existe para esa marca."))
+                    // TipoActivo: la clave combina tipo+marca+modelo porque marca y modelo
+                    // son atributos propios de TipoActivo, no entidades independientes.
+                    // Así se garantiza que dos filas con mismo tipo pero distinta marca/modelo
+                    // no colisionen en el caché.
+                    String tipoKey = nombreStr + "-" + marcaStr + "-" + bienStr + "-" + modeloStr;
+                    TipoActivo tipoActivo = tipoCache.computeIfAbsent(tipoKey, k ->
+                            tipoActivoRepository.findByNombreAndMarcaAndTipoBienAndModelo(nombreStr, marcaStr, bienStr, modeloStr)
+                                    .orElseThrow(() -> new IllegalArgumentException(
+                                            "No existe el TipoActivo con nombre '" + nombreStr +
+                                                    "', marca '" + marcaStr +
+                                                    "', bien '" + bienStr +
+                                                    "' y modelo '" + modeloStr + "."))
                     );
 
                     Campus campus = campusCache.computeIfAbsent(campusStr, k ->
-                            campusRepository.findByNombre(k).orElseThrow(() -> new IllegalArgumentException("El Campus '" + k + "' no existe."))
+                            campusRepository.findByNombre(k)
+                                    .orElseThrow(() -> new IllegalArgumentException("El Campus '" + k + "' no existe."))
                     );
 
-                    String edificioKey = campus.getId() + "-" + edificioStr; // Llave compuesta
+                    // Clave compuesta campusId+edificio para soportar edificios con igual nombre en distintos campus
+                    String edificioKey = campus.getId() + "-" + edificioStr;
                     Edificio edificio = edificioCache.computeIfAbsent(edificioKey, k ->
                             edificioRepository.findByCampusIdAndNombre(campus.getId(), edificioStr)
                                     .orElseThrow(() -> new IllegalArgumentException("El Edificio '" + edificioStr + "' no existe en ese campus."))
                     );
 
-                    String espacioKey = edificio.getId() + "-" + espacioStr; // Llave compuesta
+                    // Clave compuesta edificioId+espacio para soportar espacios con igual nombre en distintos edificios
+                    String espacioKey = edificio.getId() + "-" + espacioStr;
                     Espacio espacio = espacioCache.computeIfAbsent(espacioKey, k ->
                             espacioRepository.findByEdificioIdAndNombreEspacio(edificio.getId(), espacioStr)
                                     .orElseThrow(() -> new IllegalArgumentException("El Espacio '" + espacioStr + "' no existe en ese edificio."))
                     );
 
-                    // 6. Construir el objeto si todo es válido
+                    // 6. Construir el activo si todas las validaciones pasaron
                     Assets asset = new Assets();
                     asset.setEtiqueta(etiqueta);
                     asset.setNumeroSerie(serie);
                     asset.setTipoActivo(tipoActivo);
-                    asset.setModelo(modelo);
                     asset.setEspacio(espacio);
                     asset.setFechaAlta(LocalDate.now());
                     asset.setEsActivo(true);
@@ -192,17 +196,35 @@ public class ImportService {
                     activosGuardar.add(asset);
 
                 } catch (IllegalArgumentException e) {
+                    log.error("Error en fila {}: {}", (row.getRowNum() + 1), e.getMessage());
                     errores.add("Fila " + (row.getRowNum() + 1) + ": " + e.getMessage());
                 }
             }
 
-            // 7. Decisión final: Guardar o Rechazar todo
-            if (!errores.isEmpty())
-                return new ApiResponse("Errores detectados. No se guardó nada.\n" + String.join("\n", errores), true, HttpStatus.BAD_REQUEST);
+            // 7. Guardar en BD solo los activos que pasaron todas las validaciones (inserción parcial)
+            if (!activosGuardar.isEmpty())
+                assetsRepository.saveAll(activosGuardar);
 
+            // 8. Construir el mensaje cumpliendo los criterios de aceptación
+            int inserciones = activosGuardar.size();
+            int rechazos = errores.size();
 
-            assetsRepository.saveAll(activosGuardar);
-            return new ApiResponse("Importación exitosa. Se registraron " + activosGuardar.size() + " activos.", false, HttpStatus.OK);
+            StringBuilder mensaje = new StringBuilder();
+            mensaje.append("Importación realizada exitosamente.\n");
+            mensaje.append("Total de inserciones: ").append(inserciones).append("\n");
+            mensaje.append("Total de rechazos: ").append(rechazos);
+
+            // Si hubo rechazos, anexamos el detalle para que el usuario sepa qué filas fallaron
+            if (rechazos > 0) {
+                mensaje.append("\n\nDetalle de rechazos:\n").append(String.join("\n", errores));
+
+                // Retornamos OK porque el proceso terminó bien, pero mandamos flag `true` de error
+                // para que el frontend sepa que hubo filas omitidas (o puedes cambiar a BAD_REQUEST según tu API).
+                return new ApiResponse(mensaje.toString(), true, HttpStatus.OK);
+            }
+
+            // Si todo fue perfecto y no hubo rechazos
+            return new ApiResponse(mensaje.toString(), false, HttpStatus.OK);
 
         } catch (IOException e) {
             log.error("Error al leer el archivo Excel", e);
@@ -224,12 +246,12 @@ public class ImportService {
             case NUMERIC -> {
 
                 if (DateUtil.isCellDateFormatted(cell))
-                    yield cell.getDateCellValue().toString(); // Al parecer yield retirna el valor, algo que solo funcion a en un switch XD
+                    yield cell.getDateCellValue().toString();
 
                 double val = cell.getNumericCellValue();
 
                 if (val == (long) val)
-                    yield String.valueOf((long) val); // Quita el .0 de los enteros
+                    yield String.valueOf((long) val); // Elimina el .0 innecesario en enteros
 
                 else
                     yield String.valueOf(val);
@@ -242,6 +264,7 @@ public class ImportService {
 
     /**
      * Verifica si una fila del archivo Excel está completamente vacía.
+     * Se usa para ignorar filas en blanco intercaladas sin generar errores de validación.
      *
      * @param row Fila a evaluar
      * @return true si la fila está vacía o es nula, false en caso contrario

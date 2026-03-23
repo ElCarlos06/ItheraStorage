@@ -55,12 +55,26 @@ export default function Login() {
         password: form.contrasena,
       });
 
+      // Si el backend devuelve status 200 pero con error === true, debemos detenernos
+      if (data.error) {
+        setErrores((prev) => ({
+          ...prev,
+          _form: data.message || "Credenciales incorrectas",
+        }));
+        return;
+      }
+
+      // Validamos el rol, si no es admin, la función devolverá false y terminamos aquí
+      if (!roleHandler(data.rol)) return;
+
       // Guarda el token recibido del backend en sessionStorage
       sessionStorage.setItem("token", data.token ?? data.data?.token ?? "");
 
       // Recarga completa para que App.jsx detecte el token y monte AdminRouter
       window.location.replace("/");
     } catch (err) {
+      setForm((prev) => ({ ...prev, contrasena: "" }));
+
       // El backend responde 403 cuando el usuario existe pero debe cambiar
       // su contraseña antes de continuar; se redirige al flujo de cambio
       if (err.status === 403 && err.data?.data?.requiresPasswordChange) {
@@ -83,6 +97,17 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const roleHandler = (r) => {
+    if (r !== "ADMIN") {
+      setErrores((prev) => ({
+        ...prev,
+        _form: "Tu no deberias de estar aquí",
+      }));
+      return false; // Retornamos false para indicar que NO debe continuar
+    }
+    return true; // Retornamos true indicando que el rol es correcto
   };
 
   return (

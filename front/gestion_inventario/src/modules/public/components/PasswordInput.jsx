@@ -25,15 +25,22 @@ export default function PasswordInput({
             onKeyDown={(e) => e.key === "Enter" && setShowPassword((v) => !v)}
             role="button"
             tabIndex={0}
-            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            aria-label={
+              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+            }
           >
-            <i className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} text-muted`} aria-hidden />
+            <i
+              className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} text-muted`}
+              aria-hidden
+            />
           </span>
         }
         {...props}
       />
       {error && (
-        <span className="form-field-error" role="alert">{error}</span>
+        <span className="form-field-error" role="alert">
+          {error}
+        </span>
       )}
     </div>
   );

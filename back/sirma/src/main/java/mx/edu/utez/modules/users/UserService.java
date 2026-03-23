@@ -69,54 +69,13 @@ public class UserService {
         return new ApiResponse("Usuario encontrado", found.get(), HttpStatus.OK);
     }
 
-    @Transactional
-    public ApiResponse save(UserDTO dto) {
-        Optional<User> existente = userRepository.findByCorreoIgnoreCase(dto.getCorreo().trim());
-        if (existente.isPresent() && Boolean.TRUE.equals(existente.get().getEsActivo()))
-            return new ApiResponse("Ya existe un usuario activo con ese correo. Desactívelo y actívelo de nuevo si desea reutilizarlo.", true, HttpStatus.CONFLICT);
-
-        Optional<Role> role = roleRepository.findById(dto.getIdRol());
-        if (role.isEmpty())
-            return new ApiResponse("Rol no encontrado", true, HttpStatus.NOT_FOUND);
-        Optional<Area> area = areaRepository.findById(dto.getIdArea());
-        if (area.isEmpty())
-            return new ApiResponse("Área no encontrada", true, HttpStatus.NOT_FOUND);
-
-        if (existente.isPresent()) {
-            User entity = existente.get();
-            entity.setNombreCompleto(dto.getNombreCompleto());
-            entity.setCurp(dto.getCurp());
-            entity.setFechaNacimiento(LocalDate.parse(dto.getFechaNacimiento()));
-            if (dto.getNumeroEmpleado() != null && !dto.getNumeroEmpleado().isBlank())
-                entity.setNumeroEmpleado(dto.getNumeroEmpleado());
-            entity.setRole(role.get());
-            entity.setArea(area.get());
-            entity.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-            entity.setPrimerLogin(true);
-            entity.setEsActivo(true);
-            userRepository.save(entity);
-            return new ApiResponse("Usuario reactivado", entity, HttpStatus.OK);
-        }
-
-        User entity = new User();
-        entity.setNombreCompleto(dto.getNombreCompleto());
-        entity.setCorreo(dto.getCorreo());
-        entity.setCurp(dto.getCurp());
-        entity.setFechaNacimiento(LocalDate.parse(dto.getFechaNacimiento()));
-        String numeroEmpleado = (dto.getNumeroEmpleado() != null && !dto.getNumeroEmpleado().isBlank())
-                ? dto.getNumeroEmpleado()
-                : generarNumeroEmpleado(dto.getCurp(), role.get());
-        entity.setNumeroEmpleado(numeroEmpleado);
-        entity.setRole(role.get());
-        entity.setArea(area.get());
-        entity.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-        entity.setPrimerLogin(true);
-        entity.setEsActivo(true);
-        userRepository.save(entity);
-        return new ApiResponse("Usuario registrado", entity, HttpStatus.CREATED);
-    }
-
-    @Transactional
+    /**
+     * Metodo que efectua la actualización de información de un usuario.
+     * @param id ID del usuario al que sse le van a aplicar los cambios.
+     * @param dto DTO que contiene la información que se puede actualizar de un usuario.
+     * @return ApiReponse con la información del usuario actualizado o un mensaje de error si no se encuentra el usuario, rol o área.
+     */
+    @Transactional(rollbackFor = {Exception.class})
     public ApiResponse update(Long id, UserDTO dto) {
         Optional<User> found = userRepository.findById(id);
         if (found.isEmpty())
@@ -149,7 +108,7 @@ public class UserService {
         return new ApiResponse("Usuario actualizado", entity, HttpStatus.OK);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class})
     public ApiResponse toggleStatus(Long id) {
         Optional<User> found = userRepository.findById(id);
         if (found.isEmpty())
@@ -160,7 +119,7 @@ public class UserService {
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class})
     public ApiResponse delete(Long id) {
         Optional<User> found = userRepository.findById(id);
         if (found.isEmpty())

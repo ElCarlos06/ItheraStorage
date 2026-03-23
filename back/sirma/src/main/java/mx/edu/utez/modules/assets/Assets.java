@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mx.edu.utez.kernel.BaseEntity;
-import mx.edu.utez.modules.modelos.Modelo;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.espacios.Espacio;
 
@@ -38,11 +37,6 @@ public class Assets extends BaseEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_tipo_activo", nullable = false)
     private TipoActivo tipoActivo;
-
-    /** Modelo del activo. */
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_modelo", nullable = false)
-    private Modelo modelo;
 
     /** Ubicación física actual del activo. */
     @ManyToOne(fetch = FetchType.EAGER)

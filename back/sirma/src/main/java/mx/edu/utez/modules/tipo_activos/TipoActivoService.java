@@ -56,33 +56,34 @@ public class TipoActivoService {
 
     @Transactional
     public ApiResponse save(TipoActivoDTO dto) {
-        if (tipoActivoRepository.existsByNombreAndEsActivoTrue(dto.getNombre()))
-            return new ApiResponse("Ya existe un tipo de activo activo con ese nombre", true, HttpStatus.CONFLICT);
-        var desactivado = tipoActivoRepository.findFirstByNombreAndEsActivoFalse(dto.getNombre());
-        TipoActivo entity;
-        if (desactivado.isPresent()) {
-            entity = desactivado.get();
-            entity.setEsActivo(true);
-            entity.setTipoBien(dto.getTipoBien());
-            entity.setDescripcion(dto.getDescripcion());
-            entity.setMarca(dto.getMarca());
-            entity.setModelo(dto.getModelo());
+
+        Optional<TipoActivo> existenteOpt = tipoActivoRepository.findByNombre(dto.getNombre());
+
+        TipoActivo nuevaEntity = null;
+        if (existenteOpt.isPresent()) {
+            TipoActivo entity = existenteOpt.get();
+
+            // Si ya está activo, lanzamos el error de conflicto
+            if (entity.getEsActivo())
+                return new ApiResponse("Ya existe un tipo de activo, activo con ese nombre", true, HttpStatus.CONFLICT);
+
+
+            // Si existía pero estaba desactivado se actualiza el estado
+            mapEntity(dto, entity);
         } else {
-            entity = new TipoActivo();
-            entity.setNombre(dto.getNombre());
-            entity.setTipoBien(dto.getTipoBien());
-            entity.setDescripcion(dto.getDescripcion());
-            entity.setMarca(dto.getMarca());
-            entity.setModelo(dto.getModelo());
-            entity.setEsActivo(dto.getEsActivo() != null ? dto.getEsActivo() : true);
+            // Si no existía nada, creamos uno nuevo
+            nuevaEntity = new TipoActivo();
+            nuevaEntity.setNombre(dto.getNombre());
+            mapEntity(dto, nuevaEntity);
+            tipoActivoRepository.save(nuevaEntity);
         }
-        tipoActivoRepository.save(entity);
-        return new ApiResponse("Tipo de activo registrado", entity, HttpStatus.CREATED);
+        return new ApiResponse("Tipo de activo registrado", nuevaEntity, HttpStatus.CREATED);
     }
 
     @Transactional
     public ApiResponse update(Long id, TipoActivoDTO dto) {
         Optional<TipoActivo> found = tipoActivoRepository.findById(id);
+
         if (found.isEmpty())
             return new ApiResponse("Tipo de activo no encontrado", true, HttpStatus.NOT_FOUND);
         TipoActivo entity = found.get();
@@ -105,6 +106,14 @@ public class TipoActivoService {
         entity.setEsActivo(!entity.getEsActivo());
         tipoActivoRepository.save(entity);
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
+    }
+
+    private void mapEntity(TipoActivoDTO dto, TipoActivo entity) {
+        entity.setTipoBien(dto.getTipoBien());
+        entity.setDescripcion(dto.getDescripcion());
+        entity.setMarca(dto.getMarca());
+        entity.setModelo(dto.getModelo());
+        entity.setEsActivo(true);
     }
 
 }
