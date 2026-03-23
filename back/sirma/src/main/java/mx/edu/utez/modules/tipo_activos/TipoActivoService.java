@@ -68,8 +68,10 @@ public class TipoActivoService {
                 return new ApiResponse("Ya existe un tipo de activo, activo con ese nombre", true, HttpStatus.CONFLICT);
 
 
-            // Si existía pero estaba desactivado se actualiza el estado
+            // Si existía pero estaba desactivado se actualiza y persiste
             mapEntity(dto, entity);
+            entity.setEsActivo(true);
+            nuevaEntity = tipoActivoRepository.save(entity);
         } else {
             // Si no existía nada, creamos uno nuevo
             nuevaEntity = new TipoActivo();

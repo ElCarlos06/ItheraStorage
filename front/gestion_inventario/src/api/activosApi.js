@@ -5,8 +5,8 @@ export const activosApi = {
    * Obtener todos los activos
    * GET /api/activos
    */
-  getActivos: (page = 0, size = 10) =>
-    request(`/api/activos?page=${page}&size=${size}`),
+  getActivos: (page = 0, size = 10, bust = "") =>
+    request(`/api/activos?page=${page}&size=${size}${bust ? `&_=${bust}` : ""}`),
 
   /**
    * Crear un nuevo activo

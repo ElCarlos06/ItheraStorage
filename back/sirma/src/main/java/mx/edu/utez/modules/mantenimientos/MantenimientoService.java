@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
+import mx.edu.utez.modules.assets.AssetsService;
+import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.prioridades.Prioridad;
 import mx.edu.utez.modules.prioridades.PrioridadRepository;
 import mx.edu.utez.modules.reportes.Reporte;
@@ -29,6 +31,8 @@ public class MantenimientoService {
     private final AssetsRepository assetsRepository;
     private final UserRepository userRepository;
     private final PrioridadRepository prioridadRepository;
+    private final BitacoraService bitacoraService;
+    private final AssetsService assetsService;
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
@@ -85,6 +89,13 @@ public class MantenimientoService {
         entity.setTipoAsignado(dto.getTipoAsignado());
         entity.setEstadoMantenimiento("Asignado");
         mantenimientoRepository.save(entity);
+        Long activoId = activo.get().getId();
+        String opAnt = activo.get().getEstadoOperativo();
+        assetsRepository.updateEstadoOperativo(activoId, "Mantenimiento");
+        assetsService.evictAssetCache(activoId);
+        bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Mantenimiento",
+                "Mantenimiento asignado a " + tecnico.get().getNombreCompleto(),
+                null, null, opAnt, "Mantenimiento");
         return new ApiResponse("Mantenimiento registrado", entity, HttpStatus.CREATED);
     }
 
@@ -107,8 +118,16 @@ public class MantenimientoService {
             entity.setEstadoMantenimiento(dto.getEstadoMantenimiento());
             if ("En Proceso".equals(dto.getEstadoMantenimiento()))
                 entity.setFechaInicio(LocalDateTime.now());
-            if ("Finalizado".equals(dto.getEstadoMantenimiento()))
+            if ("Finalizado".equals(dto.getEstadoMantenimiento())) {
                 entity.setFechaFin(LocalDateTime.now());
+                Long activoId = entity.getActivo().getId();
+                String opAnt = entity.getActivo().getEstadoOperativo();
+                assetsRepository.updateEstadoOperativo(activoId, "OK");
+                assetsService.evictAssetCache(activoId);
+                bitacoraService.registrarEvento(activoId, null, "Cierre Mantenimiento",
+                        "Mantenimiento finalizado: " + (dto.getConclusion() != null ? dto.getConclusion() : "Concluido"),
+                        null, null, opAnt, "OK");
+            }
         }
 
         mantenimientoRepository.save(entity);

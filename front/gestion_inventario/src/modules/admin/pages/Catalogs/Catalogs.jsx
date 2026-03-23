@@ -17,7 +17,6 @@ import { GenericPlus } from "@heathmont/moon-icons";
 import { ubicacionesApi } from "../../../../api/ubicacionesApi";
 import "./Catalogs.css";
 import { tipoActivosApi } from "../../../../api/tipoActivosApi.js";
-import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
 
 const MAIN_TABS = [
   {
@@ -127,7 +126,7 @@ export default function Catalogs() {
   const [confirmDeleteTipoActivo, setConfirmDeleteTipoActivo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [items, setItems] = useState(() => getCached(`catalog-${subTab}`)?.items ?? []);
+  const [items, setItems] = useState([]);
   const [campusList, setCampusList] = useState([]);
   const [edificiosList, setEdificiosList] = useState([]);
 
@@ -166,15 +165,6 @@ export default function Catalogs() {
   }, [mainTab, subTab, currentPage]);
 
   const cargarUbicaciones = async () => {
-    const ck = `catalog-${subTab}-p${currentPage}`;
-    const hasCached = !!getCached(ck);
-    if (hasCached) {
-      const c = getCached(ck);
-      setItems(c.items);
-      setTotalPages(c.totalPages);
-      setTotalElements(c.totalElements);
-      return; // No solicitar a API si ya está en caché
-    }
     setLoading(true);
     setError(null);
     try {
@@ -210,7 +200,6 @@ export default function Catalogs() {
       const te = res?.data?.totalElements ?? 0;
       setTotalPages(tp);
       setTotalElements(te);
-      setCache(ck, { items: mapped, totalPages: tp, totalElements: te });
 
       // Cargar listas auxiliares para los modales
       if (subTab === "edificios" || subTab === "aulas" || subTab === "campus") {
@@ -227,28 +216,17 @@ export default function Catalogs() {
   };
 
   const refreshLocations = () => {
-    clearCache(`catalog-${subTab}-p${currentPage}`);
     cargarUbicaciones();
   };
 
   const cargarTiposActivos = async () => {
-    const ck = `catalog-tipos-p${currentPage}`;
-    const hasCached = !!getCached(ck);
-    if (hasCached) {
-      const c = getCached(ck);
-      setItems(c.items);
-      setTotalPages(c.totalPages);
-      setTotalElements(c.totalElements);
-      return; // No solicitar a API si ya está en caché
-    }
-    
     setLoading(true);
-    setItems([]);
     setError(null);
     try {
       const res = await tipoActivosApi.getTipoActivos(
         currentPage - 1,
         pageSize,
+        Date.now(),
       );
       const content = res?.data?.content ?? [];
       const tp = res?.data?.totalPages ?? 0;
@@ -256,9 +234,9 @@ export default function Catalogs() {
       setItems(content);
       setTotalPages(tp);
       setTotalElements(te);
-      setCache(ck, { items: content, totalPages: tp, totalElements: te });
     } catch (err) {
-      if (!hasCached) setError(err?.message ?? "Error al cargar tipos de activos");
+      setError(err?.message ?? "Error al cargar tipos de activos");
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -301,7 +279,6 @@ export default function Catalogs() {
       await tipoActivosApi.toggleStatusTipoActivo(confirmDeleteTipoActivo.id);
       toast.success("Tipo de activo eliminado correctamente");
       setConfirmDeleteTipoActivo(null);
-      clearCache(`catalog-tipos-p${currentPage}`);
       cargarTiposActivos();
     } catch (err) {
       toast.error(err?.message ?? "Error al eliminar");
@@ -474,7 +451,6 @@ export default function Catalogs() {
               await tipoActivosApi.crearTipoActivo(data);
               toast.success("Tipo de activo guardado correctamente");
             }
-            clearCache(`catalog-tipos-p${currentPage}`);
             await cargarTiposActivos();
             setModalTipoActivoOpen(false);
             setEditTipoActivo(null);

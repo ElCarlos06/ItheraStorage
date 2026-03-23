@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import NewAssetModal from "./NewAssetModal";
 import AssignResguardoModal from "./components/AssignResguardoModal";
+import HistorialActivoModal from "./components/HistorialActivoModal";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
@@ -45,6 +46,7 @@ export default function Activos({
   const [modalEditAsset, setModalEditAsset] = useState(null);
   const [confirmDeleteAsset, setConfirmDeleteAsset] = useState(null);
   const [modalAssignAsset, setModalAssignAsset] = useState(null);
+  const [modalHistorialAsset, setModalHistorialAsset] = useState(null);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
@@ -182,7 +184,7 @@ export default function Activos({
                   item={item}
                   onEliminar={() => setConfirmDeleteAsset(item)}
                   onEditar={() => setModalEditAsset(item)}
-                  onHistorial={onHistorial}
+                  onHistorial={onHistorial ?? ((item) => setModalHistorialAsset(item))}
                   onDetalles={() => setModalAssignAsset(item)}
                 />
               ))
@@ -244,11 +246,15 @@ export default function Activos({
           try {
             await onDetalles?.(modalAssignAsset, data);
             setModalAssignAsset(null);
-            // El toast lo muestra ActivosPage.handleAsignarResguardo
           } catch (err) {
             toast.error(err.message ?? "Error al asignar resguardo");
           }
         }}
+      />
+      <HistorialActivoModal
+        open={!!modalHistorialAsset}
+        onClose={() => setModalHistorialAsset(null)}
+        asset={modalHistorialAsset}
       />
     </div>
   );

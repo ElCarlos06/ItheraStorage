@@ -19,10 +19,10 @@ public class TipoActivoController {
     private final TipoActivoService tipoActivoService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
+    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         ApiResponse response = tipoActivoService.findAll(pageable);
         return ResponseEntity.status(response.getStatus())
-                .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+                .cacheControl(CacheControl.noCache().mustRevalidate())
                 .body(response);
     }
 

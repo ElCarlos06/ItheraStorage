@@ -5,6 +5,7 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.assets.AssetsService;
+import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public class ResguardoService {
     private final ResguardoRepository resguardoRepository;
     private final AssetsRepository assetsRepository;
     private final AssetsService assetsService;
+    private final BitacoraService bitacoraService;
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
@@ -89,8 +91,11 @@ public class ResguardoService {
 
         // Flujo de estatus: al asignar a empleado → En Proceso (valor exacto del ENUM)
         Long activoId = activo.get().getId();
+        String custAnt = activo.get().getEstadoCustodia();
         assetsRepository.updateEstadoCustodia(activoId, "En Proceso");
         assetsService.evictAssetCache(activoId);
+        bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Resguardo",
+                "Asignado a " + empleado.get().getNombreCompleto(), custAnt, "En Proceso", null, null);
 
         return new ApiResponse("Resguardo registrado", entity, HttpStatus.CREATED);
     }
@@ -109,14 +114,22 @@ public class ResguardoService {
             if ("Confirmado".equals(dto.getEstadoResguardo())) {
                 entity.setFechaConfirmacion(LocalDateTime.now());
                 Long activoId = entity.getActivo().getId();
+                String custAnt = entity.getActivo().getEstadoCustodia();
                 assetsRepository.updateEstadoCustodia(activoId, "Resguardado");
                 assetsService.evictAssetCache(activoId);
+                bitacoraService.registrarEvento(activoId, null, "Confirmacion Resguardo",
+                        "Resguardo confirmado por " + entity.getUsuarioEmpleado().getNombreCompleto(),
+                        custAnt, "Resguardado", null, null);
             }
             if ("Devuelto".equals(dto.getEstadoResguardo())) {
                 entity.setFechaDevolucion(LocalDateTime.now());
                 Long activoId = entity.getActivo().getId();
+                String custAnt = entity.getActivo().getEstadoCustodia();
                 assetsRepository.updateEstadoCustodia(activoId, "Disponible");
                 assetsService.evictAssetCache(activoId);
+                bitacoraService.registrarEvento(activoId, null, "Devolucion Resguardo",
+                        "Activo devuelto por " + entity.getUsuarioEmpleado().getNombreCompleto(),
+                        custAnt, "Disponible", null, null);
             }
         }
         resguardoRepository.save(entity);

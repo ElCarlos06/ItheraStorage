@@ -2,11 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
 import { toast } from "../../../../utils/toast.jsx";
-import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
 import { resguardosApi } from "../../../../api/resguardosApi";
 import { getProfileFromToken } from "../../../../api/authApi";
-
-const CACHE_KEY = "activos";
 
 function mapActivoToDisplay(item) {
   const espacio = item.espacio ?? {};
@@ -33,9 +30,8 @@ function mapActivoToDisplay(item) {
 }
 
 export default function ActivosPage() {
-  const cached = getCached(CACHE_KEY);
-  const [activos, setActivos] = useState(cached ?? []);
-  const [loading, setLoading] = useState(!cached);
+  const [activos, setActivos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchActivos = useCallback(async (silent = false) => {
@@ -44,13 +40,12 @@ export default function ActivosPage() {
       setError(null);
     }
     try {
-      const res = await activosApi.getActivos(0, 500);
+      const res = await activosApi.getActivos(0, 500, Date.now());
       const content = res?.data?.content ?? res?.content ?? res?.data ?? [];
       const list = Array.isArray(content) ? content : [];
       const soloActivos = list.filter((a) => a.esActivo !== false);
       const mapped = soloActivos.map(mapActivoToDisplay);
       setActivos(mapped);
-      setCache(CACHE_KEY, mapped);
     } catch (err) {
       if (!silent) {
         setError(err.message ?? "Error al cargar activos");
@@ -62,18 +57,13 @@ export default function ActivosPage() {
   }, []);
 
   useEffect(() => {
-    if (cached) {
-      fetchActivos(true); // Refrescar en background si hay caché
-    } else {
-      fetchActivos();
-    }
+    fetchActivos();
   }, [fetchActivos]);
 
   const handleNuevo = async (data) => {
     try {
       await activosApi.save(data);
-      clearCache(CACHE_KEY);
-      await fetchActivos();
+      await fetchActivos(true);
     } catch (err) {
       toast.error(err.message ?? "Error al guardar el activo");
       throw err;
@@ -85,8 +75,7 @@ export default function ActivosPage() {
     if (!id) return;
     try {
       await activosApi.update(id, data);
-      clearCache(CACHE_KEY);
-      await fetchActivos();
+      await fetchActivos(true);
     } catch (err) {
       toast.error(err.message ?? "Error al actualizar el activo");
       throw err;
@@ -96,12 +85,10 @@ export default function ActivosPage() {
   const handleEliminar = async (asset) => {
     const id = asset?.id;
     if (!id) return;
-    setActivos((prev) => prev.filter((a) => a.id !== id));
     try {
       await activosApi.toggleStatus(id);
-      clearCache(CACHE_KEY);
+      await fetchActivos();
     } catch (err) {
-      clearCache(CACHE_KEY);
       await fetchActivos();
       toast.error(err.message ?? "Error al eliminar");
       throw err;
@@ -124,8 +111,7 @@ export default function ActivosPage() {
 
     try {
       await resguardosApi.save(payload);
-      clearCache(CACHE_KEY);
-      await fetchActivos(true); // Refrescar sin spinner para ver el nuevo estatus
+      await fetchActivos(true);
       toast.success("Resguardo asignado correctamente");
     } catch (err) {
       throw err;
@@ -141,10 +127,7 @@ export default function ActivosPage() {
       onEditar={handleEditar}
       onEliminar={handleEliminar}
       onDetalles={handleAsignarResguardo}
-      onRefresh={async () => {
-        clearCache(CACHE_KEY);
-        await fetchActivos();
-      }}
+      onRefresh={fetchActivos}
     />
   );
 }

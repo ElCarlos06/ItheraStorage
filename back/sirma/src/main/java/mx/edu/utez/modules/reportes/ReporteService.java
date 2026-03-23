@@ -5,6 +5,7 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.assets.AssetsService;
+import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.prioridades.Prioridad;
 import mx.edu.utez.modules.prioridades.PrioridadRepository;
 import mx.edu.utez.modules.tipo_fallas.TipoFalla;
@@ -32,6 +33,7 @@ public class ReporteService {
     private final ReporteRepository reporteRepository;
     private final AssetsRepository assetsRepository;
     private final AssetsService assetsService;
+    private final BitacoraService bitacoraService;
     private final UserRepository userRepository;
     private final TipoFallaRepository tipoFallaRepository;
     private final PrioridadRepository prioridadRepository;
@@ -102,10 +104,14 @@ public class ReporteService {
         reporteRepository.save(entity);
 
         // DFR: Reportado = custodia='Resguardado' + operativo='Reportado'
-        // No tocamos estado_custodia (sigue Resguardado); actualizamos estado_operativo
         Long activoId = activo.get().getId();
+        String opAnt = activo.get().getEstadoOperativo();
         assetsRepository.updateEstadoOperativo(activoId, "Reportado");
         assetsService.evictAssetCache(activoId);
+        String desc = dto.getDescripcionFalla();
+        String descCorta = desc != null && desc.length() > 100 ? desc.substring(0, 100) + "…" : (desc != null ? desc : "Daño reportado");
+        bitacoraService.registrarEvento(activoId, dto.getIdUsuarioReporta(), "Reporte Daño",
+                "Reporte: " + descCorta, null, null, opAnt, "Reportado");
 
         return new ApiResponse("Reporte registrado", entity, HttpStatus.CREATED);
     }

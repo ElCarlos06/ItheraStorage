@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
+import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.campus.Campus;
 import mx.edu.utez.modules.campus.CampusRepository;
 import mx.edu.utez.modules.edificios.Edificio;
@@ -42,6 +43,7 @@ import java.util.*;
 public class ImportService {
 
     private final AssetsRepository assetsRepository;
+    private final BitacoraService bitacoraService;
     private final TipoActivoRepository tipoActivoRepository;
     private final CampusRepository campusRepository;
     private final EdificioRepository edificioRepository;
@@ -92,9 +94,6 @@ public class ImportService {
         Set<String> etiquetasEnLote = new HashSet<>();
         Set<String> seriesEnLote = new HashSet<>();
 
-        // Cachés en memoria para evitar consultas repetidas a los catálogos.
-        // La clave del tipoCache combina tipo+marca+modelo para identificar
-        // el TipoActivo, ya que dos tipos pueden tener el mismo nombre pero distinta marca/modelo.
         final Map<String, TipoActivo> tipoCache = new HashMap<>();
         final Map<String, Campus> campusCache = new HashMap<>();
         final Map<String, Edificio> edificioCache = new HashMap<>();
@@ -182,7 +181,7 @@ public class ImportService {
                                     .orElseThrow(() -> new IllegalArgumentException("El Espacio '" + espacioStr + "' no existe en ese edificio."))
                     );
 
-                    // 6. Construir el activo si todas las validaciones pasaron
+                    // 6. Construir el activo (marca/modelo van en TipoActivo)
                     Assets asset = new Assets();
                     asset.setEtiqueta(etiqueta);
                     asset.setNumeroSerie(serie);
@@ -202,8 +201,14 @@ public class ImportService {
             }
 
             // 7. Guardar en BD solo los activos que pasaron todas las validaciones (inserción parcial)
-            if (!activosGuardar.isEmpty())
+            if (!activosGuardar.isEmpty()) {
                 assetsRepository.saveAll(activosGuardar);
+                for (Assets a : activosGuardar) {
+                    bitacoraService.registrarEvento(a.getId(), null, "Registro Activo",
+                            "Activo " + a.getEtiqueta() + " importado desde Excel",
+                            null, "Disponible", null, "OK");
+                }
+            }
 
             // 8. Construir el mensaje cumpliendo los criterios de aceptación
             int inserciones = activosGuardar.size();

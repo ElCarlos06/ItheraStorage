@@ -6,6 +6,7 @@ import mx.edu.utez.modules.espacios.Espacio;
 import mx.edu.utez.modules.espacios.EspacioRepository;
 import mx.edu.utez.modules.imagen_activo.ImagenActivo;
 import mx.edu.utez.modules.imagen_activo.ImagenActivoRepository;
+import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
 import mx.edu.utez.modules.qr.QRService;
@@ -36,6 +37,7 @@ import org.springframework.cache.annotation.Caching;
 public class AssetsService {
 
     private final AssetsRepository assetsRepository;
+    private final BitacoraService bitacoraService;
     private final TipoActivoRepository tipoActivoRepository;
     private final EspacioRepository espacioRepository;
     // Inyectamos repositorio de imágenes para detalle extendido
@@ -51,7 +53,6 @@ public class AssetsService {
      * @return ApiResponse con la página de activos encontrados.
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "assets_page", key = "#pageable.pageNumber + '-' + #pageable.pageSize", unless = "#result.error")
     public ApiResponse findAll(Pageable pageable) {
         Page<Assets> page = assetsRepository.findByEsActivoTrue(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
@@ -151,6 +152,12 @@ public class AssetsService {
         entity.setFechaAlta(dto.getFechaAlta() != null ? LocalDate.parse(dto.getFechaAlta()) : LocalDate.now());
         entity.setEsActivo(true);
         assetsRepository.save(entity);
+        bitacoraService.registrarEvento(
+                entity.getId(), null,
+                "Registro Activo",
+                "Activo " + entity.getEtiqueta() + " registrado en el sistema",
+                null, "Disponible", null, "OK"
+        );
         return new ApiResponse("Activo registrado", entity, HttpStatus.CREATED);
     }
 
@@ -175,6 +182,8 @@ public class AssetsService {
             return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
 
         Assets entity = found.get();
+        String custAnt = entity.getEstadoCustodia();
+        String opAnt = entity.getEstadoOperativo();
         entity.setEtiqueta(truncate(dto.getEtiqueta(), 50));
         entity.setNumeroSerie(truncate(dto.getNumeroSerie(), 100));
         entity.setTipoActivo(tipoActivo.get());
@@ -186,6 +195,10 @@ public class AssetsService {
         entity.setQrCodigo(truncate(dto.getQrCodigo(), 255));
         if (dto.getEsActivo() != null) entity.setEsActivo(dto.getEsActivo());
         assetsRepository.save(entity);
+        String custNuevo = entity.getEstadoCustodia();
+        String opNuevo = entity.getEstadoOperativo();
+        bitacoraService.registrarEvento(id, null, "Actualizacion Activo",
+                "Actualización de datos del activo", custAnt, custNuevo, opAnt, opNuevo);
         return new ApiResponse("Activo actualizado", entity, HttpStatus.OK);
     }
 
@@ -238,19 +251,15 @@ public class AssetsService {
         if (found.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
         Assets entity = found.get();
-        
-        // Si el activo se oculta/desactiva, borramos su QR de Cloudinary
+        String custAnt = entity.getEstadoCustodia();
+        String opAnt = entity.getEstadoOperativo();
+
         qrService.deleteQrByAssetId(id);
-        
-        // Al desactivar, el estado pasa a Disponible (solo actualiza estas 2 columnas)
         assetsRepository.updateEstadoYActivo(id, "Disponible", false);
         entity.setEstadoCustodia("Disponible");
         entity.setEsActivo(false);
+        bitacoraService.registrarEvento(id, null, "Baja Aprobada",
+                "Activo dado de baja (desactivado)", custAnt, "Disponible", opAnt, "OK");
         return new ApiResponse("Activo desactivado", entity, HttpStatus.OK);
     }
-
-    private static String trim(String s) {
-        return s != null && !s.isBlank() ? s.trim() : null;
-    }
-
 }

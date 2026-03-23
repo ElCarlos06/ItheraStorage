@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
+import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.mantenimientos.Mantenimiento;
 import mx.edu.utez.modules.mantenimientos.MantenimientoRepository;
 import mx.edu.utez.modules.users.User;
@@ -26,6 +27,7 @@ public class SolicitudBajaService {
     private final AssetsRepository assetsRepository;
     private final MantenimientoRepository mantenimientoRepository;
     private final UserRepository userRepository;
+    private final BitacoraService bitacoraService;
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
@@ -64,6 +66,10 @@ public class SolicitudBajaService {
         entity.setJustificacion(dto.getJustificacion());
         entity.setEstado("Pendiente");
         solicitudBajaRepository.save(entity);
+        Long activoId = activo.get().getId();
+        bitacoraService.registrarEvento(activoId, null, "Solicitud Baja",
+                "Solicitud de baja por mantenimiento irreparable",
+                null, null, null, null);
         return new ApiResponse("Solicitud de baja registrada", entity, HttpStatus.CREATED);
     }
 
