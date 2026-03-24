@@ -1,14 +1,9 @@
-import { useState } from "react";
-import {
-  useQuery,
-  useQueryClient,
-  keepPreviousData,
-} from "@tanstack/react-query";
 import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
 import { resguardosApi } from "../../../../api/resguardosApi";
 import { getProfileFromToken } from "../../../../api/authApi";
 import { toast } from "../../../../utils/toast.jsx";
+import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
 
 function mapActivoToDisplay(item) {
   const espacio = item.espacio ?? {};
@@ -39,38 +34,27 @@ function mapActivoToDisplay(item) {
 const PAGE_SIZE = 10;
 
 export default function ActivosPage() {
-  const queryClient = useQueryClient();
-  const [currentPage, setCurrentPage] = useState(0);
-
-  const minutes = 5 * 60 * 1000; // Son 5 minutos XD
-
   const {
-    data,
     isLoading,
     isFetching,
-    error: queryError,
-  } = useQuery({
-    queryKey: ["activos", currentPage],
-    queryFn: async () => {
-      const res = await activosApi.getActivos(currentPage, PAGE_SIZE);
-
-      if (res?.error) throw new Error(res.message ?? "Error al cargar activos");
-      return res;
-    },
-    staleTime: minutes,
-    placeholderData: keepPreviousData,
-    retry: 1,
+    error: errorMessage,
+    invalidate,
+    currentPage,
+    setCurrentPage,
+    pageSize: PAGE_SIZE_USED,
+    content,
+    totalPages,
+    totalElements,
+  } = usePaginatedQuery({
+    queryKey: "activos",
+    queryFn: (page, size) => activosApi.getActivos(page, size),
+    errorMessage: "Error al cargar activos",
+    pageSize: PAGE_SIZE,
   });
 
-  const body = data?.data ?? data ?? {};
-  const activos = (body.content ?? [])
+  const activos = (content ?? [])
     .filter((a) => a.esActivo !== false)
     .map(mapActivoToDisplay);
-
-  const errorMessage = queryError?.message ?? null;
-
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["activos"] });
 
   const handleNuevo = async (formData) => {
     try {
@@ -138,9 +122,9 @@ export default function ActivosPage() {
       fetching={isFetching}
       error={errorMessage}
       currentPage={currentPage}
-      totalPages={body.totalPages ?? 1}
-      totalElements={body.totalElements ?? 0}
-      pageSize={PAGE_SIZE}
+      totalPages={totalPages ?? 1}
+      totalElements={totalElements ?? 0}
+      pageSize={PAGE_SIZE_USED}
       onPageChange={setCurrentPage}
       onNuevo={handleNuevo}
       onEditar={handleEditar}

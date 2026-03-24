@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
@@ -24,7 +24,7 @@ import { toast } from "../../../../utils/toast.jsx";
 import { getCurrentUserCorreo, logout } from "../../../../api/authApi";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
-import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
+import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
 
 const STAT_ICONS = [GenericUser, NotificationsBell, GenericSettings];
 
@@ -62,77 +62,39 @@ export default function Users({
   const [modalEditUser, setModalEditUser] = useState(null);
   const [modalUser, setModalUser] = useState(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
-  const cacheKey = `users-page-${usersProp === undefined ? "auto" : "prop"}`;
-  const cached = getCached(cacheKey);
-  const [users, setUsers] = useState(
-    cached?.users ?? (Array.isArray(usersProp) ? usersProp : []),
-  );
-  const [loading, setLoading] = useState(
-    cached ? false : (loadingProp ?? false),
-  );
-  const [error, setError] = useState(errorProp ?? null);
 
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(cached?.totalPages ?? 0);
-  const [totalElements, setTotalElements] = useState(
-    cached?.totalElements ?? 0,
-  );
   const pageSize = 10;
   const stats = Array.isArray(statsProp) ? statsProp : [];
-
   const currentUserCorreo = getCurrentUserCorreo();
 
-  const applyUsersResponse = (res) => {
-    const list = Array.isArray(res)
-      ? res
-      : res?.data?.content || res?.content || res?.data || [];
-    const mapped = list.map(mapUser).filter(Boolean);
-    const tp = res?.data?.totalPages ?? res?.totalPages ?? 1;
-    const te = res?.data?.totalElements ?? res?.totalElements ?? list.length;
-    setUsers(mapped);
-    setTotalPages(tp);
-    setTotalElements(te);
-    setCache(cacheKey, { users: mapped, totalPages: tp, totalElements: te });
-  };
+  const {
+    isLoading: queryLoading,
+    error: queryError,
+    invalidate,
+    currentPage,
+    setCurrentPage,
+    content,
+    totalPages,
+    totalElements,
+  } = usePaginatedQuery({
+    queryKey: "users",
+    queryFn: (page, size) => usersApi.getUsers(page, size),
+    errorMessage: "Error al cargar usuarios",
+    pageSize,
+  });
 
-  useEffect(() => {
-    if (usersProp !== undefined) return;
-    const hasCached = !!getCached(cacheKey);
+  const users = useMemo(() => {
+    if (usersProp !== undefined) return Array.isArray(usersProp) ? usersProp : [];
+    const list = Array.isArray(content) ? content : content?.content ?? content?.data?.content ?? [];
+    return list.map(mapUser).filter(Boolean);
+  }, [usersProp, content]);
 
-    if (!hasCached) {
-      setLoading(true);
-    } else {
-      // Si tenemos caché fresco y vigente, omitir la petición inicial
-      return;
-    }
-
-    usersApi
-      .getUsers(currentPage, pageSize)
-      .then(applyUsersResponse)
-      .catch((err) => {
-        if (!hasCached) {
-          setError(err.message);
-          setUsers([]);
-        }
-      })
-      .finally(() => setLoading(false));
-
-    const interval = setInterval(() => {
-      usersApi
-        .getUsers(currentPage, pageSize)
-        .then(applyUsersResponse)
-        .catch(() => {});
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [usersProp, currentPage]); // Added cache key to deps conceptually
+  const loading = usersProp !== undefined ? (loadingProp ?? false) : queryLoading;
+  const error = usersProp !== undefined ? errorProp : queryError;
 
   const refreshUsers = () => {
     if (usersProp !== undefined) return;
-    clearCache(cacheKey); // Invalida el caché actual
-    usersApi
-      .getUsers(currentPage, pageSize)
-      .then(applyUsersResponse)
-      .catch(() => {});
+    invalidate();
   };
 
   const filtered = useMemo(() => {
