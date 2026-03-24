@@ -5,6 +5,7 @@ export default function Input({
   labelClassName,
   endAdornment,
   fullWidth,
+  error,
   className = "",
   id,
   ...props
@@ -13,7 +14,7 @@ export default function Input({
   const hasEnd = !!endAdornment;
 
   return (
-    <div className={`input-wrap ${fullWidth ? "input-wrap--fullWidth" : ""}`}>
+    <div className={`input-wrap ${fullWidth ? "input-wrap--fullWidth" : ""} ${error ? "input-wrap--error" : ""}`}>
       {label && (
         <label htmlFor={inputId} className={`input-wrap__label ${labelClassName || ""}`.trim()}>
           {label}
@@ -27,6 +28,7 @@ export default function Input({
         />
         {hasEnd && <span className="input-wrap__end">{endAdornment}</span>}
       </div>
+      {error && <span className="input-wrap__error">{error}</span>}
     </div>
   );
 }

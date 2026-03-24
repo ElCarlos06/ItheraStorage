@@ -33,7 +33,10 @@
   border-radius: 12px;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
 }
 
 .select-wrap__trigger:hover:not(:disabled) {
@@ -135,7 +138,9 @@
 }
 
 .select-wrap__option:not(.select-wrap__option--selected) {
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .select-wrap__option-text {
@@ -170,4 +175,24 @@
 .select-wrap--sm .select-wrap__option {
   padding: 10px 14px;
   font-size: 14px;
+}
+
+/* ── Error state ── */
+.select-wrap--error .select-wrap__trigger {
+  border-color: #e53e3e;
+}
+
+.select-wrap--error .select-wrap__trigger:focus,
+.select-wrap--error .select-wrap__trigger--open {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
+  transition: 0.4s ease-in-out;
+}
+
+.select-wrap__error {
+  font-size: 12px;
+  font-weight: 500;
+  color: #e53e3e;
+  margin-top: 2px;
+  line-height: 1.3;
 }

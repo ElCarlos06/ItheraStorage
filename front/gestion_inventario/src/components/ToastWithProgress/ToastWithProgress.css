@@ -37,10 +37,14 @@
 
 .toast-progress__message {
   font-family: var(--moon-font-sans);
-  font-size: 16px;
+  font-size: 15px; /* Ligeramente más pequeño para mensajes largos */
   font-weight: 500;
   color: var(--moon-piccolo);
   margin: 0;
+  white-space: pre-wrap; /* Mantiene los saltos de línea \n del backend */
+  max-height: 250px;
+  overflow-y: auto;
+  line-height: 1.4;
 }
 
 .toast-progress--error .toast-progress__message {

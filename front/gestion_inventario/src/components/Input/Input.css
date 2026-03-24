@@ -36,7 +36,9 @@
   background: #fff;
   border: 1.337px solid #e2e2e2;
   border-radius: 12px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .input-wrap__input::placeholder {
@@ -72,12 +74,33 @@
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
-  transition: color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
 }
 
 .input-wrap__end:hover {
   color: var(--moon-piccolo);
   background: var(--moon-piccolo-10);
+}
+
+/* ── Error state ── */
+.input-wrap--error .input-wrap__input {
+  border-color: #e53e3e;
+}
+
+.input-wrap--error .input-wrap__input:focus {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
+  transition: 0.4s ease-out;
+}
+
+.input-wrap__error {
+  font-size: 12px;
+  font-weight: 500;
+  color: #e53e3e;
+  margin-top: 2px;
+  line-height: 1.3;
 }
 
 /* Oculta el icono del "ojo" nativo que agregan navegadores como Edge */

@@ -20,7 +20,12 @@ function toOptions(items, idKey = "id", nameKey = "nombre") {
     .filter((o) => o.value !== "");
 }
 
-export default function NewAssetModal({ open, onClose, onGuardar, initialData }) {
+export default function NewAssetModal({
+  open,
+  onClose,
+  onGuardar,
+  initialData,
+}) {
   const isEdit = !!initialData;
   const [form, setForm] = useState({
     etiqueta: "",
@@ -32,6 +37,7 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
     idEspacio: "",
     descripcion: "",
   });
+  const [errors, setErrors] = useState({});
 
   const [tipoActivosOptions, setTipoActivosOptions] = useState([]);
   const [campusOptions, setCampusOptions] = useState([]);
@@ -60,20 +66,28 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
     Promise.all([
       tipoActivosApi.getTipoActivos(0, 200),
       ubicacionesApi.getCampus(0, 200),
-      idCampus ? ubicacionesApi.getEdificiosByCampus(idCampus) : Promise.resolve(null),
-      idEdificio ? ubicacionesApi.getEspaciosByEdificio(idEdificio) : Promise.resolve(null),
+      idCampus
+        ? ubicacionesApi.getEdificiosByCampus(idCampus)
+        : Promise.resolve(null),
+      idEdificio
+        ? ubicacionesApi.getEspaciosByEdificio(idEdificio)
+        : Promise.resolve(null),
     ])
       .then(([tiposRes, campusRes, edificiosRes, espaciosRes]) => {
         setTipoActivosOptions(toOptions(extractList(tiposRes)));
         setCampusOptions(toOptions(extractList(campusRes)));
         if (edificiosRes) {
-          const list = Array.isArray(edificiosRes?.data) ? edificiosRes.data : extractList(edificiosRes);
+          const list = Array.isArray(edificiosRes?.data)
+            ? edificiosRes.data
+            : extractList(edificiosRes);
           setEdificiosOptions(toOptions(list));
         } else {
           setEdificiosOptions([]);
         }
         if (espaciosRes) {
-          const list = Array.isArray(espaciosRes?.data) ? espaciosRes.data : extractList(espaciosRes);
+          const list = Array.isArray(espaciosRes?.data)
+            ? espaciosRes.data
+            : extractList(espaciosRes);
           setEspaciosOptions(toOptions(list, "id", "nombreEspacio"));
         } else {
           setEspaciosOptions([]);
@@ -131,7 +145,8 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
         idCampus: String(initialData.idCampus ?? campus?.id ?? ""),
         idEdificio: String(initialData.idEdificio ?? edificio?.id ?? ""),
         idEspacio: String(initialData.idEspacio ?? espacio?.id ?? ""),
-        descripcion: initialData.descripcion ?? initialData.descripcionCorta ?? "",
+        descripcion:
+          initialData.descripcion ?? initialData.descripcionCorta ?? "",
       });
     } else if (open) {
       setForm({
@@ -144,36 +159,85 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
         idEspacio: "",
         descripcion: "",
       });
+      setErrors({});
     }
   }, [open, initialData]);
 
+  const validateField = (field, value) => {
+    let errorMsg = null;
+    switch (field) {
+      case "etiqueta":
+        if (!value?.trim()) errorMsg = "La etiqueta es obligatoria";
+        break;
+      case "numeroSerie":
+        if (!value?.trim()) errorMsg = "El número de serie es obligatorio";
+        break;
+      case "idTipoActivo":
+        if (!value) errorMsg = "El tipo de activo es obligatorio";
+        break;
+      case "idCampus":
+        if (!value) errorMsg = "El campus es obligatorio";
+        break;
+      case "idEdificio":
+        if (!value) errorMsg = "El edificio es obligatorio";
+        break;
+      case "idEspacio":
+        if (!value) errorMsg = "El aula es obligatoria";
+        break;
+      default:
+        break;
+    }
+    setErrors((prev) => ({ ...prev, [field]: errorMsg }));
+    return !errorMsg;
+  };
+
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const value = e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    validateField(field, value);
   };
 
   const handleSelect = (field) => (value) => {
     if (field === "idCampus") {
-      setForm((prev) => ({ ...prev, idCampus: value, idEdificio: "", idEspacio: "" }));
+      setForm((prev) => ({
+        ...prev,
+        idCampus: value,
+        idEdificio: "",
+        idEspacio: "",
+      }));
+      validateField("idCampus", value);
+      validateField("idEdificio", "");
+      validateField("idEspacio", "");
     } else if (field === "idEdificio") {
       setForm((prev) => ({ ...prev, idEdificio: value, idEspacio: "" }));
+      validateField("idEdificio", value);
+      validateField("idEspacio", "");
     } else {
       setForm((prev) => ({ ...prev, [field]: value }));
+      validateField(field, value);
     }
   };
 
   const validarCampos = () => {
-    const faltantes = [];
-    if (!form.etiqueta?.trim()) faltantes.push("Etiqueta");
-    if (!form.numeroSerie?.trim()) faltantes.push("Número de serie");
-    if (!form.idTipoActivo) faltantes.push("Tipo de activo");
-    if (!form.idCampus) faltantes.push("Campus");
-    if (!form.idEdificio) faltantes.push("Edificio");
-    if (!form.idEspacio) faltantes.push("Aula");
-    if (faltantes.length > 0) {
-      toast.error(`Complete los campos obligatorios: ${faltantes.join(", ")}`);
-      return false;
+    const isEtiquetaValid = validateField("etiqueta", form.etiqueta);
+    const isNumeroSerieValid = validateField("numeroSerie", form.numeroSerie);
+    const isTipoActivoValid = validateField("idTipoActivo", form.idTipoActivo);
+    const isCampusValid = validateField("idCampus", form.idCampus);
+    const isEdificioValid = validateField("idEdificio", form.idEdificio);
+    const isEspacioValid = validateField("idEspacio", form.idEspacio);
+
+    const isValid =
+      isEtiquetaValid &&
+      isNumeroSerieValid &&
+      isTipoActivoValid &&
+      isCampusValid &&
+      isEdificioValid &&
+      isEspacioValid;
+
+    if (!isValid) {
+      toast.error("Por favor revisa los campos en rojo");
     }
-    return true;
+    return isValid;
   };
 
   const handleSubmit = (e) => {
@@ -212,7 +276,27 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
       idEspacio: "",
       descripcion: "",
     });
+    setErrors({});
     onClose?.();
+  };
+
+  const handleChangeNumeroSerie = (e) => {
+    const value = e.target.value.toUpperCase();
+
+    if (value.length > 20) {
+      setErrors((prev) => ({ ...prev, numeroSerie: "Máximo 20 caracteres" }));
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, numeroSerie: value }));
+    validateField("numeroSerie", value);
+  };
+
+  const blockInvalidChar = (e) => {
+    // Bloqueamos 'e', 'E', '+', '-' (si no quieres negativos)
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -235,8 +319,8 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
             placeholder="ACT-001"
             value={form.etiqueta}
             onChange={handleChange("etiqueta")}
+            error={errors.etiqueta}
             className="form-modal__input"
-            required
           />
         </div>
         <div className="form-modal__field form-modal__field--flex">
@@ -245,9 +329,9 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
             labelClassName="form-modal__label"
             placeholder="SN-XXXX-XXXX-XXXX"
             value={form.numeroSerie}
-            onChange={handleChange("numeroSerie")}
+            onChange={handleChangeNumeroSerie}
+            error={errors.numeroSerie}
             className="form-modal__input"
-            required
           />
         </div>
       </div>
@@ -261,7 +345,7 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
             onChange={handleSelect("idTipoActivo")}
             options={tipoActivosOptions}
             placeholder={loadingOptions ? "Cargando…" : "Seleccionar..."}
-            required
+            error={errors.idTipoActivo}
             variant="ghost"
           />
         </div>
@@ -276,6 +360,8 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
               placeholder="0.00"
               value={form.costo}
               onChange={handleChange("costo")}
+              error={errors.costo}
+              onKeyDown={blockInvalidChar}
               className="form-modal__input nuevo-activo-modal__input--costo"
             />
           </div>
@@ -293,7 +379,7 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
               onChange={handleSelect("idCampus")}
               options={campusOptions}
               placeholder={loadingOptions ? "Cargando…" : "Seleccionar..."}
-              required
+              error={errors.idCampus}
               variant="ghost"
             />
           </div>
@@ -304,8 +390,10 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
               value={form.idEdificio}
               onChange={handleSelect("idEdificio")}
               options={edificiosOptions}
-              placeholder={form.idCampus ? "Seleccionar..." : "Selecciona campus primero"}
-              required
+              placeholder={
+                form.idCampus ? "Seleccionar..." : "Selecciona campus primero"
+              }
+              error={errors.idEdificio}
               variant="ghost"
             />
           </div>
@@ -316,8 +404,12 @@ export default function NewAssetModal({ open, onClose, onGuardar, initialData })
               value={form.idEspacio}
               onChange={handleSelect("idEspacio")}
               options={espaciosOptions}
-              placeholder={form.idEdificio ? "Seleccionar..." : "Selecciona edificio primero"}
-              required
+              placeholder={
+                form.idEdificio
+                  ? "Seleccionar..."
+                  : "Selecciona edificio primero"
+              }
+              error={errors.idEspacio}
               variant="ghost"
             />
           </div>

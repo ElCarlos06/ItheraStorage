@@ -99,8 +99,15 @@ export default function Activos({
       const file = e.target.files?.[0];
       if (!file) return;
       try {
-        await importApi.upload(file);
-        toast.success("Activos importados correctamente");
+        const result = await importApi.upload(file);
+        
+        if (result?.error) {
+          // Hubo rechazos, mostramos toast de error con el detalle por más tiempo
+          toast.error(result.message || "Importación terminada con errores.", 8000);
+        } else {
+          // Todo perfecto
+          toast.success(result?.message || "Activos importados correctamente", 5000);
+        }
         await onRefresh?.();
       } catch (error) {
         toast.error(error.message || "Error al importar el archivo");

@@ -29,7 +29,8 @@ export default function Select({
   labelClassName,
   disabled = false,
   required,
-  "aria-invalid": ariaInvalid,
+  ariaInvalid,
+  error,
   className = "",
   size = "md",
   variant = "default",
@@ -127,7 +128,7 @@ export default function Select({
   return (
     <div
       ref={containerRef}
-      className={`select-wrap ${size === "sm" ? "select-wrap--sm" : ""} ${variant === "ghost" ? "select-wrap--ghost" : ""} ${className}`.trim()}
+      className={`select-wrap ${size === "sm" ? "select-wrap--sm" : ""} ${variant === "ghost" ? "select-wrap--ghost" : ""} ${error ? "select-wrap--error" : ""} ${className}`.trim()}
     >
       {label && (
         <label className={`select-wrap__label ${labelClassName || ""}`.trim()}>
@@ -143,7 +144,7 @@ export default function Select({
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-invalid={ariaInvalid}
+        aria-invalid={ariaInvalid || !!error}
         aria-label={label || "Seleccionar opción"}
       >
         <span className="select-wrap__value">{displayText}</span>
@@ -155,6 +156,7 @@ export default function Select({
         />
       </button>
       {showDropdown && createPortal(dropdownContent, document.body)}
+      {error && <span className="select-wrap__error">{error}</span>}
     </div>
   );
 }
