@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import PageHeader   from "../../components/dashboard/PageHeader";
 import Pagination   from "../../components/layout/Pagination";
 import Buscador     from "../../../../components/Buscador/Buscador";
@@ -7,7 +7,7 @@ import LoadingState from "../../../../components/LoadingState/LoadingState";
 import ErrorBanner  from "../../../../components/ErrorBanner/ErrorBanner";
 import ReporteInfoModal from "./ReporteInfoModal";
 import { solicitudesApi } from "../../../../api/solicitudesApi";
-import { getCached, setCache, clearCache } from "../../../../utils/apiCache";
+import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
 import "./Requests.css";
 
 // ─── Normaliza la respuesta del backend ───────────────────────────────────────
@@ -43,16 +43,9 @@ function mapSolicitud(s) {
   };
 }
 
-function parseResponse(res) {
-  const raw  = res?.data ?? res;
-  const list = Array.isArray(raw)
-    ? raw
-    : raw?.content ?? raw?.data?.content ?? raw?.data ?? [];
-  return {
-    data:          list.map(mapSolicitud).filter(Boolean),
-    totalPages:    raw?.totalPages    ?? raw?.data?.totalPages    ?? 1,
-    totalElements: raw?.totalElements ?? raw?.data?.totalElements ?? list.length,
-  };
+function mapResponse(content) {
+  const list = Array.isArray(content) ? content : content?.content ?? content?.data ?? [];
+  return list.map(mapSolicitud).filter(Boolean);
 }
 
 // ─── Badge de prioridad ───────────────────────────────────────────────────────
@@ -90,63 +83,34 @@ const TABS = [
 export default function Requests() {
   const [activeTab, setActiveTab]     = useState("reportes");
   const [search,    setSearch]        = useState("");
-  const [currentPage, setCurrentPage] = useState(0);
   const [modalReporte, setModalReporte] = useState(null);
   const pageSize = 10;
 
-  const cacheKey = `solicitudes-${activeTab}`;
-
-  const cached = getCached(cacheKey);
-  const [solicitudes,    setSolicitudes]    = useState(cached?.data ?? []);
-  const [totalPages,     setTotalPages]     = useState(cached?.totalPages ?? 1);
-  const [totalElements,  setTotalElements]  = useState(cached?.totalElements ?? 0);
-  const [loading,        setLoading]        = useState(!cached);
-  const [error,          setError]          = useState(null);
-
-  const applyResponse = (res) => {
-    setSolicitudes(res.data);
-    setTotalPages(res.totalPages);
-    setTotalElements(res.totalElements);
-    setCache(cacheKey, res);
-  };
-
-  const fetchData = (page = 0, silent = false) => {
-    if (!silent) setLoading(true);
-    const fetcher =
+  const {
+    isLoading: loading,
+    error,
+    invalidate,
+    currentPage,
+    setCurrentPage,
+    content,
+    totalPages,
+    totalElements,
+  } = usePaginatedQuery({
+    queryKey: ["solicitudes", activeTab],
+    queryFn: (page, size) =>
       activeTab === "reportes"
-        ? solicitudesApi.getReportes(page, pageSize)
-        : solicitudesApi.getMantenimientos(page, pageSize);
+        ? solicitudesApi.getReportes(page, size)
+        : solicitudesApi.getMantenimientos(page, size),
+    errorMessage: "Error al cargar solicitudes",
+    pageSize,
+  });
 
-    fetcher
-      .then((res) => applyResponse(parseResponse(res)))
-      .catch((err) => {
-        if (!silent) setError(err.message);
-      })
-      .finally(() => { if (!silent) setLoading(false); });
-  };
+  const solicitudes = useMemo(() => mapResponse(content), [content]);
 
-  // Recarga cuando cambia el tab o la página
-  useEffect(() => {
-    const hasCached = !!getCached(cacheKey);
-    if (!hasCached) {
-      fetchData(currentPage);
-    } else {
-      setLoading(false);
-    }
-
-    const interval = setInterval(
-      () => fetchData(currentPage, true),
-      30_000,
-    );
-    return () => clearInterval(interval);
-  }, [activeTab, currentPage]);
-
-  // Resetear página al cambiar tab
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setCurrentPage(0);
     setSearch("");
-    clearCache(`solicitudes-${tab}`);
   };
 
   // Filtrado local por búsqueda
@@ -206,7 +170,7 @@ export default function Requests() {
         </div>
 
         {error && (
-          <ErrorBanner message={error} onDismiss={() => setError(null)} />
+          <ErrorBanner message={error} onDismiss={() => invalidate()} />
         )}
 
         {/* ── Lista ── */}
