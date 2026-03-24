@@ -14,5 +14,7 @@ public interface ResguardoRepository extends JpaRepository<Resguardo, Long> {
     List<Resguardo> findByEstadoResguardo(String estado);
 
     Optional<Resguardo> findByActivoAndEstadoResguardo(Assets assets, String pendiente);
+
+    Optional<Resguardo> findFirstByActivoIdAndEstadoResguardoIn(Long id, List<String> pendiente);
 }
 

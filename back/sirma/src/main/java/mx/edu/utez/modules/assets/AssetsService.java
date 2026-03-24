@@ -7,6 +7,7 @@ import mx.edu.utez.modules.espacios.EspacioRepository;
 import mx.edu.utez.modules.imagen_activo.ImagenActivo;
 import mx.edu.utez.modules.imagen_activo.ImagenActivoRepository;
 import mx.edu.utez.modules.bitacora.BitacoraService;
+import mx.edu.utez.modules.resguardos.ResguardoRepository;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
 import mx.edu.utez.modules.qr.QRService;
@@ -40,6 +41,7 @@ public class AssetsService {
     private final BitacoraService bitacoraService;
     private final TipoActivoRepository tipoActivoRepository;
     private final EspacioRepository espacioRepository;
+    private final ResguardoRepository resguardosRepository;
     // Inyectamos repositorio de imágenes para detalle extendido
     private final ImagenActivoRepository imagenActivoRepository;
     private final QRService qrService;
@@ -54,8 +56,33 @@ public class AssetsService {
      */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
+
         Page<Assets> page = assetsRepository.findByEsActivoTrue(pageable);
-        return new ApiResponse("OK", page, HttpStatus.OK);
+        List<String> estados = List.of("Pendiente", "Confirmado");
+
+        // Mapear cada activo a DTO con su resguardo activo
+        Page<AssetsDTO> dtoPage = page.map(asset -> {
+            AssetsDTO dto = toDTO(asset);
+
+            // Buscar resguardo activo (Pendiente o Confirmado)
+            resguardosRepository
+                    .findFirstByActivoIdAndEstadoResguardoIn(
+                            asset.getId(),
+                            estados
+                    )
+                    .ifPresent(r -> {
+                        String nombre = null;
+                        if (r.getUsuarioEmpleado() != null) {
+                            nombre = r.getUsuarioEmpleado().getNombreCompleto();
+                        }
+                        dto.setAsignadoA(nombre);
+                        dto.setIdResguardo(r.getId());
+                    });
+
+            return dto;
+        });
+
+        return new ApiResponse("OK", dtoPage, HttpStatus.OK);
     }
 
     /**
@@ -117,6 +144,14 @@ public class AssetsService {
         dto.setQrCodigo(entity.getQrCodigo());
         dto.setFechaAlta(entity.getFechaAlta().toString());
         dto.setEsActivo(entity.getEsActivo());
+
+        dto.setTipoActivo(entity.getTipoActivo());   // nombre, marca, modelo, tipoBien
+        dto.setEspacio(entity.getEspacio());         // nombreEspacio, edificio, campus
+
+        // IDs para forms de edición
+        dto.setIdTipoActivo(entity.getTipoActivo().getId());
+        dto.setIdEspacio(entity.getEspacio().getId());
+
         return dto;
     }
 

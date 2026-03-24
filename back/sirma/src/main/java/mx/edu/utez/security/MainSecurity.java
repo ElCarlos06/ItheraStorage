@@ -50,7 +50,7 @@ public class MainSecurity {
                         .requestMatchers("/api/auth/login", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
                         .requestMatchers("/api/register", "/api/register/**").hasAnyAuthority("ROLE_Administrador") // Solo el admin puede crear usuarios
                         .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/imports/").hasAnyAuthority("ROLE_Administrador")
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activos/**").hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico", "ROLE_Empleado")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activos/**").hasAnyAuthority("ROLE_Administrador", "ROLE_Tecnico", "ROLE_Empleado")
                         .requestMatchers("/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**")
                         .hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico")
                         .anyRequest().authenticated()

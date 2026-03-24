@@ -1,81 +1,94 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
-import { toast } from "../../../../utils/toast.jsx";
 import { resguardosApi } from "../../../../api/resguardosApi";
 import { getProfileFromToken } from "../../../../api/authApi";
+import { toast } from "../../../../utils/toast.jsx";
 
 function mapActivoToDisplay(item) {
   const espacio = item.espacio ?? {};
   const edificio = espacio.edificio ?? {};
   const campus = edificio.campus ?? {};
   const tipoActivo = item.tipoActivo ?? {};
-  const modelo = item.modelo ?? {};
   return {
     ...item,
     codigo: item.etiqueta ?? item.codigo,
     descripcionCorta: item.descripcion ?? item.descripcionCorta,
-    nombre: modelo.nombre ?? tipoActivo.nombre ?? item.nombre,
-    tipoActivo: typeof tipoActivo === "string" ? tipoActivo : (tipoActivo.nombre ?? "—"),
+    nombre: tipoActivo.nombre ?? item.nombre,
+    tipoActivo:
+      typeof tipoActivo === "string" ? tipoActivo : (tipoActivo.nombre ?? "—"),
     idTipoActivo: item.tipoActivo?.id,
     idCampus: campus?.id,
     idEdificio: edificio?.id,
     idEspacio: espacio?.id,
-    // DFR: Reportado = custodia Resguardado + operativo Reportado
-    status: item.estadoOperativo === "Reportado" ? "Reportado" : (item.estadoCustodia ?? item.status ?? "disponible"),
-    campus: typeof campus === "string" ? campus : (campus.nombre ?? "—"),
-    edificio: typeof edificio === "string" ? edificio : (edificio.nombre ?? "—"),
-    aula: espacio.nombreEspacio ?? item.aula ?? "—",
+    status:
+      item.estadoOperativo === "Reportado"
+        ? "Reportado"
+        : (item.estadoCustodia ?? "disponible"),
+    campus: campus.nombre ?? "—",
+    edificio: edificio.nombre ?? "—",
+    aula: espacio.nombreEspacio ?? "—",
   };
 }
 
+const PAGE_SIZE = 10;
+
 export default function ActivosPage() {
-  const [activos, setActivos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const fetchActivos = useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-      setError(null);
-    }
+  const minutes = 5 * 60 * 1000; // Son 5 minutos XD
+
+  const {
+    data,
+    isLoading,
+    isFetching,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["activos", currentPage],
+    queryFn: async () => {
+      const res = await activosApi.getActivos(currentPage, PAGE_SIZE);
+
+      if (res?.error) throw new Error(res.message ?? "Error al cargar activos");
+      return res;
+    },
+    staleTime: minutes,
+    placeholderData: keepPreviousData,
+    retry: 1,
+  });
+
+  const body = data?.data ?? data ?? {};
+  const activos = (body.content ?? [])
+    .filter((a) => a.esActivo !== false)
+    .map(mapActivoToDisplay);
+
+  const errorMessage = queryError?.message ?? null;
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ["activos"] });
+
+  const handleNuevo = async (formData) => {
     try {
-      const res = await activosApi.getActivos(0, 500, Date.now());
-      const content = res?.data?.content ?? res?.content ?? res?.data ?? [];
-      const list = Array.isArray(content) ? content : [];
-      const soloActivos = list.filter((a) => a.esActivo !== false);
-      const mapped = soloActivos.map(mapActivoToDisplay);
-      setActivos(mapped);
-    } catch (err) {
-      if (!silent) {
-        setError(err.message ?? "Error al cargar activos");
-        setActivos([]);
-      }
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchActivos();
-  }, [fetchActivos]);
-
-  const handleNuevo = async (data) => {
-    try {
-      await activosApi.save(data);
-      await fetchActivos(true);
+      const res = await activosApi.save(formData);
+      if (res?.error) throw new Error(res.message ?? "Error al guardar");
+      invalidate();
     } catch (err) {
       toast.error(err.message ?? "Error al guardar el activo");
       throw err;
     }
   };
 
-  const handleEditar = async (asset, data) => {
-    const id = asset?.id;
-    if (!id) return;
+  const handleEditar = async (asset, formData) => {
+    if (!asset?.id) return;
     try {
-      await activosApi.update(id, data);
-      await fetchActivos(true);
+      const res = await activosApi.update(asset.id, formData);
+      if (res?.error) throw new Error(res.message ?? "Error al actualizar");
+      invalidate();
     } catch (err) {
       toast.error(err.message ?? "Error al actualizar el activo");
       throw err;
@@ -83,37 +96,37 @@ export default function ActivosPage() {
   };
 
   const handleEliminar = async (asset) => {
-    const id = asset?.id;
-    if (!id) return;
+    if (!asset?.id) return;
     try {
-      await activosApi.toggleStatus(id);
-      await fetchActivos();
+      const res = await activosApi.toggleStatus(asset.id);
+      if (res?.error) throw new Error(res.message ?? "Error al eliminar");
+      invalidate();
     } catch (err) {
-      await fetchActivos();
       toast.error(err.message ?? "Error al eliminar");
+      invalidate();
       throw err;
     }
   };
 
-  const handleAsignarResguardo = async (asset, data) => {
+  const handleAsignarResguardo = async (asset, formData) => {
     const adminId = getProfileFromToken()?.id;
     if (!adminId) {
       toast.error("No se pudo identificar tu usuario administrador.");
       return;
     }
-
-    const payload = {
-      idActivo: asset.id,
-      idUsuarioEmpleado: data.idEmpleado,
-      idUsuarioAdmin: adminId,
-      observacionesAsig: data.observaciones || null,
-    };
-
     try {
-      await resguardosApi.save(payload);
-      await fetchActivos(true);
+      const res = await resguardosApi.save({
+        idActivo: asset.id,
+        idUsuarioEmpleado: formData.idEmpleado,
+        idUsuarioAdmin: adminId,
+        observacionesAsig: formData.observaciones || null,
+      });
+      if (res?.error)
+        throw new Error(res.message ?? "Error al asignar resguardo");
+      invalidate();
       toast.success("Resguardo asignado correctamente");
     } catch (err) {
+      toast.error(err.message ?? "Error al asignar resguardo");
       throw err;
     }
   };
@@ -121,13 +134,19 @@ export default function ActivosPage() {
   return (
     <Activos
       activos={activos}
-      loading={loading}
-      error={error}
+      loading={isLoading}
+      fetching={isFetching}
+      error={errorMessage}
+      currentPage={currentPage}
+      totalPages={body.totalPages ?? 1}
+      totalElements={body.totalElements ?? 0}
+      pageSize={PAGE_SIZE}
+      onPageChange={setCurrentPage}
       onNuevo={handleNuevo}
       onEditar={handleEditar}
       onEliminar={handleEliminar}
       onDetalles={handleAsignarResguardo}
-      onRefresh={fetchActivos}
+      onRefresh={invalidate}
     />
   );
 }

@@ -90,7 +90,7 @@ const TABS = [
 export default function Requests() {
   const [activeTab, setActiveTab]     = useState("reportes");
   const [search,    setSearch]        = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [modalReporte, setModalReporte] = useState(null);
   const pageSize = 10;
 
@@ -129,13 +129,13 @@ export default function Requests() {
   useEffect(() => {
     const hasCached = !!getCached(cacheKey);
     if (!hasCached) {
-      fetchData(currentPage - 1);
+      fetchData(currentPage);
     } else {
       setLoading(false);
     }
 
     const interval = setInterval(
-      () => fetchData(currentPage - 1, true),
+      () => fetchData(currentPage, true),
       30_000,
     );
     return () => clearInterval(interval);
@@ -144,7 +144,7 @@ export default function Requests() {
   // Resetear página al cambiar tab
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setCurrentPage(1);
+    setCurrentPage(0);
     setSearch("");
     clearCache(`solicitudes-${tab}`);
   };
@@ -163,7 +163,7 @@ export default function Requests() {
   }, [solicitudes, search]);
 
   const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = currentPage * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage]);
 
@@ -186,7 +186,7 @@ export default function Requests() {
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
-                setCurrentPage(1);
+                setCurrentPage(0);
               }}
             />
           </div>

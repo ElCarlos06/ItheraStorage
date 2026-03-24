@@ -27,8 +27,8 @@ export const ubicacionesApi = {
     request(`/api/edificios/${id}/status`, { method: "PATCH" }),
 
   /** Ubicaciones: Espacios (Aulas/Lab) */
-  getEspacios: (page = 0, size = 10) =>
-    request(`/api/espacios?page=${page}&size=${size}`),
+  getEspacios: (page = 0, size = 10, direction = "DESC") =>
+    request(`/api/espacios?page=${page}&size=${size}&direction=${direction}`),
   getEspaciosByEdificio: (edificioId) =>
     request(`/api/espacios/edificio/${edificioId}`),
   createEspacio: (body) =>

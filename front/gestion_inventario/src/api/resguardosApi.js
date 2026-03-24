@@ -1,8 +1,8 @@
 import { request } from "./base";
 
 export const resguardosApi = {
-  getResguardos: (page = 0, size = 10) =>
-    request(`/api/resguardos?page=${page}&size=${size}`),
+  getResguardos: (page = 0, size = 10, direction = "DESC") =>
+    request(`/api/resguardos?page=${page}&size=${size}&direction=${direction}`),
 
   findById: (id) => request(`/api/resguardos/${id}`),
 

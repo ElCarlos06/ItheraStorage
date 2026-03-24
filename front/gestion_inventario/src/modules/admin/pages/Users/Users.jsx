@@ -72,7 +72,7 @@ export default function Users({
   );
   const [error, setError] = useState(errorProp ?? null);
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(cached?.totalPages ?? 0);
   const [totalElements, setTotalElements] = useState(
     cached?.totalElements ?? 0,
@@ -107,7 +107,7 @@ export default function Users({
     }
 
     usersApi
-      .getUsers(currentPage - 1, pageSize)
+      .getUsers(currentPage, pageSize)
       .then(applyUsersResponse)
       .catch((err) => {
         if (!hasCached) {
@@ -119,7 +119,7 @@ export default function Users({
 
     const interval = setInterval(() => {
       usersApi
-        .getUsers(currentPage - 1, pageSize)
+        .getUsers(currentPage, pageSize)
         .then(applyUsersResponse)
         .catch(() => {});
     }, 30000);
@@ -130,7 +130,7 @@ export default function Users({
     if (usersProp !== undefined) return;
     clearCache(cacheKey); // Invalida el caché actual
     usersApi
-      .getUsers(currentPage - 1, pageSize)
+      .getUsers(currentPage, pageSize)
       .then(applyUsersResponse)
       .catch(() => {});
   };
@@ -168,7 +168,7 @@ export default function Users({
   const showEmptyState = filtered.length === 0;
 
   const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = currentPage * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
 

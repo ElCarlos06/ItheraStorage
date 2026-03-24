@@ -1,6 +1,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./Pagination.css";
 
+/**
+ * Paginador reutilizable.
+ * currentPage es base-0 (0 = primera página).
+ */
 export default function Pagination({
   currentPage,
   totalPages,
@@ -9,24 +13,13 @@ export default function Pagination({
   onPageChange,
   className = "",
 }) {
-  if (totalElements === 0) {
-    return null;
-  }
+  if (totalElements === 0) return null;
 
-  const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalElements);
+  const startItem = currentPage * pageSize + 1;
+  const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
 
-  const prevPage = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
-  };
-
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
-  };
+  const isFirst = currentPage <= 0;
+  const isLast = currentPage >= totalPages - 1;
 
   return (
     <div className={`pagination-container ${className}`}>
@@ -38,25 +31,23 @@ export default function Pagination({
 
       <div className="pagination-controls">
         <button
-          className={`pagination-btn ${currentPage <= 1 ? "disabled" : ""}`}
-          onClick={prevPage}
-          disabled={currentPage <= 1}
+          className={`pagination-btn ${isFirst ? "disabled" : ""}`}
+          onClick={() => !isFirst && onPageChange(currentPage - 1)}
+          disabled={isFirst}
           aria-label="Página anterior"
         >
           <ChevronLeft size={18} />
         </button>
 
         <div className="pagination-page-info">
-          <span className="pagination-bold">{currentPage}</span>&nbsp;/&nbsp;
-          {totalPages}
+          <span className="pagination-bold">{currentPage + 1}</span>
+          &nbsp;/&nbsp;{totalPages}
         </div>
 
         <button
-          className={`pagination-btn pagination-btn-next ${
-            currentPage >= totalPages ? "disabled" : ""
-          }`}
-          onClick={nextPage}
-          disabled={currentPage >= totalPages}
+          className={`pagination-btn pagination-btn-next ${isLast ? "disabled" : ""}`}
+          onClick={() => !isLast && onPageChange(currentPage + 1)}
+          disabled={isLast}
           aria-label="Página siguiente"
         >
           <ChevronRight size={18} />

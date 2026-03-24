@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
 import StatusBadge from "../../../../../components/StatusBadge/StatusBadge";
-import { resguardosApi } from "../../../../../api/resguardosApi";
 
 export const statusLabel = (s) => {
   const labels = {
@@ -17,33 +15,16 @@ export const statusLabel = (s) => {
     reportado: "Reportado",
     rep: "Reportado",
   };
-  return labels[String(s || "").toLowerCase().trim()] ?? s;
+  return (
+    labels[
+      String(s || "")
+        .toLowerCase()
+        .trim()
+    ] ?? s
+  );
 };
 
 export default function AssetInfo({ item }) {
-  const [asignadoA, setAsignadoA] = useState("—");
-
-  useEffect(() => {
-    if (!item?.id) return;
-
-    resguardosApi
-      .getByActivo(item.id)
-      .then((res) => {
-        const list = res?.data ?? res ?? [];
-        const activo = list.find(
-          (r) =>
-            r.estadoResguardo === "Pendiente" ||
-            r.estadoResguardo === "Confirmado",
-        );
-        const nombre =
-          activo?.usuarioEmpleado?.nombreCompleto ??
-          activo?.usuarioEmpleado?.nombre ??
-          null;
-        setAsignadoA(nombre ?? "—");
-      })
-      .catch(() => setAsignadoA("—"));
-  }, [item?.id]);
-
   return (
     <div className="activos-view__asset-content">
       <div className="activos-view__asset-row activos-view__asset-row--1">
@@ -59,7 +40,7 @@ export default function AssetInfo({ item }) {
         </div>
         <div className="activos-view__asset-col">
           <p className="activos-view__asset-label">Asignado a</p>
-          <p className="activos-view__asset-value">{asignadoA ?? "—"}</p>
+          <p className="activos-view__asset-value">{item.asignadoA ?? "—"}</p>
         </div>
         <div className="activos-view__asset-col">
           <p className="activos-view__asset-label">Tipo de activo</p>

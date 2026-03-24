@@ -3,12 +3,11 @@ import { request } from "./base";
 export const solicitudesApi = {
   // ── Reportes ─────────────────────────────────────────────────
   /** GET /api/reportes?page=:page&size=:size */
-  getReportes: (page = 0, size = 10) =>
-    request(`/api/reportes?page=${page}&size=${size}`),
+  getReportes: (page = 0, size = 10, direction = "DESC") =>
+    request(`/api/reportes?page=${page}&size=${size}&direction=${direction}`),
 
   /** GET /api/reportes/:id */
-  getReporteById: (id) =>
-    request(`/api/reportes/${id}`),
+  getReporteById: (id) => request(`/api/reportes/${id}`),
 
   /** GET /api/reportes/activo/:activoId */
   getReportesByActivo: (activoId) =>
@@ -30,12 +29,13 @@ export const solicitudesApi = {
 
   // ── Mantenimientos ────────────────────────────────────────────
   /** GET /api/mantenimientos?page=:page&size=:size */
-  getMantenimientos: (page = 0, size = 10) =>
-    request(`/api/mantenimientos?page=${page}&size=${size}`),
+  getMantenimientos: (page = 0, size = 10, direction = "DESC") =>
+    request(
+      `/api/mantenimientos?page=${page}&size=${size}&direction=${direction}`,
+    ),
 
   /** GET /api/mantenimientos/:id */
-  getMantenimientoById: (id) =>
-    request(`/api/mantenimientos/${id}`),
+  getMantenimientoById: (id) => request(`/api/mantenimientos/${id}`),
 
   /** GET /api/mantenimientos/tecnico/:tecnicoId */
   getMantenimientosByTecnico: (tecnicoId) =>

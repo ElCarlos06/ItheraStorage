@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import NewAssetModal from "./NewAssetModal";
 import AssignResguardoModal from "./components/AssignResguardoModal";
 import HistorialActivoModal from "./components/HistorialActivoModal";
@@ -22,7 +22,6 @@ import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./Activos.css";
 import Pagination from "../../components/layout/Pagination.jsx";
 import ActivosCard from "./components/ActivosCard.jsx";
-import { getProfileFromToken } from "../../../../api/authApi.js";
 import { importApi } from "../../../../api/importApi.js";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
@@ -31,7 +30,13 @@ export default function Activos({
   activos: activosProp = [],
   stats: statsProp = [],
   loading: loadingProp = false,
+  fetching: fetchingProp = false,
   error: errorProp = null,
+  currentPage = 0,
+  totalPages = 1,
+  totalElements = 0,
+  pageSize = 10,
+  onPageChange,
   onSearch,
   onRefresh,
   onNuevo,
@@ -51,62 +56,60 @@ export default function Activos({
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
   const loading = loadingProp;
+  const fetching = fetchingProp;
   const error = errorProp;
 
-  const filtered = useMemo(() => {
-    let list = Array.isArray(activos) ? activos : [];
-    const q = search.trim().toLowerCase();
-    if (q)
-      list = list.filter(
-        (a) =>
-          (a.nombre ?? "").toLowerCase().includes(q) ||
-          (a.codigo ?? "").toLowerCase().includes(q) ||
-          (a.descripcionCorta ?? "").toLowerCase().includes(q),
-      );
-    return list;
-  }, [activos, search]);
+  // Filtrado local solo para búsqueda en la página actual
+  const filtered = useMemo(
+    () =>
+      activos.filter((a) => {
+        const q = search.trim().toLowerCase();
+        if (!q) return true;
+        return (
+          (a.etiqueta ?? "").toLowerCase().includes(q) ||
+          (a.numeroSerie ?? "").toLowerCase().includes(q) ||
+          (a.tipoActivo?.nombre ?? "").toLowerCase().includes(q) ||
+          (a.descripcion ?? "").toLowerCase().includes(q)
+        );
+      }),
+    [activos, search],
+  );
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-    onSearch?.(value);
-  };
+  const handleSearchChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearch(value);
+      onSearch?.(value);
+    },
+    [onSearch],
+  );
 
-  const showEmptyState = filtered.length === 0;
+  const showEmptyState = !loading && filtered.length === 0;
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const handlePageChange = useCallback(
+    (page) => {
+      onPageChange?.(page);
+      window.scrollTo(0, 0);
+    },
+    [onPageChange],
+  );
 
-  const totalItems = filtered.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filtered.slice(startIndex, endIndex);
-  }, [filtered, currentPage, itemsPerPage]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  };
-
-  const handleUploadExcel = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      await importApi.upload(file);
-      toast.success("Activos importados correctamente");
-      if (onRefresh) {
-        await onRefresh();
+  const handleUploadExcel = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        await importApi.upload(file);
+        toast.success("Activos importados correctamente");
+        await onRefresh?.();
+      } catch (error) {
+        toast.error(error.message || "Error al importar el archivo");
+      } finally {
+        e.target.value = null;
       }
-    } catch (error) {
-      toast.error(error.message || "Error al importar el archivo");
-    } finally {
-      e.target.value = null;
-    }
-  };
+    },
+    [onRefresh],
+  );
 
   return (
     <div
@@ -170,7 +173,11 @@ export default function Activos({
             <LoadingState message="Cargando activos…" />
           </div>
         ) : (
-          <div className="activos-view__list">
+          <div
+            className={`activos-view__list ${
+              fetching ? "activos-view__list--fetching" : ""
+            }`}
+          >
             {showEmptyState ? (
               <EmptyState
                 message="No hay activos para mostrar"
@@ -178,13 +185,15 @@ export default function Activos({
                 searchMessage="No hay activos o no coinciden con la búsqueda."
               />
             ) : (
-              paginatedItems.map((item) => (
+              filtered.map((item) => (
                 <ActivosCard
                   key={item.id}
                   item={item}
                   onEliminar={() => setConfirmDeleteAsset(item)}
                   onEditar={() => setModalEditAsset(item)}
-                  onHistorial={onHistorial ?? ((item) => setModalHistorialAsset(item))}
+                  onHistorial={
+                    onHistorial ?? ((item) => setModalHistorialAsset(item))
+                  }
                   onDetalles={() => setModalAssignAsset(item)}
                 />
               ))
@@ -195,8 +204,8 @@ export default function Activos({
         <Pagination
           totalPages={totalPages}
           currentPage={currentPage}
-          totalElements={totalItems}
-          pageSize={itemsPerPage}
+          totalElements={totalElements}
+          pageSize={pageSize}
           onPageChange={handlePageChange}
         />
       </section>

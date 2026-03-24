@@ -14,7 +14,7 @@ export default function ActivosCard({
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
   return (
-    <div key={item.id} className="activos-view__asset-card-wrap">
+    <div className="activos-view__asset-card-wrap">
       <Card
         padding="medium"
         className="activos-view__asset-card"
@@ -31,7 +31,13 @@ export default function ActivosCard({
         />
       </Card>
 
-      <QrAssetModal open={qrModalOpen} onClose={() => setQrModalOpen(false)} item={item} />
+      {qrModalOpen && (
+        <QrAssetModal
+          open={qrModalOpen}
+          onClose={() => setQrModalOpen(false)}
+          item={item}
+        />
+      )}
     </div>
   );
 }

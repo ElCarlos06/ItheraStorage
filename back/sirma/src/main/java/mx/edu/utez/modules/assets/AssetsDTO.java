@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import mx.edu.utez.modules.espacios.Espacio;
+import mx.edu.utez.modules.tipo_activos.TipoActivo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,6 +41,12 @@ public class AssetsDTO {
     private String qrCodigo;
     private String fechaAlta; // yyyy-MM-dd
     private Boolean esActivo;
+
+    private String asignadoA;
+    private Long idResguardo;
+
+    private TipoActivo tipoActivo;
+    private Espacio espacio;
 
     // Campos de visualización para detalle extendido
     /** URLs de imágenes del perfil del activo */

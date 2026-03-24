@@ -40,7 +40,7 @@ export default function CatalogSection({
   onPageChange: onServerPageChange,
 }) {
   const [internalSearch, setInternalSearch] = useState("");
-  const [internalPage, setInternalPage] = useState(1);
+  const [internalPage, setInternalPage] = useState(0);
   const itemsPerPage = 10;
 
   const search = onSearchChange ? (searchProp ?? "") : internalSearch;
@@ -48,7 +48,7 @@ export default function CatalogSection({
     const val = e?.target?.value ?? "";
     if (onSearchChange) onSearchChange(val);
     else setInternalSearch(val);
-    setInternalPage(1); // Reset local page on search
+    setInternalPage(0); // Reset local page on search
   };
 
   const filtered = useMemo(() => {
@@ -68,7 +68,7 @@ export default function CatalogSection({
 
   const paginatedItems = useMemo(() => {
     if (serverPagination) return filtered; // El servidor ya mandó solo 10
-    const startIndex = (internalPage - 1) * itemsPerPage;
+    const startIndex = internalPage * itemsPerPage;
     return filtered.slice(startIndex, startIndex + itemsPerPage);
   }, [serverPagination, filtered, internalPage, itemsPerPage]);
 

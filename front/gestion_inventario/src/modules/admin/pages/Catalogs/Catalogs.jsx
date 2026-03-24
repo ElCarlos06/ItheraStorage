@@ -131,7 +131,7 @@ export default function Catalogs() {
   const [edificiosList, setEdificiosList] = useState([]);
 
   // Pagination states for all views
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const pageSize = 10;
@@ -168,7 +168,7 @@ export default function Catalogs() {
     setLoading(true);
     setError(null);
     try {
-      const page = currentPage - 1;
+      const page = currentPage;
       let res;
       let mapped = [];
 
@@ -224,7 +224,7 @@ export default function Catalogs() {
     setError(null);
     try {
       const res = await tipoActivosApi.getTipoActivos(
-        currentPage - 1,
+        currentPage,
         pageSize,
         Date.now(),
       );
@@ -244,7 +244,7 @@ export default function Catalogs() {
 
   const handleMainTab = (id) => {
     setMainTab(id);
-    setCurrentPage(1); 
+    setCurrentPage(0); 
     const tab = MAIN_TABS.find((t) => t.id === id);
     if (tab?.sub?.[0]) setSubTab(tab.sub[0]);
   };
@@ -404,7 +404,7 @@ export default function Catalogs() {
               value={subTab}
               onChange={(val) => {
                 setSubTab(val);
-                setCurrentPage(1); // Reset page on subtab change
+                setCurrentPage(0); // Reset page on subtab change
               }}
               options={(currentMain?.sub ?? []).map((subId) => ({
                 value: subId,

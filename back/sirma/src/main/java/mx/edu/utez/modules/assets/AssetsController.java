@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class AssetsController {
      * @return ResponseEntity con la lista de activos.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
+    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         ApiResponse response = assetsService.findAll(pageable);
         return ResponseEntity.status(response.getStatus())
                 .cacheControl(CacheControl.noStore().mustRevalidate())

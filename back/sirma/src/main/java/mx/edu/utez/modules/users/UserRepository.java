@@ -25,3 +25,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /** Cuenta usuarios por rol para generar el consecutivo del número de empleado. */
     long countByRoleId(Long roleId);
 }
+
