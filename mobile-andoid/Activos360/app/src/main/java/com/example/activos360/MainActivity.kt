@@ -14,7 +14,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         TokenManager.init(this)
-        enableEdgeToEdge()
         setContent {
             Activos360Theme {
                 Surface(color = MaterialTheme.colorScheme.background) {

@@ -5,26 +5,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.activos360.back.api.ImagenPerfilControllerApi
+//import com.example.activos360.back.api.ImagenPerfilControllerApi
+import com.example.activos360.core.auth.TokenManager
 import kotlinx.coroutines.launch
 
 class EmpleadoViewModel : ViewModel() {
 
-    // Variables de estado observables por Compose
-    // (Puedes dejarlas vacías inicialmente o con valores por defecto)
     var nombreUsuario by mutableStateOf("Cargando...")
         private set
 
-    var rolUsuario by mutableStateOf("Empleado") // <-- FALTABA ESTA
+    var rolUsuario by mutableStateOf("Empleado")
         private set
 
     var fotoUsuario by mutableStateOf<String?>(null)
         private set
 
-    var correoUsuario by mutableStateOf("") // Por si la llegas a necesitar luego
+    var correoUsuario by mutableStateOf("")
         private set
 
-    // 1. Llama a esta función cuando inicies sesión y el backend te devuelva los datos del usuario
+    init {
+        nombreUsuario = TokenManager.getNombreFromToken() ?: "Usuario"
+        rolUsuario = TokenManager.getRoleFromToken()
+            ?.removePrefix("ROLE_") ?: "Empleado"
+        correoUsuario = TokenManager.getCorreoFromToken() ?: ""
+    }
+
     fun cargarDatosUsuario(nombre: String, rol: String, correo: String = "", foto: String? = null) {
         nombreUsuario = nombre
         rolUsuario = rol
@@ -39,7 +44,7 @@ class EmpleadoViewModel : ViewModel() {
         correoUsuario = ""
         fotoUsuario = null
     }
-
+/*
     fun obtenerFotoPerfil(correo: String, api: ImagenPerfilControllerApi) {
         viewModelScope.launch {
             try {
@@ -68,5 +73,5 @@ class EmpleadoViewModel : ViewModel() {
                 fotoUsuario = null
             }
         }
-    }
+    }*/
 }

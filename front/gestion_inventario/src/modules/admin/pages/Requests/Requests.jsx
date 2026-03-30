@@ -25,7 +25,7 @@ function mapSolicitud(s) {
 
   // Tipo falla y prioridad (objetos del backend)
   const tipoFalla  = s.tipoFalla?.nombre  ?? s.tipoFalla  ?? "-";
-  const prioridad  = s.prioridad?.nombre  ?? s.prioridad  ?? "Media";
+  const prioridad = s.prioridad?.nombre ?? s.prioridad?.nivel ?? "Media";
 
   return {
     id:            s.id ?? s.id_reporte,

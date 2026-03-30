@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import com.example.activos360.ui.components.MoonIcon
 import com.example.activos360.ui.components.MoonIcons
@@ -20,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,16 +36,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.R
 import com.example.activos360.ui.components.Buttons
+import com.example.activos360.ui.viewmodel.ForgotPasswordViewModel
+
 @Composable
 fun ScreenPassword(
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    viewModel: ForgotPasswordViewModel = viewModel()
 ) {
-    // Estados para los textos
     var email by remember { mutableStateOf("") }
 
-    //COLOR DE LA OLA, HAY Q ESTABLECERLO COMO PRIMARY PARA DESPUES
+    val uiState by viewModel.uiState.collectAsState()
+
     val primaryColor = Color(0xFF7B88FF)
     val secondaryColor = Color(0xFF000000)
 
@@ -58,13 +64,8 @@ fun ScreenPassword(
                 .fillMaxWidth()
                 .padding(top = 40.dp)
         ) {
-            IconButton(
-                onClick = { onBackClick() }
-            ) {
-                MoonIcon(
-                    icon = MoonIcons.ArrowsLeft,
-                    contentDescription = "Regresar",
-                )
+            IconButton(onClick = { onBackClick() }) {
+                MoonIcon(icon = MoonIcons.ArrowsLeft, contentDescription = "Regresar")
             }
 
             Icon(
@@ -77,15 +78,9 @@ fun ScreenPassword(
             )
         }
 
-
         Spacer(modifier = Modifier.height(30.dp))
 
-        // 2. Sección del Logo y Título
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-
-        ) {
-
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "¡Oops! Olvidaste tu contraseña?",
                 color = secondaryColor,
@@ -98,13 +93,11 @@ fun ScreenPassword(
 
         Spacer(modifier = Modifier.height(70.dp))
 
-        // 3. Formulario
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
         ) {
-            // --- Input Email ---
             Text(
                 text = "Email",
                 fontWeight = FontWeight.Medium,
@@ -123,23 +116,37 @@ fun ScreenPassword(
                     unfocusedContainerColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
+                singleLine = true,
+                enabled = !uiState.isLoading && uiState.successMessage == null
             )
 
-            Spacer(modifier = Modifier.height(265.dp))
+            uiState.errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = msg, color = Color(0xFFD33030), fontSize = 14.sp)
+            }
 
-            // --- Botón Iniciar Sesión  HAY QUE TERMINAR EL COMPONENTE---
-            Buttons(
-                text = "Confirmar",
-                //Logia=ca de mandar el correo
-                onClick = {}
-            )
+            uiState.successMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = msg, color = Color(0xFF2E7D32), fontSize = 14.sp)
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            if (uiState.successMessage == null) {
+                Buttons(
+                    text = if (uiState.isLoading) "Enviando..." else "Confirmar",
+                    onClick = {
+                        if (email.isNotBlank()) viewModel.requestReset(email)
+                    },
+                    enabled = email.isNotBlank() && !uiState.isLoading
+                )
+            }
         }
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun pre3(){
+fun pre3() {
     ScreenPassword()
 }

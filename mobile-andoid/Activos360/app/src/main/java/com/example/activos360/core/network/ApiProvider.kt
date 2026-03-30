@@ -17,7 +17,13 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiProvider {
     //private const val BASE_URL = "http://10.0.2.2:8080/"
-    private const val BASE_URL = "http://192.168.0.82:8080/"
+    //private const val BASE_URL = "http://192.168.0.82:8080/"
+    private const val BASE_URL = "http://192.168.1.76:8080/"
+    //private const val BASE_URL = "http://10.77.175.46:8080/" //mena
+    //private const val BASE_URL = "http://172.20.10.10:8080/"
+    //private const val BASE_URL = "http://10.11.201.46:8080/"
+    //private const val BASE_URL = "http://192.168.56.1:8080/" //toni
+    //private const val BASE_URL = "http://10.191.56.46:8080/" //toni2
 
     private val moshi: Moshi by lazy {
         Moshi.Builder()

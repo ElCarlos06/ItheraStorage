@@ -1,5 +1,6 @@
 package com.example.activos360.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activos360.back.model.ReporteDTO
@@ -32,21 +33,21 @@ class ReportarViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val tiposResp = ApiProvider.tipoFallaApi.findAll1()
-                val prioridadesResp = ApiProvider.prioridadApi.findAll7()
-
                 val tiposList = parseTiposFalla(tiposResp.body()?.data)
-                val prioridadesList = parsePrioridades(prioridadesResp.body()?.data)
+                Log.d("REPORTE_DEBUG", "tiposFalla cargados: ${tiposList.size} → $tiposList")
+                _uiState.value = _uiState.value.copy(tiposFalla = tiposList)
+            } catch (e: Exception) {
+                Log.e("REPORTE_DEBUG", "Error cargando tiposFalla: ${e.message}")
+            }
 
-                _uiState.value = _uiState.value.copy(
-                    tiposFalla = tiposList,
-                    prioridades = prioridadesList
-                )
-            } catch (_: Exception) {
-                // Usar valores por defecto si falla la carga
-                _uiState.value = _uiState.value.copy(
-                    tiposFalla = emptyList(),
-                    prioridades = emptyList()
-                )
+            try {
+                val prioridadesResp = ApiProvider.prioridadApi.findAll7()
+                Log.d("REPORTE_DEBUG", "prioridades HTTP ${prioridadesResp.code()}, body null=${prioridadesResp.body() == null}, data=${prioridadesResp.body()?.data?.javaClass?.simpleName}: ${prioridadesResp.body()?.data}")
+                val prioridadesList = parsePrioridades(prioridadesResp.body()?.data)
+                Log.d("REPORTE_DEBUG", "prioridades parseadas: ${prioridadesList.size} → $prioridadesList")
+                _uiState.value = _uiState.value.copy(prioridades = prioridadesList)
+            } catch (e: Exception) {
+                Log.e("REPORTE_DEBUG", "Error cargando prioridades: ${e.message}")
             }
         }
     }
@@ -72,6 +73,7 @@ class ReportarViewModel : ViewModel() {
         if (data == null) return emptyList()
         val list = when (data) {
             is List<*> -> data
+            is Map<*, *> -> (data["content"] as? List<*>) ?: emptyList<Any>()
             else -> emptyList<Any>()
         }
         return list.mapNotNull { item ->
@@ -84,8 +86,8 @@ class ReportarViewModel : ViewModel() {
 
     fun reportar(
         activoId: Long,
-        idTipoFalla: Long,
-        idPrioridad: Long,
+        tipoNombre: String,
+        prioridadNivel: String,
         descripcionFalla: String,
         onSuccess: () -> Unit
     ) {
@@ -95,6 +97,12 @@ class ReportarViewModel : ViewModel() {
                 val userId = TokenManager.getUserIdFromToken()
                     ?: throw IllegalStateException("Sesión inválida")
 
+                val idTipoFalla = _uiState.value.tiposFalla.find { it.nombre == tipoNombre }?.id
+                    ?: throw IllegalStateException("Tipo de falla no reconocido: $tipoNombre")
+
+                val idPrioridad = _uiState.value.prioridades.find { it.nivel == prioridadNivel }?.id
+                    ?: throw IllegalStateException("Prioridad no reconocida: $prioridadNivel (disponibles: ${_uiState.value.prioridades.map { it.nivel }})")
+
                 val dto = ReporteDTO(
                     idActivo = activoId,
                     idUsuarioReporta = userId,
@@ -103,14 +111,20 @@ class ReportarViewModel : ViewModel() {
                     descripcionFalla = descripcionFalla
                 )
 
-                val resp = ApiProvider.reporteApi.save6(dto)
-                if (!resp.isSuccessful) {
-                    throw IllegalStateException("No se pudo registrar el reporte (${resp.code()})")
-                }
+                Log.d("REPORTE_DEBUG", "Enviando DTO: $dto")
 
-                _uiState.value = _uiState.value.copy(isLoading = false)
-                onSuccess()
+                val resp = ApiProvider.reporteApi.save6(dto)
+
+                if (resp.isSuccessful) {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    onSuccess()
+                } else {
+                    val errorBody = resp.errorBody()?.string()
+                    Log.e("REPORTE_DEBUG", "Error del backend: $errorBody")
+                    throw IllegalStateException("Error ${resp.code()}: No se pudo registrar")
+                }
             } catch (e: Exception) {
+                Log.e("REPORTE_DEBUG", "Excepción: ${e.message}")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = e.localizedMessage ?: "Error al reportar daño"

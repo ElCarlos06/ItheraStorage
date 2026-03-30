@@ -49,5 +49,46 @@ object TokenManager {
             null
         }
     }
+
+    fun isTokenValid(): Boolean {
+        val token = getToken() ?: return false
+        return try {
+            val parts = token.split(".")
+            if (parts.size != 3) return false
+            val payload = String(Base64.decode(parts[1], Base64.URL_SAFE), Charsets.UTF_8)
+            val exp = JSONObject(payload).optLong("exp", 0L)
+            exp > System.currentTimeMillis() / 1000
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun getNombreFromToken(): String? = getClaimString("nombre")
+
+    fun getRoleFromToken(): String? = getClaimString("role")
+
+    fun getCorreoFromToken(): String? {
+        val token = getToken() ?: return null
+        return try {
+            val parts = token.split(".")
+            if (parts.size != 3) return null
+            val payload = String(Base64.decode(parts[1], Base64.URL_SAFE), Charsets.UTF_8)
+            JSONObject(payload).optString("sub", null)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun getClaimString(claim: String): String? {
+        val token = getToken() ?: return null
+        return try {
+            val parts = token.split(".")
+            if (parts.size != 3) return null
+            val payload = String(Base64.decode(parts[1], Base64.URL_SAFE), Charsets.UTF_8)
+            JSONObject(payload).optString(claim, null)
+        } catch (_: Exception) {
+            null
+        }
+    }
 }
 

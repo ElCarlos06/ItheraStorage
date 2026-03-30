@@ -87,13 +87,10 @@ fun ReportarDanoScreen(
                 Buttons(
                     text = if (uiState.isLoading) "Enviando..." else "Reportar",
                     onClick = {
-                        val idTipo = tiposFalla.find { it.nombre == selectedTipoNombre }?.id
-                        val idPrioridad = prioridades.find { it.nivel == selectedPrioridadNivel }?.id
-                        if (idTipo == null || idPrioridad == null || descripcion.isBlank()) return@Buttons
                         viewModel.reportar(
                             activoId = activoId,
-                            idTipoFalla = idTipo,
-                            idPrioridad = idPrioridad,
+                            tipoNombre = selectedTipoNombre,
+                            prioridadNivel = selectedPrioridadNivel,
                             descripcionFalla = descripcion.trim(),
                             onSuccess = onReportarSuccess
                         )

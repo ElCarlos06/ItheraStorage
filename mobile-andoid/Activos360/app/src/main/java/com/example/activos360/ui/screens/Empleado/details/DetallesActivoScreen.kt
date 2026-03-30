@@ -62,9 +62,9 @@ fun DetallesActivoScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                if (uiState.canResguardar) {
-                    Buttons(text = "Resguardar", onClick = onResguardarClick)
-                }
+               if (uiState.canResguardar) {
+                    Buttons(text = "Resguardar", onClick = { onResguardarClick() })
+               }
             }
         }
     ) { paddingValues ->
@@ -144,10 +144,10 @@ fun DetallesActivoScreen(
                         "en proceso", "enproceso", "proc" -> {
                             // Solo si está en proceso Y te pertenece (canResguardar)
                             if (uiState.canResguardar) {
-                                Buttons(
+                               /* Buttons(
                                     text = "Resguardar Activo",
                                     onClick = { onResguardarClick() }
-                                )
+                                )*/
                             } else {
                                 // Está en proceso pero asignado a OTRO empleado. Solo lectura.
                                 Text(
@@ -159,16 +159,32 @@ fun DetallesActivoScreen(
                         }
 
                         "resguardado", "resguardo", "resg" -> {
-                            // Si ya está resguardado, AHORA SÍ puede reportar daño o devolver
-                            // (Podrías validar aquí si está resguardado por el empleado actual)
-                            Buttons(
-                                text = "Reportar daño",
-                                onClick = { onReportarDanoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
-                            )
-                            Buttons(
-                                text = "Devolver Activo",
-                                onClick = { onDevolverActivoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
-                            )
+                            val opActual = estadoOperativo.lowercase()
+                            when {
+                                opActual.contains("reportado") -> Text(
+                                    text = "Este activo tiene un reporte activo. No se pueden realizar acciones hasta que sea atendido.",
+                                    color = Color(0xFFD33030),
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                                opActual.contains("mantenimiento") -> Text(
+                                    text = "Este activo está en mantenimiento. No se pueden realizar acciones hasta que sea liberado.",
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                                else -> {
+                                    Buttons(
+                                        text = "Reportar daño",
+                                        onClick = { onReportarDanoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
+                                    )
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Buttons(
+                                        text = "Devolver Activo",
+                                        onClick = { onDevolverActivoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
+                                    )
+                                }
+                            }
                         }
 
                         "disponible", "disp" -> {

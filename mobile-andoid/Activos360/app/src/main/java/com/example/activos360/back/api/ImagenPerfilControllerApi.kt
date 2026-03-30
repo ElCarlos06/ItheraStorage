@@ -1,5 +1,5 @@
 package com.example.activos360.back.api
-
+/*
 import com.example.activos360.back.model.ImagenPerfilResponse
 import org.openapitools.client.infrastructure.CollectionFormats.*
 import retrofit2.http.*
@@ -49,3 +49,4 @@ interface ImagenPerfilControllerApi {
     suspend fun save12(@Path("id") id: String, @Body save11Request: Save11Request? = null): Response<ModelApiResponse>
 
 }
+*/

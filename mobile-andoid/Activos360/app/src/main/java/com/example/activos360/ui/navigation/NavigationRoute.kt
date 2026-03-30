@@ -13,14 +13,29 @@ import com.example.activos360.ui.screens.Login.ScreenPassword
 import com.example.activos360.ui.screens.Empleado.EmpleadoMainScreen
 import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScreen
 import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
+import com.example.activos360.ui.screens.Empleado.details.DevolverActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
+import androidx.compose.runtime.remember
+import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.ui.screens.tecnico.TecnicoMainScreen
 
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    val startDestination = remember {
+        if (TokenManager.isTokenValid()) {
+            val role = TokenManager.getRoleFromToken() ?: ""
+            when {
+                role.contains("Empleado", ignoreCase = true) -> "home_empleado"
+                else -> "home_admin"
+            }
+        } else {
+            "login"
+        }
+    }
+
+    NavHost(navController = navController, startDestination = startDestination) {
 
         // LOGIN
         composable("login") {
@@ -67,6 +82,11 @@ fun Navigation() {
                     navController.navigate(
                         "reportar_dano/$id/${Uri.encode(etiqueta)}/${Uri.encode(nombre)}"
                     )
+                },
+                onDevolverActivoClick = { id, etiqueta, nombre ->
+                    navController.navigate(
+                        "devolver_activo/$id/${Uri.encode(etiqueta)}/${Uri.encode(nombre)}"
+                    )
                 }
             )
         }
@@ -101,7 +121,28 @@ fun Navigation() {
                 activoId = activoId,
                 activoEtiqueta = etiqueta,
                 activoNombre = nombre,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onReportarSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "devolver_activo/{activoId}/{activoEtiqueta}/{activoNombre}",
+            arguments = listOf(
+                navArgument("activoId") { type = NavType.LongType },
+                navArgument("activoEtiqueta") { type = NavType.StringType },
+                navArgument("activoNombre") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val activoId = backStackEntry.arguments?.getLong("activoId") ?: 0L
+            val etiqueta = backStackEntry.arguments?.getString("activoEtiqueta").orEmpty()
+            val nombre = backStackEntry.arguments?.getString("activoNombre").orEmpty()
+            DevolverActivoScreen(
+                activoId = activoId,
+                activoEtiqueta = etiqueta,
+                activoNombre = nombre,
+                onBack = { navController.popBackStack() },
+                onDevolverSuccess = { navController.popBackStack() }
             )
         }
 

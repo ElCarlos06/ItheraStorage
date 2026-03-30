@@ -22,7 +22,8 @@ import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScre
 import com.example.activos360.ui.screens.Empleado.details.DevolverActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
-import com.example.activos360.ui.screens.Login.ScreeanCreatePassword
+import com.example.activos360.ui.screens.Login.ScreeanChangePassword
+import com.example.activos360.core.auth.TokenManager
 
 @Composable
 fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
@@ -63,12 +64,12 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
             composable("perfil") {
                 UserProfile(
                     onNavigateToChangePassword = {
-                        navControllerPrincipal.navigate("crear_password") // La ruta hacia ScreeanCreatePassword
+                        bottomNavController.navigate("change_password")
                     },
                     onLogout = {
-                        // Aquí limpias el stack para que no pueda volver atrás con el botón del celular
+                        TokenManager.clear()
                         navControllerPrincipal.navigate("login") {
-                            popUpTo(0) // Limpia todo el historial de navegación
+                            popUpTo(0)
                         }
                     }
                 )
@@ -115,8 +116,12 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
                 )
             }
 
-            composable("crear_password") {
-                ScreeanCreatePassword()
+            composable("change_password") {
+                ScreeanChangePassword(
+                    correoFromFirstLogin = TokenManager.getCorreoFromToken(),
+                    onBackClick = { bottomNavController.popBackStack() },
+                    onPasswordUpdated = { bottomNavController.popBackStack() }
+                )
             }
 
             composable("reportar_dano/{activoId}/{etiqueta}/{nombre}") { backStackEntry ->
