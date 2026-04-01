@@ -2,6 +2,7 @@ package com.example.activos360.ui.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -80,12 +81,19 @@ class EmpleadoViewModel : ViewModel() {
         }
     }
 
-    /** Extrae la URL de la imagen desde el campo `data` de la respuesta (Map o String). */
     private fun urlFromData(data: Any?): String? {
         return when (data) {
-            is Map<*, *> -> data["url"] as? String
+            is Map<*, *> -> {
+                val url = (data["urlCloudinary"] as? String)
+                    ?: (data["url"] as? String) 
+                Log.d("EmpleadoVM", "urlFromData map keys=${data.keys}, url=$url")
+                url
+            }
             is String    -> data.takeIf { it.startsWith("http") }
-            else         -> null
+            else         -> {
+                Log.d("EmpleadoVM", "urlFromData tipo inesperado: ${data?.javaClass}")
+                null
+            }
         }
     }
 
