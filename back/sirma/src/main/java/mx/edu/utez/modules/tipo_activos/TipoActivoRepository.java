@@ -6,10 +6,13 @@ import mx.edu.utez.modules.assets.Assets;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,4 +28,7 @@ public interface TipoActivoRepository extends JpaRepository<TipoActivo, Long> {
     Optional<TipoActivo> findByNombre(String nombre);
 
     Optional<TipoActivo> findByNombreAndMarcaAndTipoBienAndModelo(String nombreStr, String marcaStr, String bienStr, String modeloStr);
+
+    @Query("SELECT t FROM TipoActivo t WHERE CONCAT(t.nombre,'-',t.marca,'-',t.tipoBien,'-',t.modelo) IN :keys")
+    List<TipoActivo> findByCompositeKeys(@Param("keys") Set<String> keys);
 }

@@ -5,7 +5,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Repositorio JPA para la entidad Campus.
@@ -20,4 +23,6 @@ public interface CampusRepository extends JpaRepository<Campus, Long> {
     boolean existsByNombreAndEsActivoTrueAndIdNot(String nombre, Long id);
     Optional<Campus> findByNombre(String nombre);
     Optional<Campus> findFirstByNombreAndEsActivoFalse(String nombre);
+
+    List<Campus> findByNombreIn(Set<String> campusLote);
 }

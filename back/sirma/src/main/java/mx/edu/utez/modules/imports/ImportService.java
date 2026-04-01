@@ -2,7 +2,6 @@ package mx.edu.utez.modules.imports;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.bitacora.BitacoraService;
@@ -14,16 +13,28 @@ import mx.edu.utez.modules.espacios.Espacio;
 import mx.edu.utez.modules.espacios.EspacioRepository;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
+import mx.edu.utez.util.CustomException;
+import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.util.XMLHelper;
+import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
+import org.apache.poi.xssf.model.StylesTable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 
-import java.io.IOException;
-import java.time.LocalDate;
+import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import java.time.LocalDate;
 
 /**
  * Servicio especializado en la importación masiva de activos desde archivos Excel (.xlsx).
@@ -56,15 +67,15 @@ public class ImportService {
      * @return ApiResponse con el resultado de la operación (éxito o lista de errores)
      */
     @Transactional(rollbackFor = {Exception.class})
-    public ApiResponse save(MultipartFile file) {
+    public ImportResult save(MultipartFile file) {
 
         final String SHEETS_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
         if (file == null || file.isEmpty())
-            return new ApiResponse("Archivo no proporcionado o vacío", true, HttpStatus.BAD_REQUEST);
+            throw new CustomException("Archivo no proporcionado o vacío");
 
-        if (!SHEETS_TYPE.equals(file.getContentType()))
-            return new ApiResponse("Tipo de archivo no soportado. Debe ser .xlsx o similar", true, HttpStatus.BAD_REQUEST);
+        if (!SHEETS_TYPE.equals(file.getContentType()) || Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().endsWith(".xlsx"))
+            throw new CustomException("Tipo de archivo no soportado. Debe ser .xlsx o similar");
 
         return handleExcel(file);
     }
@@ -79,208 +90,219 @@ public class ImportService {
     // ========================================================= //
 
     /**
-     * Procesa el contenido del archivo Excel, validando reglas de negocio,
-     * evitando duplicados mediante HashSet y optimizando consultas con HashMap.
-     *
-     * @param file Archivo Excel validado
-     * @return ApiResponse con confirmación o detalle de errores por fila
+     * Se encarga de procesar el acrhivo de excel, y aplicar las reglas de negocio que estan en el DFR.
+     * @param file Tipo <code>Multifile</code> que es el archiivo de excel.
+     * @return <code>ApiResponse</code> o sea un resumen de las inserciones rechazos (si hubo) y su respectivo estatus Http
      */
-    @Transactional(rollbackFor = {Exception.class})
-    protected ApiResponse handleExcel(MultipartFile file) {
-        List<Assets> activosGuardar = new ArrayList<>();
-        List<String> errores = new ArrayList<>();
+    private ImportResult handleExcel(MultipartFile file) throws ImportException {
 
-        // Sets para detectar duplicados dentro del propio archivo sin consultar la BD
-        Set<String> etiquetasEnLote = new HashSet<>();
-        Set<String> seriesEnLote = new HashSet<>();
+        AtomicInteger inserciones   = new AtomicInteger();
+        List<String>  errores       = new ArrayList<>();
 
-        final Map<String, TipoActivo> tipoCache = new HashMap<>();
-        final Map<String, Campus> campusCache = new HashMap<>();
-        final Map<String, Edificio> edificioCache = new HashMap<>();
-        final Map<String, Espacio> espacioCache = new HashMap<>();
+        Set<String> etiquetasVistas = new HashSet<>();
+        Set<String> seriesVistas    = new HashSet<>();
 
-        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
-            Sheet sheet = workbook.getSheetAt(0);
+        List<String[]> batch = new ArrayList<>();
+        final int BATCH_SIZE = 500; // Procesamos de 500 en 500 para no reventar la RAM
 
-            for (Row row : sheet) {
+        try(InputStream inputStream = file.getInputStream(); // Aqui lo abrimos en un inputStream
+            OPCPackage pkg      = OPCPackage.open(inputStream) // Y aqui lo convertimos a un paquete de excel, se llama PKG PQ POR LO GENERLA SE COMPRIMEN EN ZIP LOS EXCEL Xd
+        ) {
+            XSSFReader xssfReader = new XSSFReader(pkg);
+            StylesTable styles  = xssfReader.getStylesTable();
+            
+            // Obtiene la tabla de strings compartidos, que es donde se guardan los valores de texto para optimizar el tamaño del archivo.
+            ReadOnlySharedStringsTable sst = new ReadOnlySharedStringsTable(pkg);
+            
+            // Se encarga de parsear el xml compreso que esta en ls archivo sde excel, y o cargar la ram xd
+            XMLReader parser = XMLHelper.newXMLReader();
 
-                if (row.getRowNum() == 0 || isRowEmpty(row))
-                    continue; // Saltar cabecera y filas vacías
+            // El handler es el que se encarga de convertir los eventos del parser en filas de strings planos, y pasarlas al lote
+            parser.setContentHandler(new XSSFSheetXMLHandler(
+                    styles, null, sst,
+                    new RowCollectorHandler(row -> {
+                        batch.add(row);
+                        if (batch.size() >= BATCH_SIZE) {
+                            inserciones.addAndGet(processBatch(batch, errores, etiquetasVistas, seriesVistas));
+                        }
+                    }),
+                    new DataFormatter(),
+                    false
+            ));
 
-                try {
-                    // 1. Extraer valores de cada celda según su columna
-                    String etiqueta    = getCellValue(row.getCell(0));
-                    String serie       = getCellValue(row.getCell(1));
-                    String nombreStr   = getCellValue(row.getCell(2)); // Atributo de TipoActivo
-                    String marcaStr    = getCellValue(row.getCell(3)); // Atributo de TipoActivo
-                    String bienStr     = getCellValue(row.getCell(4)); // Atributo de TipoActivo (era "tipoStr")
-                    String modeloStr   = getCellValue(row.getCell(5)); // Atributo de TipoActivo
-                    String campusStr   = getCellValue(row.getCell(6));
-                    String edificioStr = getCellValue(row.getCell(7));
-                    String espacioStr  = getCellValue(row.getCell(8));
+            XSSFReader.SheetIterator sheets = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
 
-                    // 2. Validar que todos los campos obligatorios (*) tengan valor
-                    if (etiqueta.isEmpty()    ||
-                            serie.isEmpty()       ||
-                            nombreStr.isEmpty()   ||
-                            marcaStr.isEmpty()    ||
-                            bienStr.isEmpty()     ||
-                            modeloStr.isEmpty()   ||
-                            campusStr.isEmpty()   ||
-                            edificioStr.isEmpty() ||
-                            espacioStr.isEmpty()
-                    )
-                        throw new IllegalArgumentException("Faltan campos obligatorios (*)");
+            // si tiene otra hoja pide que la lea, pero como el DFR solo habla de una hoja
+            // solo se procesa la primera y ya, si hay más se ignoran
+            if (sheets.hasNext())
+                parser.parse(new InputSource(sheets.next())); // es la primera hoja del fokin excel
 
-                    // 3. Validar duplicados dentro del lote (sin tocar la BD)
-                    if (!etiquetasEnLote.add(etiqueta))
-                        throw new IllegalArgumentException("La etiqueta '" + etiqueta + "' está repetida en el archivo.");
+            if (!batch.isEmpty()) // Si al terminar de leer el archivo quedan filas en el lote, las procesamos
+                inserciones.addAndGet(processBatch(batch, errores, etiquetasVistas, seriesVistas));
 
-                    if (!seriesEnLote.add(serie))
-                        throw new IllegalArgumentException("El número de serie '" + serie + "' está repetido en el archivo.");
-
-                    // 4. Validar duplicados contra la BD
-                    if (assetsRepository.existsByEtiqueta(etiqueta))
-                        throw new IllegalArgumentException("La etiqueta '" + etiqueta + "' ya existe en el sistema.");
-
-                    if (assetsRepository.existsByNumeroSerie(serie))
-                        throw new IllegalArgumentException("El número de serie '" + serie + "' ya existe en el sistema.");
-
-                    // 5. Resolución de catálogos con caché (HashMap para evitar N+1)
-
-                    // TipoActivo: la clave combina tipo+marca+modelo porque marca y modelo
-                    // son atributos propios de TipoActivo, no entidades independientes.
-                    // Así se garantiza que dos filas con mismo tipo pero distinta marca/modelo
-                    // no colisionen en el caché.
-                    String tipoKey = nombreStr + "-" + marcaStr + "-" + bienStr + "-" + modeloStr;
-                    TipoActivo tipoActivo = tipoCache.computeIfAbsent(tipoKey, k ->
-                            tipoActivoRepository.findByNombreAndMarcaAndTipoBienAndModelo(nombreStr, marcaStr, bienStr, modeloStr)
-                                    .orElseThrow(() -> new IllegalArgumentException(
-                                            "No existe el TipoActivo con nombre '" + nombreStr +
-                                                    "', marca '" + marcaStr +
-                                                    "', bien '" + bienStr +
-                                                    "' y modelo '" + modeloStr + "."))
-                    );
-
-                    Campus campus = campusCache.computeIfAbsent(campusStr, k ->
-                            campusRepository.findByNombre(k)
-                                    .orElseThrow(() -> new IllegalArgumentException("El Campus '" + k + "' no existe."))
-                    );
-
-                    // Clave compuesta campusId+edificio para soportar edificios con igual nombre en distintos campus
-                    String edificioKey = campus.getId() + "-" + edificioStr;
-                    Edificio edificio = edificioCache.computeIfAbsent(edificioKey, k ->
-                            edificioRepository.findByCampusIdAndNombre(campus.getId(), edificioStr)
-                                    .orElseThrow(() -> new IllegalArgumentException("El Edificio '" + edificioStr + "' no existe en ese campus."))
-                    );
-
-                    // Clave compuesta edificioId+espacio para soportar espacios con igual nombre en distintos edificios
-                    String espacioKey = edificio.getId() + "-" + espacioStr;
-                    Espacio espacio = espacioCache.computeIfAbsent(espacioKey, k ->
-                            espacioRepository.findByEdificioIdAndNombreEspacio(edificio.getId(), espacioStr)
-                                    .orElseThrow(() -> new IllegalArgumentException("El Espacio '" + espacioStr + "' no existe en ese edificio."))
-                    );
-
-                    // 6. Construir el activo (marca/modelo van en TipoActivo)
-                    Assets asset = new Assets();
-                    asset.setEtiqueta(etiqueta);
-                    asset.setNumeroSerie(serie);
-                    asset.setTipoActivo(tipoActivo);
-                    asset.setEspacio(espacio);
-                    asset.setFechaAlta(LocalDate.now());
-                    asset.setEsActivo(true);
-                    asset.setEstadoCustodia("Disponible");
-                    asset.setEstadoOperativo("OK");
-
-                    activosGuardar.add(asset);
-
-                } catch (IllegalArgumentException e) {
-                    log.error("Error en fila {}: {}", (row.getRowNum() + 1), e.getMessage());
-                    errores.add("Fila " + (row.getRowNum() + 1) + ": " + e.getMessage());
-                }
-            }
-
-            // 7. Guardar en BD solo los activos que pasaron todas las validaciones (inserción parcial)
-            if (!activosGuardar.isEmpty()) {
-                assetsRepository.saveAll(activosGuardar);
-                for (Assets a : activosGuardar) {
-                    bitacoraService.registrarEvento(a.getId(), null, "Registro Activo",
-                            "Activo " + a.getEtiqueta() + " importado desde Excel",
-                            null, "Disponible", null, "OK");
-                }
-            }
-
-            // 8. Construir el mensaje cumpliendo los criterios de aceptación
-            int inserciones = activosGuardar.size();
-            int rechazos = errores.size();
-
-            StringBuilder mensaje = new StringBuilder();
-            mensaje.append("Importación realizada exitosamente.\n");
-            mensaje.append("Total de inserciones: ").append(inserciones).append("\n");
-            mensaje.append("Total de rechazos: ").append(rechazos);
-
-            // Si hubo rechazos, anexamos el detalle para que el usuario sepa qué filas fallaron
-            if (rechazos > 0) {
-                mensaje.append("\n\nDetalle de rechazos:\n").append(String.join("\n", errores));
-
-                // Retornamos OK porque el proceso terminó bien, pero mandamos flag `true` de error
-                // para que el frontend sepa que hubo filas omitidas (o puedes cambiar a BAD_REQUEST según tu API).
-                return new ApiResponse(mensaje.toString(), true, HttpStatus.OK);
-            }
-
-            // Si todo fue perfecto y no hubo rechazos
-            return new ApiResponse(mensaje.toString(), false, HttpStatus.OK);
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error al leer el archivo Excel", e);
-            return new ApiResponse("Error interno al leer el archivo Excel", true, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new CustomException("Error interno al leer el archivo Excel", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        if (inserciones.get() == 0 && errores.isEmpty())
+            throw new CustomException("El archivo no contiene datos.");
+
+
+        // FASE 6: RESPUESTA
+        // Mandarle el mensajemediante ImportResult pal front y ya xD
+        return new ImportResult(inserciones.get(), errores.size(), errores);
     }
 
-    /**
-     * Extrae el valor de una celda de Excel de forma segura, independientemente de su tipo.
-     *
-     * @param cell Celda a evaluar
-     * @return Valor de la celda como String (sin espacios al inicio/fin)
-     */
-    private String getCellValue(Cell cell) {
-        if (cell == null) return "";
-        return switch (cell.getCellType()) {
+    private int processBatch(List<String[]> batch, List<String> errores, Set<String> etiquetasVistas, Set<String> seriesVistas) {
+        Set<String> etiquetasLote = new HashSet<>();
+        Set<String> seriesLote    = new HashSet<>();
+        Set<String> campusLote    = new HashSet<>();
+        Set<String> tipoKeyLote   = new HashSet<>(); 
 
-            case STRING -> cell.getStringCellValue().trim();
-            case NUMERIC -> {
+        // Recolectar llaves foráneas y datos únicos de las filas de este lote 
+        // para hacer búsquedas masivas en la BD y evitar hacer 1000 iteraciones
+        for (String[] r : batch) {
+            if (!r[1].isEmpty()) etiquetasLote.add(r[1]);
+            if (!r[2].isEmpty()) seriesLote.add(r[2]);
+            if (!r[7].isEmpty()) campusLote.add(r[7]);
+            if (!r[3].isEmpty() && !r[4].isEmpty() && !r[5].isEmpty() && !r[6].isEmpty())
+                tipoKeyLote.add(r[3] + "-" + r[4] + "-" + r[5] + "-" + r[6]);
+        }
 
-                if (DateUtil.isCellDateFormatted(cell))
-                    yield cell.getDateCellValue().toString();
+        Set<String> etiquetasEnBD = etiquetasLote.isEmpty() ? new HashSet<>() :
+                assetsRepository.findEtiquetasExistentes(etiquetasLote);
+        Set<String> seriesEnBD = seriesLote.isEmpty() ? new HashSet<>() :
+                assetsRepository.findSeriesExistentes(seriesLote);
 
-                double val = cell.getNumericCellValue();
+        Map<String, Campus> campusCache = campusRepository.findByNombreIn(campusLote)
+                .stream().collect(Collectors.toMap(Campus::getNombre, Function.identity()));
 
-                if (val == (long) val)
-                    yield String.valueOf((long) val); // Elimina el .0 innecesario en enteros
+        Set<Long> campusIds = campusCache.values().stream()
+                .map(Campus::getId).collect(Collectors.toSet());
 
-                else
-                    yield String.valueOf(val);
+        Map<String, Edificio> edificioCache = campusIds.isEmpty() ? new HashMap<>() :
+                edificioRepository.findByCampusIdIn(campusIds).stream()
+                .collect(Collectors.toMap(
+                        e -> e.getCampus().getId() + "-" + e.getNombre(),
+                        Function.identity()
+                ));
 
+        Set<Long> edificioIds = edificioCache.values().stream()
+                .map(Edificio::getId).collect(Collectors.toSet());
+
+        Map<String, Espacio> espacioCache = edificioIds.isEmpty() ? new HashMap<>() :
+                espacioRepository.findByEdificioIdIn(edificioIds).stream()
+                .collect(Collectors.toMap(
+                        e -> e.getEdificio().getId() + "-" + e.getNombreEspacio(),
+                        Function.identity()
+                ));
+
+        Map<String, TipoActivo> tipoCache = tipoKeyLote.isEmpty() ? new HashMap<>() :
+                tipoActivoRepository.findByCompositeKeys(tipoKeyLote).stream()
+                .collect(Collectors.toMap(
+                        tA -> tA.getNombre() + "-" + tA.getMarca() + "-" +
+                                tA.getTipoBien() + "-" + tA.getModelo(),
+                        Function.identity()
+                ));
+
+        List<Assets> activosGuardar = new ArrayList<>();
+
+        for (String[] r : batch) {
+            int rowNum = Integer.parseInt(r[0]) + 1; 
+            try {
+                activosGuardar.add(buildAsset(r, etiquetasVistas, seriesVistas, etiquetasEnBD, seriesEnBD, tipoCache, campusCache, edificioCache, espacioCache));
+            } catch (ImportException e) {
+                log.error("Error en fila {}: {}", rowNum, e.getMessage());
+                errores.add("Fila " + rowNum + ": " + e.getMessage());
             }
-            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            default -> "";
-        };
+        }
+
+        // ── FASE 5: PERSISTENCIA
+        // Terminamos de validar, ahora a guardar todo ya a la ñonga wn
+        // ──────────────────────────────────────────────────────────────────────
+        if (!activosGuardar.isEmpty()) {
+            assetsRepository.saveAll(activosGuardar);
+            bitacoraService.registrarEvento(activosGuardar);
+            
+            // Register successfully saved assets mapping tags to DB logic across batches if needed
+            // Registramos lo que se acaba de guardar para que el siguiente lote sepa que ya existe
+            for(Assets a: activosGuardar) {
+                etiquetasEnBD.add(a.getEtiqueta());
+                seriesEnBD.add(a.getNumeroSerie());
+            }
+        }
+        
+        batch.clear();
+        return activosGuardar.size();
     }
 
-    /**
-     * Verifica si una fila del archivo Excel está completamente vacía.
-     * Se usa para ignorar filas en blanco intercaladas sin generar errores de validación.
-     *
-     * @param row Fila a evaluar
-     * @return true si la fila está vacía o es nula, false en caso contrario
-     */
-    private boolean isRowEmpty(Row row) {
-        if (row == null) return true;
-        for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
-            Cell cell = row.getCell(c);
-            if (cell != null && cell.getCellType() != CellType.BLANK && !getCellValue(cell).isEmpty())
-                return false;
-        }
-        return true;
+    private Assets buildAsset(String[] r, 
+                              Set<String> etiquetasVistas, Set<String> seriesVistas, 
+                              Set<String> etiquetasEnBD, Set<String> seriesEnBD, 
+                              Map<String, TipoActivo> tipoCache, Map<String, Campus> campusCache, 
+                              Map<String, Edificio> edificioCache, Map<String, Espacio> espacioCache) throws ImportException {
+        
+        String etiqueta    = r[1];
+        String serie       = r[2];
+        String nombreStr   = r[3];
+        String marcaStr    = r[4];
+        String bienStr     = r[5];
+        String modeloStr   = r[6];
+        String campusStr   = r[7];
+        String edificioStr = r[8];
+        String espacioStr  = r[9];
+
+        if (etiqueta.isEmpty() || serie.isEmpty() || nombreStr.isEmpty() || marcaStr.isEmpty() || 
+            bienStr.isEmpty() || modeloStr.isEmpty() || campusStr.isEmpty() || edificioStr.isEmpty() || espacioStr.isEmpty())
+            throw new ImportException("Faltan campos obligatorios (*)");
+
+        if (!etiquetasVistas.add(etiqueta))
+
+            throw new ImportException("La etiqueta '" + etiqueta + "' está repetida en el archivo.");
+        if (!seriesVistas.add(serie))
+            throw new ImportException("El número de serie '" + serie + "' está repetido en el archivo.");
+
+        if (etiquetasEnBD.contains(etiqueta))
+            throw new ImportException("La etiqueta '" + etiqueta + "' ya existe en el sistema.");
+
+        if (seriesEnBD.contains(serie))
+            throw new ImportException("El número de serie '" + serie + "' ya existe en el sistema.");
+
+        String tipoKey = nombreStr + "-" + marcaStr + "-" + bienStr + "-" + modeloStr;
+        TipoActivo tipoActivo = tipoCache.get(tipoKey);
+        if (tipoActivo == null)
+            throw new ImportException("No existe el TipoActivo con nombre '" + nombreStr + 
+                    "', marca '" + marcaStr + "', bien '" + bienStr + "' y modelo '" + modeloStr + "'.");
+
+        Campus campus = campusCache.get(campusStr);
+        if (campus == null)
+            throw new ImportException("El Campus '" + campusStr + "' no existe.");
+
+        Edificio edificio = edificioCache.get(campus.getId() + "-" + edificioStr);
+        if (edificio == null)
+            throw new ImportException("El Edificio '" + edificioStr + "' no existe en ese campus.");
+
+        Espacio espacio = espacioCache.get(edificio.getId() + "-" + espacioStr);
+        if (espacio == null)
+            throw new ImportException("El Espacio '" + espacioStr + "' no existe en ese edificio.");
+
+        Assets asset = new Assets();
+        asset.setEtiqueta(etiqueta);
+        asset.setNumeroSerie(serie);
+        asset.setTipoActivo(tipoActivo);
+        asset.setEspacio(espacio);
+        asset.setFechaAlta(LocalDate.now());
+        asset.setEsActivo(true);
+        asset.setEstadoCustodia("Disponible");
+        asset.setEstadoOperativo("OK");
+
+        return asset;
     }
+
+    private String normalize(String str) {
+        return str == null ? "" : str.toLowerCase().trim();
+    }
+
+
 }

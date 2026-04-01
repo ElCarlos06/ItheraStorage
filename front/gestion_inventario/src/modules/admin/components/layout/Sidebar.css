@@ -63,9 +63,10 @@
   font-weight: 500;
   text-decoration: none;
   position: relative;
-  transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-sidebar__item:hover {
@@ -103,7 +104,9 @@
   border-radius: var(--moon-radius-s-md);
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .admin-sidebar__user:hover {
@@ -129,8 +132,9 @@
   cursor: pointer;
   overflow: hidden;
   flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-sidebar__avatar:hover {
@@ -236,7 +240,9 @@
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--moon-radius-s-md);
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .admin-sidebar__logout:hover {

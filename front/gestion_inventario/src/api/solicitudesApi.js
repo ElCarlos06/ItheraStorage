@@ -1,7 +1,6 @@
 import { request } from "./base";
 
-export const solicitudesApi = {
-  // ── Reportes ─────────────────────────────────────────────────
+const reportes = {
   /** GET /api/reportes?page=:page&size=:size */
   getReportes: (page = 0, size = 10, direction = "DESC") =>
     request(`/api/reportes?page=${page}&size=${size}&direction=${direction}`),
@@ -26,36 +25,38 @@ export const solicitudesApi = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+};
 
-  // ── Mantenimientos ────────────────────────────────────────────
-  /** GET /api/mantenimientos?page=:page&size=:size */
+const mantenimientos = {
+  /** GET /api/reportes?page=:page&size=:size */
   getMantenimientos: (page = 0, size = 10, direction = "DESC") =>
     request(
       `/api/mantenimientos?page=${page}&size=${size}&direction=${direction}`,
     ),
 
-  /** GET /api/mantenimientos/:id */
+  /** GET /api/reportes/:id */
   getMantenimientoById: (id) => request(`/api/mantenimientos/${id}`),
 
-  /** GET /api/mantenimientos/tecnico/:tecnicoId */
-  getMantenimientosByTecnico: (tecnicoId) =>
-    request(`/api/mantenimientos/tecnico/${tecnicoId}`),
-
-  /** GET /api/mantenimientos/activo/:activoId */
+  /** GET /api/reportes/activo/:activoId */
   getMantenimientosByActivo: (activoId) =>
     request(`/api/mantenimientos/activo/${activoId}`),
 
-  /** POST /api/mantenimientos */
+  /** POST /api/reportes */
   createMantenimiento: (body) =>
     request(`/api/mantenimientos`, {
       method: "POST",
       body: JSON.stringify(body),
     }),
 
-  /** PUT /api/mantenimientos/:id */
+  /** PUT /api/reportes/:id */
   updateMantenimiento: (id, body) =>
     request(`/api/mantenimientos/${id}`, {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+};
+
+export const solicitudesApi = {
+  reportes,
+  mantenimientos,
 };

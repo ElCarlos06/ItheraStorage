@@ -76,9 +76,10 @@ public class JwtProvider {
      */
     public UserDetailsImp getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImp) {
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImp)
             return (UserDetailsImp) authentication.getPrincipal();
-        }
+
         return null;
     }
 

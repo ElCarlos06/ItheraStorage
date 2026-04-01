@@ -5,9 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
+import mx.edu.utez.modules.auth.user_details.UserDetailsImp;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
 import mx.edu.utez.security.jwt.JwtProvider;
+import mx.edu.utez.util.CustomException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,15 +92,17 @@ public class BitacoraService {
             String estadoOperativoNuevo
     ) {
         Long uid = usuarioId;
-        if (uid == null && jwtProvider != null && jwtProvider.getCurrentUser() != null) {
+        if (uid == null && jwtProvider != null && jwtProvider.getCurrentUser() != null)
             uid = jwtProvider.getCurrentUser().getId();
-        }
+
         if (uid == null) {
             log.warn("Bitácora: no se pudo registrar evento '{}' (sin usuario)", tipoEvento);
             return;
         }
+
         Optional<Assets> activo = assetsRepository.findById(activoId);
         if (activo.isEmpty()) return;
+
         Optional<User> usuario = userRepository.findById(uid);
         if (usuario.isEmpty()) return;
 
@@ -112,6 +116,47 @@ public class BitacoraService {
         b.setEstadoOperativoAnterior(estadoOperativoAnterior);
         b.setEstadoOperativoNuevo(estadoOperativoNuevo);
         bitacoraRepository.save(b);
+    }
+
+    /**
+     * Sobrecarga del metodo registrarEvento, este es con ell fin de registrar activos de forma masiva
+     * @param activos <code>List<Assets></code> que son los activos que vamos a mapear
+     */
+    @Transactional
+    public void registrarEvento(List<Assets> activos) {
+
+        User user = handleUser();
+
+        List<Bitacora> registros = activos.stream()
+                .map(a -> {
+                    Bitacora b = new Bitacora();
+                    b.setActivo(a);
+                    b.setUsuario(user);
+                    b.setTipoEvento("Registro Activo");
+                    b.setDescripcion("Activo " + a.getEtiqueta() + " importado desde Excel");
+                    b.setEstadoCustodiaAnterior(null);
+                    b.setEstadoCustodiaNuevo("Disponible");
+                    b.setEstadoOperativoAnterior(null);
+                    b.setEstadoOperativoNuevo("OK");
+                    return b;
+                })
+                .toList();
+
+        bitacoraRepository.saveAll(registros);
+    }
+
+    private User handleUser() {
+        UserDetailsImp current = jwtProvider.getCurrentUser();
+
+        // Si es null, la request llegó sin autenticación válida
+        // → no debería pasar si el endpoint está protegido
+        if (current == null)
+            throw new CustomException("No hay usuario autenticado en el contexto", HttpStatus.UNAUTHORIZED);
+
+        return userRepository.findById(current.getId())
+                .orElseThrow(() -> new CustomException(
+                        "Usuario autenticado no encontrado en BD", HttpStatus.UNAUTHORIZED)
+                );
     }
 
 }

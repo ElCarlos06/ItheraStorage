@@ -1,5 +1,7 @@
 package mx.edu.utez.util;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mx.edu.utez.kernel.ApiResponse;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -16,17 +18,22 @@ import java.util.stream.Collectors;
 /**
  * Maneja excepciones globalmente y devuelve respuestas JSON consistentes.
  */
+@Slf4j
 @RestControllerAdvice
+@AllArgsConstructor
 public class GlobalExceptionHandler {
 
     private final Environment env;
 
-    public GlobalExceptionHandler(Environment env) {
-        this.env = env;
+    private boolean isDev() {
+        return Arrays.asList(env.getActiveProfiles()).contains("dev");
     }
 
-    private boolean isDev() {
-        return Arrays.stream(env.getActiveProfiles()).anyMatch("dev"::equals);
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ApiResponse> handleCustomException(CustomException ex) {
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(new ApiResponse(ex.getMessage(), true, ex.getStatus()));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -55,7 +62,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGeneric(Exception e) {
-        e.printStackTrace();
+        log.error("Error inesperado: {}", e.getMessage());
         String mensaje = isDev() && e.getMessage() != null
                 ? e.getMessage()
                 : "Ocurrió un error interno. Intenta más tarde.";

@@ -1,10 +1,12 @@
 package mx.edu.utez.modules.edificios;
 
+import mx.edu.utez.modules.espacios.Espacio;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,4 +19,6 @@ public interface EdificioRepository extends JpaRepository<Edificio, Long> {
     boolean existsByCampusIdAndNombreAndEsActivoTrueAndIdNot(Long campusId, String nombre, Long id);
     Optional<Edificio> findFirstByCampusIdAndNombreAndEsActivoFalse(Long campusId, String nombre);
     Optional<Edificio> findByCampusIdAndNombre(Long campusId, String nombre);
+
+    List<Edificio> findByCampusIdIn(Collection<Long> campusIds);
 }

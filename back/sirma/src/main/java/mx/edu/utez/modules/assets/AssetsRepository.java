@@ -5,10 +5,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface AssetsRepository extends JpaRepository<Assets, Long> {
@@ -37,6 +39,12 @@ public interface AssetsRepository extends JpaRepository<Assets, Long> {
 
     @Query("SELECT a.tipoActivo.id, COUNT(a) FROM Assets a WHERE a.esActivo = true GROUP BY a.tipoActivo.id")
     List<Object[]> countActiveAssetsByTipoActivoId();
+
+    @Query("SELECT a.etiqueta FROM Assets a WHERE a.etiqueta IN :etiquetas")
+    Set<String> findEtiquetasExistentes(@Param("etiquetas") Set<String> etiquetas);
+
+    @Query("SELECT a.numeroSerie FROM Assets a WHERE a.numeroSerie IN :series")
+    Set<String> findSeriesExistentes(@Param("series") Set<String> series);
 
 }
 
