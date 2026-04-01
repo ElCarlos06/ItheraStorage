@@ -1,6 +1,7 @@
 package com.example.activos360.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,85 +21,91 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.activos360.R
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
-// import coil.compose.AsyncImage
 
 @Composable
-fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol: String) {
+fun PerfilHeader(
+    viewModel: EmpleadoViewModel = viewModel(),
+    nombre: String,
+    rol: String,
+    onEditPhotoClick: () -> Unit = {}
+) {
     val primaryColor = Color(0xFF7B88FF)
-
-    val fotoUsuario = viewModel.fotoUsuario
+    val fotoUrl = viewModel.fotoUsuario
+    val isUploading = viewModel.isUploadingPhoto
 
     Box(
         modifier = Modifier
-            .fillMaxWidth(
-
-            )
-            .height(280.dp
-            ) // Ajustamos la altura para que luzca como en el diseño
+            .fillMaxWidth()
+            .height(280.dp)
     ) {
-        // 1. El fondo de la ola que ya tienes
         WaveHeader(color = primaryColor)
 
-        // 2. Contenido Central
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 2.dp), // Espacio para no pegar la foto al borde superior
-            horizontalAlignment = Alignment.CenterHorizontally,
-
-            ) {
+                .padding(top = 2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             // FOTO DE PERFIL
             Box(contentAlignment = Alignment.BottomEnd) {
-                Surface (
+                Surface(
                     modifier = Modifier.size(110.dp),
-                    shape = CircleShape
-                    ,
-                    color = Color.White.copy(alpha = 0.3f), // Fondo por si no hay foto
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.3f),
                     border = androidx.compose.foundation.BorderStroke(3.dp, Color.White)
                 ) {
-                    // Validamos si hay foto real
-                    if (fotoUsuario != null) {
-                        // AQUÍ IDEALMENTE USAS COIL PARA CARGAR LA URL DEL BACKEND:
-                        // AsyncImage(
-                        //     model = fotoUsuario,
-                        //     contentDescription = "Foto de perfil",
-                        //     contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                        // )
-
-                        // Mientras no tengas Coil, dejamos un placeholder o la imagen fija
-                        Image(
-                            painter = painterResource(id = R.drawable.targeta),
+                    if (isUploading) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(36.dp),
+                                strokeWidth = 3.dp
+                            )
+                        }
+                    } else if (!fotoUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = fotoUrl,
                             contentDescription = "Foto de perfil",
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            error = painterResource(R.drawable.targeta),
+                            placeholder = painterResource(R.drawable.targeta)
                         )
                     } else {
-                        // Si el usuario no tiene foto, ponemos una imagen por defecto
                         Image(
-                            painter = painterResource(id = R.drawable.targeta), // Cámbialo por un ícono de usuario por defecto
+                            painter = painterResource(id = R.drawable.targeta),
                             contentDescription = "Foto por defecto",
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
 
-                // Botón de editar (el circulito blanco con el lápiz)
+                // Botón de editar
                 Surface(
-                    modifier = Modifier.size(30.dp).offset(x = (-5).dp, y = (-2).dp),
+                    modifier = Modifier
+                        .size(30.dp)
+                        .offset(x = (-5).dp, y = (-2).dp)
+                        .clickable(enabled = !isUploading, onClick = onEditPhotoClick),
                     shape = CircleShape,
                     color = Color.White,
                     shadowElevation = 4.dp
                 ) {
                     MoonIcon(
                         icon = MoonIcons.GenericEdit,
-                        contentDescription = "Editar",
+                        contentDescription = "Editar foto",
                         tint = primaryColor,
                         size = 18.dp,
                         modifier = Modifier.padding(6.dp)
@@ -108,7 +115,6 @@ fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // NOMBRE
             Text(
                 text = nombre,
                 color = Color.White,
@@ -118,7 +124,6 @@ fun PerfilHeader(viewModel: EmpleadoViewModel = viewModel(), nombre: String, rol
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // ROL (El "Badge" semitransparente)
             Surface(
                 color = Color.White.copy(alpha = 0.25f),
                 shape = RoundedCornerShape(50)

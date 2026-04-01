@@ -195,10 +195,6 @@ fun DetallesActivoScreen(
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
-
-                        else -> {
-                            // Cualquier otro estatus (ej. reportado, en mantenimiento)
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))

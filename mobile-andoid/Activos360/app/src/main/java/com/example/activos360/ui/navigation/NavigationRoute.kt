@@ -65,7 +65,7 @@ fun Navigation() {
 
         // Alias para no romper navegación vieja (LoginViewModel aún usa home_admin)
         composable("home_admin") {
-            TecnicoMainScreen(navController)
+            EmpleadoMainScreen(navController)
         }
 
         composable(

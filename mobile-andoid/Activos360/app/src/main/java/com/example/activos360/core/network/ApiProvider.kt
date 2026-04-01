@@ -2,6 +2,7 @@ package com.example.activos360.core.network
 
 import com.example.activos360.back.api.AssetsControllerApi
 import com.example.activos360.back.api.AuthControllerApi
+import com.example.activos360.back.api.ImagenPerfilControllerApi
 import com.example.activos360.back.api.PrioridadControllerApi
 import com.example.activos360.back.api.ReporteControllerApi
 import com.example.activos360.back.api.ResguardoControllerApi
@@ -17,9 +18,10 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiProvider {
     //private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://192.168.0.41:8080/"
     //private const val BASE_URL = "http://192.168.0.82:8080/"
-    private const val BASE_URL = "http://192.168.1.76:8080/"
-    //private const val BASE_URL = "http://10.77.175.46:8080/" //mena
+    //private const val BASE_URL = "http://192.168.0.36:8080/"
+    //private const val BASE_URL -= "http://10.77.175.46:8080/" //mena
     //private const val BASE_URL = "http://172.20.10.10:8080/"
     //private const val BASE_URL = "http://10.11.201.46:8080/"
     //private const val BASE_URL = "http://192.168.56.1:8080/" //toni
@@ -72,5 +74,6 @@ object ApiProvider {
     val reporteApi: ReporteControllerApi by lazy { retrofit.create(ReporteControllerApi::class.java) }
     val tipoFallaApi: TipoFallaControllerApi by lazy { retrofit.create(TipoFallaControllerApi::class.java) }
     val prioridadApi: PrioridadControllerApi by lazy { retrofit.create(PrioridadControllerApi::class.java) }
+    val imagenPerfilApi: ImagenPerfilControllerApi by lazy { retrofit.create(ImagenPerfilControllerApi::class.java) }
 }
 
