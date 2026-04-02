@@ -120,7 +120,7 @@ export default function Activos({
 
   return (
     <div
-      className={`activos-page ${showEmptyState ? "activos-page--empty" : ""}`}
+      className={`activos-page ${showEmptyState ? "activos-page--empty d-flex flex-column" : ""}`}
     >
       <PageHeader
         overline="GESTIÓN DE INVENTARIO"
@@ -128,7 +128,7 @@ export default function Activos({
         subtitle="Administra tipos de activos y ubicaciones"
       />
 
-      <section className="activos-view" aria-label="Inventario de activos">
+      <section className="activos-view d-flex flex-column flex-grow-1 min-vh-0" aria-label="Inventario de activos">
         <div className="activos-view__stats row g-3 mb-4">
           {stats.map((stat, i) => (
             <div key={i} className="col-12 col-sm-6 col-xl-3">
@@ -137,8 +137,8 @@ export default function Activos({
           ))}
         </div>
 
-        <div className="activos-view__toolbar">
-          <div className="activos-view__buscador">
+        <div className="activos-view__toolbar d-flex flex-wrap align-items-center gap-3 mb-4 p-4">
+          <div className="activos-view__buscador flex-grow-1">
             <Buscador
               placeholder="Buscar activo por nombre...."
               value={search}
@@ -146,11 +146,11 @@ export default function Activos({
               aria-label="Buscar activos"
             />
           </div>
-          <div className="activos-view__actions">
+          <div className="activos-view__actions d-flex align-items-center gap-3 ms-auto">
             <input
               type="file"
               ref={fileInputRef}
-              style={{ display: "none" }}
+              className="d-none"
               accept=".xlsx, .xls"
               onChange={handleUploadExcel}
             />
@@ -158,6 +158,7 @@ export default function Activos({
               variant="secondary"
               iconLeft={FilesImport}
               iconSize={30}
+              title="Importar activos desde un archivo Excel (.xlsx, .xls)"
               onClick={() => fileInputRef.current?.click()}
             >
               Importar Excel
@@ -166,6 +167,7 @@ export default function Activos({
               variant="primary"
               iconLeft={GenericPlus}
               iconSize={30}
+              title="Registrar un nuevo activo en el inventario"
               onClick={() => setModalNuevoOpen(true)}
             >
               Nuevo
@@ -176,12 +178,12 @@ export default function Activos({
         {error && <ErrorBanner message={error} />}
 
         {loading ? (
-          <div className="activos-view__loading">
+          <div className="activos-view__loading d-flex align-items-center justify-content-center py-5 px-4">
             <LoadingState message="Cargando activos…" />
           </div>
         ) : (
           <div
-            className={`activos-view__list ${
+            className={`activos-view__list d-flex flex-column gap-3 min-vh-0 ${
               fetching ? "activos-view__list--fetching" : ""
             }`}
           >

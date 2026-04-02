@@ -17,7 +17,8 @@ export default function ActivosCard({
     <div className="activos-view__asset-card-wrap">
       <Card
         padding="medium"
-        className="activos-view__asset-card"
+        className="activos-view__asset-card d-flex align-items-stretch justify-content-between gap-3"
+        title="Clic para ver el código QR del activo"
         onClick={() => setQrModalOpen(true)}
         style={{ cursor: "pointer" }}
       >

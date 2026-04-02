@@ -1,17 +1,5 @@
 .pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  width: 100%;
   color: var(--moon-trunks);
-  font-size: 0.875rem;
-}
-
-.pagination-info {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
 }
 
 .pagination-bold {
@@ -19,16 +7,7 @@
   color: var(--moon-content-text);
 }
 
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
 .pagination-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 36px;
   height: 36px;
   border-radius: 8px;
@@ -54,9 +33,6 @@
 }
 
 .pagination-page-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-width: 48px;
   height: 36px;
   border-radius: 8px;

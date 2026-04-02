@@ -25,54 +25,56 @@ export default function CatalogToolbar({
   };
 
   return (
-    <div className="catalogs-card">
-      <div className="catalogs-card__header">
-        <div className="catalogs-tabs__main">
-          {MAIN_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`catalogs-tabs__btn ${mainTab === tab.id ? "catalogs-tabs__btn--active" : ""}`}
-              onClick={() => onMainTabChange?.(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+    <div className="catalogs-card d-flex flex-row align-items-center gap-3 flex-wrap p-4 mb-4">
+      <div className="catalogs-card__buscador flex-grow-1 min-w-0">
+        <Buscador
+          placeholder={config.searchPlaceholder}
+          value={search}
+          onChange={(e) => onSearchChange?.(e.target.value)}
+          aria-label={`Buscar ${subTab}`}
+        />
       </div>
-      <div className="catalogs-card__toolbar">
-        <div className="catalogs-card__buscador">
-          <Buscador
-            placeholder={config.searchPlaceholder}
-            value={search}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-            aria-label={`Buscar ${subTab}`}
-          />
-        </div>
-        <div className="catalogs-card__selector-wrap">
-          <Select
-            value={subTab}
-            onChange={handleSubTabChange}
-            options={(currentMain?.sub ?? []).map((subId) => ({
-              value: subId,
-              label: SECTIONS[subId]?.title ?? subId,
-            }))}
-            placeholder="Seleccionar categoría"
-            variant="ghost"
-            size="sm"
-            className="catalogs-card__selector"
-          />
-        </div>
-        <div className="catalogs-card__actions">
-          <Button
-            variant="primary"
-            iconLeft={GenericPlus}
-            iconSize={30}
-            onClick={onNuevoClick}
+      <div className="catalogs-tabs__main d-flex gap-3 flex-shrink-0 flex-wrap">
+        {MAIN_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`catalogs-tabs__btn ${mainTab === tab.id ? "catalogs-tabs__btn--active" : ""}`}
+            title={`Ver catálogo: ${tab.label}`}
+            onClick={() => onMainTabChange?.(tab.id)}
           >
-            Nuevo
-          </Button>
-        </div>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="catalogs-card__selector-wrap">
+        <Select
+          value={subTab}
+          onChange={handleSubTabChange}
+          options={(currentMain?.sub ?? []).map((subId) => ({
+            value: subId,
+            label: SECTIONS[subId]?.title ?? subId,
+          }))}
+          placeholder="Seleccionar categoría"
+          variant="ghost"
+          size="sm"
+          className="catalogs-card__selector"
+        />
+      </div>
+      <div className="catalogs-card__actions flex-shrink-0 ms-auto">
+        <Button
+          variant="primary"
+          iconLeft={GenericPlus}
+          iconSize={30}
+          title={
+            config?.title
+              ? `Agregar nuevo registro en ${config.title}`
+              : "Agregar nuevo registro en esta categoría"
+          }
+          onClick={onNuevoClick}
+        >
+          Nuevo
+        </Button>
       </div>
     </div>
   );

@@ -89,4 +89,13 @@ public class MantenimientoController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Elimina un registro de mantenimiento y sus evidencias.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
+        ApiResponse response = mantenimientoService.delete(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
 }

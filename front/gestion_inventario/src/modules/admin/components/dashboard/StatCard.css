@@ -4,23 +4,6 @@
   border-radius: var(--moon-radius-s-lg);
   padding: 24px;
   min-height: 162px;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stat-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
-              0 2px 8px rgba(0, 0, 0, 0.03);
-  transform: translateY(-2px);
-}
-
-.stat-card__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
 }
 
 .stat-card__icon {
@@ -28,9 +11,6 @@
   height: 40px;
   border-radius: 50%;
   background: var(--moon-gohan);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--moon-trunks);
 }
 

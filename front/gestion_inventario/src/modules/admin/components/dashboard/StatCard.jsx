@@ -4,10 +4,12 @@ import "./StatCard.css";
 
 export default function StatCard({ icon: IconComponent, value, label, badge }) {
   const status = badge?.status ?? "disponible";
+  const tip =
+    label != null && value != null ? `${label}: ${value}` : (label ?? "");
   return (
-    <div className="stat-card">
-      <div className="stat-card__top">
-        <div className="stat-card__icon">
+    <div className="stat-card d-flex flex-column" title={tip || undefined}>
+      <div className="stat-card__top d-flex align-items-start justify-content-between mb-3">
+        <div className="stat-card__icon d-flex align-items-center justify-content-center">
           {IconComponent && <Icon icon={IconComponent} size={30} />}
         </div>
         {badge != null && (

@@ -32,16 +32,16 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <div className="error-boundary__card">
-            <div className="error-boundary__icon">
+        <div className="error-boundary min-vh-100 d-flex align-items-center justify-content-center p-4">
+          <div className="error-boundary__card w-100 text-center px-4 py-5">
+            <div className="error-boundary__icon mb-4">
               <AlertTriangle size={48} strokeWidth={2} />
             </div>
-            <h1 className="error-boundary__title">Algo salió mal</h1>
-            <p className="error-boundary__message">
+            <h1 className="error-boundary__title mb-2">Algo salió mal</h1>
+            <p className="error-boundary__message mb-4">
               Ocurrió un error inesperado. Intenta recargar la página o volver al inicio.
             </p>
-            <div className="error-boundary__actions">
+            <div className="error-boundary__actions d-flex flex-wrap gap-3 justify-content-center">
               <Button variant="outline" onClick={this.handleRetry}>
                 Intentar de nuevo
               </Button>

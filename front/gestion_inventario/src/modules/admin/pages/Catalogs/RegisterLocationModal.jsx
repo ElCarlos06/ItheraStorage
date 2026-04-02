@@ -3,6 +3,7 @@
  */
 import { useState } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
+import FormModalTextarea from "../../../../components/FormModal/FormModalTextarea";
 import Input from "../../../../components/Input/Input";
 import { FilesSave } from "@heathmont/moon-icons";
 import { toast } from "../../../../utils/toast.jsx";
@@ -101,16 +102,13 @@ export default function RegisterLocationModal({ open, onClose, onGuardar }) {
         </div>
       </div>
 
-      <div className="form-modal__field">
-        <label className="form-modal__label">Descripción del campus</label>
-        <textarea
-          className="form-modal__textarea"
-          placeholder="Describe detalles adicionales de la ubicación"
-          value={form.descripcion}
-          onChange={handleChange("descripcion")}
-          rows={4}
-        />
-      </div>
+      <FormModalTextarea
+        label="Descripción del campus"
+        placeholder="Describe detalles adicionales de la ubicación"
+        value={form.descripcion}
+        onChange={handleChange("descripcion")}
+        rows={4}
+      />
     </FormModal>
   );
 }

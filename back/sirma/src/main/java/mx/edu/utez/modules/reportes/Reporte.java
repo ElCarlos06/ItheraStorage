@@ -1,6 +1,8 @@
 package mx.edu.utez.modules.reportes;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -61,5 +63,21 @@ public class Reporte extends BaseEntity {
     /** Columna de control para optimización o lógica de negocio específica (solo lectura). */
     @Column(name = "centinela_activo", insertable = false, updatable = false)
     private Integer centinelaActivo;
+
+    /** Nombre del técnico si ya existe mantenimiento asignado (solo respuesta API, no persistido). */
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @Transient
+    private String nombreTecnicoAsignado;
+
+    @JsonProperty("nombreTecnicoAsignado")
+    public String getNombreTecnicoAsignado() {
+        return nombreTecnicoAsignado;
+    }
+
+    @JsonProperty("nombreTecnicoAsignado")
+    public void setNombreTecnicoAsignado(String nombreTecnicoAsignado) {
+        this.nombreTecnicoAsignado = nombreTecnicoAsignado;
+    }
 
 }

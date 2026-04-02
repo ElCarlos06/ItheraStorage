@@ -45,6 +45,75 @@
   --moon-shadow-sm: 0 6px 6px -6px rgb(0 0 0 / 0.16), 0 0 1px rgb(0 0 0 / 0.4);
   --moon-shadow-md: 0 12px 12px -6px rgb(0 0 0 / 0.16), 0 0 1px rgb(0 0 0 / 0.4);
 
+  /* Hover */
+  --moon-card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --moon-card-hover-transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
   /* Typography */
   --moon-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+
+.moon-card,
+.stat-card,
+.chart-card,
+.reported-assets-list__item,
+.qr-asset-modal__card,
+.users-view__card,
+.catalog-section__card,
+.requests-view__card {
+  transition: var(--moon-card-hover-transition);
+}
+
+.moon-card:hover,
+.stat-card:hover,
+.chart-card:hover,
+.reported-assets-list__item:hover,
+.qr-asset-modal__card:hover,
+.users-view__card:hover,
+.catalog-section__card:hover,
+.requests-view__card:hover {
+  box-shadow: var(--moon-card-hover-shadow);
+  transform: translateY(-2px);
+}
+
+/* Barra de herramientas y pestañas (catálogos, solicitudes) */
+.catalogs-card {
+  background: var(--moon-goku);
+  border: 1.337px solid var(--moon-content-border);
+  border-radius: var(--moon-radius-s-lg);
+}
+
+.catalogs-tabs__btn {
+  padding: 10px 20px;
+  font-family: var(--moon-font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--moon-content-text-secondary);
+  background: var(--moon-gohan);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.catalogs-tabs__btn:hover {
+  background: var(--moon-beerus);
+  color: var(--moon-content-text);
+}
+
+.catalogs-tabs__btn--active {
+  background: var(--moon-piccolo-60);
+  color: #fff;
+}
+
+.catalogs-tabs__btn--active:hover {
+  background: var(--moon-piccolo);
+  color: #fff;
+}
+
+.catalogs-card__buscador {
+  min-width: 200px;
+  max-width: 640px;
 }

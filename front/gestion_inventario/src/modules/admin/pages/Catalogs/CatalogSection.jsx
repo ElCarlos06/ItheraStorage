@@ -87,10 +87,10 @@ export default function CatalogSection({
     <div
       className={`catalog-section ${showEmptyState && !loading ? "catalog-section--empty" : ""} ${loading ? "catalog-section--loading" : ""}`}
     >
-      <section className="catalog-section__view" aria-label={title}>
+      <section className="catalog-section__view d-flex flex-column min-vh-0" aria-label={title}>
         {showToolbar && (
-          <div className="catalog-section__toolbar">
-            <div className="catalog-section__buscador">
+          <div className="catalog-section__toolbar d-flex flex-wrap align-items-center gap-3 mb-4 p-4">
+            <div className="catalog-section__buscador flex-grow-1">
               <Buscador
                 placeholder={searchPlaceholder}
                 value={search}
@@ -98,11 +98,12 @@ export default function CatalogSection({
                 aria-label={`Buscar ${sectionKey}`}
               />
             </div>
-            <div className="catalog-section__actions">
+            <div className="catalog-section__actions d-flex align-items-center gap-3 ms-auto">
               <Button
                 variant="primary"
                 iconLeft={GenericPlus}
                 iconSize={30}
+                title="Agregar un nuevo elemento en esta sección"
                 onClick={() => onNew?.()}
               >
                 Nuevo
@@ -111,9 +112,9 @@ export default function CatalogSection({
           </div>
         )}
 
-        <div className="catalog-section__list">
+        <div className="catalog-section__list d-flex flex-column gap-3">
           {loading ? (
-            <div className="catalog-section__list-loading">
+            <div className="catalog-section__list-loading flex-grow-1 d-flex align-items-center justify-content-center min-vh-0">
               <LoadingState
                 message={loadingMessage ?? (sectionKey === "muebles" || sectionKey === "vehiculos" ? "Cargando tipos de activos…" : "Cargando ubicaciones…")}
               />
@@ -178,23 +179,24 @@ export default function CatalogSection({
                   className="catalog-section__card-wrap"
                 >
                   <div
-                    className="catalog-section__card"
+                    className="catalog-section__card d-flex align-items-center gap-3 min-w-0"
                     role="button"
                     tabIndex={0}
+                    title={onEdit ? "Clic para editar este registro" : undefined}
                     onClick={() => onEdit?.(item)}
                     onKeyDown={(e) => e.key === "Enter" && onEdit?.(item)}
                   >
-                    <div className="catalog-section__card-icon">
+                    <div className="catalog-section__card-icon d-flex align-items-center justify-content-center flex-shrink-0">
                       <Icon icon={cardIcon} size={32} />
                     </div>
-                    <div className="catalog-section__card-content">
+                    <div className="catalog-section__card-content d-flex flex-column flex-grow-1 min-w-0 overflow-hidden">
                       <p className="catalog-section__card-title">{nombre}</p>
                       <p className="catalog-section__card-subtitle">
                         {subtitle}
                       </p>
                     </div>
-                    <div className="catalog-section__card-columns">
-                      <div className="catalog-section__card-cantidad">
+                    <div className="catalog-section__card-columns d-flex gap-3 flex-shrink-0">
+                      <div className="catalog-section__card-cantidad d-flex flex-column gap-1 align-items-center flex-shrink-0">
                         <p className="catalog-section__card-cantidad-label">
                           {col1Label}
                         </p>
@@ -203,7 +205,7 @@ export default function CatalogSection({
                         </p>
                       </div>
                       {col2Label != null && (
-                        <div className="catalog-section__card-cantidad">
+                        <div className="catalog-section__card-cantidad d-flex flex-column gap-1 align-items-center flex-shrink-0">
                           <p className="catalog-section__card-cantidad-label">
                             {col2Label}
                           </p>
@@ -215,7 +217,7 @@ export default function CatalogSection({
                     </div>
                     {hasActions ? (
                       <div
-                        className="catalog-section__card-actions"
+                        className="catalog-section__card-actions ms-auto flex-shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {onDelete && (
@@ -244,7 +246,7 @@ export default function CatalogSection({
                     ) : null}
                     {!hasActions && (
                       <div
-                        className="catalog-section__card-chevron"
+                        className="catalog-section__card-chevron d-flex align-items-center justify-content-center flex-shrink-0"
                         aria-hidden
                       >
                         <Icon icon={ControlsChevronRight} size={20} />
@@ -258,7 +260,7 @@ export default function CatalogSection({
         </div>
 
         {!loading && !showEmptyState && (
-          <div style={{ marginTop: "2rem" }}>
+          <div className="mt-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

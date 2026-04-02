@@ -15,7 +15,6 @@ import {
   GenericPlus,
 } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
-import { Tooltip } from "../../../../components/Tooltip/Tooltip";
 import { usersApi } from "../../../../api/usersApi";
 import "./Users.css";
 import NewUserModal from "./NewUserModal";
@@ -136,7 +135,7 @@ export default function Users({
 
   return (
     <div
-      className={`users-page ${showEmptyState ? "users-page--empty" : ""} ${loading ? "users-page--loading" : ""}`}
+      className={`users-page ${showEmptyState || loading ? "d-flex flex-column" : ""} ${showEmptyState ? "users-page--empty" : ""} ${loading ? "users-page--loading" : ""}`}
     >
       <PageHeader
         overline="PANEL DE CONTROL"
@@ -144,8 +143,8 @@ export default function Users({
         subtitle="Administra cuentas y permisos del sistema"
       />
 
-      <section className="users-view" aria-label="Gestión de usuarios">
-        <div className="users-view__stats row g-3">
+      <section className="users-view d-flex flex-column min-vh-0" aria-label="Gestión de usuarios">
+        <div className="users-view__stats row g-3 mb-4">
           {stats.map((stat, i) => (
             <div key={i} className="col-12 col-sm-6 col-xl-3">
               <StatCard icon={STAT_ICONS[i]} {...stat} />
@@ -153,8 +152,8 @@ export default function Users({
           ))}
         </div>
 
-        <div className="users-view__toolbar">
-          <div className="users-view__buscador">
+        <div className="users-view__toolbar d-flex flex-wrap align-items-center gap-3 mb-4 p-4">
+          <div className="users-view__buscador flex-grow-1">
             <Buscador
               placeholder="Buscar usuario por nombre..."
               value={search}
@@ -162,11 +161,12 @@ export default function Users({
               aria-label="Buscar usuarios"
             />
           </div>
-          <div className="users-view__actions">
+          <div className="users-view__actions d-flex align-items-center gap-3 ms-auto">
             <Button
               variant="primary"
               iconLeft={GenericPlus}
               iconSize={30}
+              title="Registrar un nuevo usuario en el sistema"
               onClick={() => setModalNuevoOpen(true)}
             >
               Nuevo
@@ -179,11 +179,11 @@ export default function Users({
         )}
 
         {loading ? (
-          <div className="users-view__list users-view__list--loading">
+          <div className="users-view__list users-view__list--loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
             <LoadingState message="Cargando usuarios…" />
           </div>
         ) : (
-          <div className="users-view__list">
+          <div className="users-view__list d-flex flex-column gap-3 min-vh-0">
             {showEmptyState ? (
               <EmptyState
                 message="No hay usuarios para mostrar"
@@ -197,11 +197,10 @@ export default function Users({
                   className="users-view__card-wrap"
                 >
                   <div className="users-view__card">
-                    <Tooltip
-                      content="Clic para ver información completa"
-                      side="top"
-                    >
-                      <div className="users-view__card-inner">
+                      <div
+                        className="users-view__card-inner d-flex align-items-center gap-4"
+                        title="Abre el panel con información completa del usuario"
+                      >
                         <div
                           role="button"
                           tabIndex={0}
@@ -216,7 +215,7 @@ export default function Users({
                             <p className="users-view__numero">
                               {user.numeroEmpleado}
                             </p>
-                            <div className="users-view__data-row">
+                            <div className="users-view__data-row d-flex flex-wrap align-items-center">
                               <div className="users-view__data-col">
                                 <p className="users-view__label">Rol</p>
                                 <p className="users-view__value">
@@ -252,7 +251,7 @@ export default function Users({
                             </div>
                           </div>
                         </div>
-                        <div className="users-view__card-actions">
+                        <div className="users-view__card-actions d-flex align-items-center flex-shrink-0">
                           <button
                             type="button"
                             className="users-view__action-btn users-view__action-btn--delete"
@@ -274,7 +273,6 @@ export default function Users({
                           </button>
                         </div>
                       </div>
-                    </Tooltip>
                   </div>
                 </div>
               ))

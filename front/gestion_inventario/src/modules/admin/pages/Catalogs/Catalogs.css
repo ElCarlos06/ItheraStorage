@@ -1,72 +1,6 @@
-
 .catalogs-page {
   display: flex;
   flex-direction: column;
-  gap: 0;
-}
-
-.catalogs-card {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  padding: 28px 32px;
-  margin-bottom: 32px;
-  background: var(--moon-goku);
-  border: 1.337px solid var(--moon-content-border);
-  border-radius: var(--moon-radius-s-lg);
-}
-
-.catalogs-card__header {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.catalogs-tabs__main {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.catalogs-tabs__btn {
-  padding: 10px 20px;
-  font-family: var(--moon-font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--moon-content-text-secondary);
-  background: var(--moon-gohan);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.catalogs-tabs__btn:hover {
-  background: var(--moon-beerus);
-  color: var(--moon-content-text);
-}
-
-.catalogs-tabs__btn--active {
-  background: var(--moon-piccolo-60);
-  color: #fff;
-}
-
-.catalogs-tabs__btn--active:hover {
-  background: var(--moon-piccolo);
-  color: #fff;
-}
-
-.catalogs-card__toolbar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.catalogs-card__buscador {
-  flex: 1;
-  min-width: 260px;
-  max-width: 640px;
 }
 
 .catalogs-card__selector-wrap {
@@ -77,7 +11,3 @@
   margin-bottom: 0;
 }
 
-.catalogs-card__actions {
-  flex-shrink: 0;
-  margin-left: auto;
-}

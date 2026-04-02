@@ -6,6 +6,12 @@ import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.assets.AssetsService;
 import mx.edu.utez.modules.bitacora.BitacoraService;
+import mx.edu.utez.modules.imagen_reporte.ImagenReporte;
+import mx.edu.utez.modules.imagen_reporte.ImagenReporteRepository;
+import mx.edu.utez.modules.imagen_reporte.ImagenReporteService;
+import mx.edu.utez.modules.mantenimientos.Mantenimiento;
+import mx.edu.utez.modules.mantenimientos.MantenimientoRepository;
+import mx.edu.utez.modules.mantenimientos.MantenimientoService;
 import mx.edu.utez.modules.prioridades.Prioridad;
 import mx.edu.utez.modules.prioridades.PrioridadRepository;
 import mx.edu.utez.modules.tipo_fallas.TipoFalla;
@@ -37,6 +43,10 @@ public class ReporteService {
     private final UserRepository userRepository;
     private final TipoFallaRepository tipoFallaRepository;
     private final PrioridadRepository prioridadRepository;
+    private final MantenimientoRepository mantenimientoRepository;
+    private final MantenimientoService mantenimientoService;
+    private final ImagenReporteRepository imagenReporteRepository;
+    private final ImagenReporteService imagenReporteService;
 
     /**
      * Recupera una lista paginada de todos los reportes.
@@ -46,7 +56,24 @@ public class ReporteService {
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
         Page<Reporte> page = reporteRepository.findAll(pageable);
+        page.getContent().forEach(this::enrichNombreTecnicoAsignado);
         return new ApiResponse("OK", page, HttpStatus.OK);
+    }
+
+    private void enrichNombreTecnicoAsignado(Reporte r) {
+        if (r == null || r.getId() == null) return;
+        mantenimientoRepository
+                .findByReporteId(r.getId())
+                .map(Mantenimiento::getUsuarioTecnico)
+                .map(this::nombreVisibleParaTecnico)
+                .ifPresent(r::setNombreTecnicoAsignado);
+    }
+
+    /** Nombre para mostrar: completo, o correo si viene vacío, o guión. */
+    private String nombreVisibleParaTecnico(User t) {
+        String nombre = t.getNombreCompleto();
+        if (nombre != null && !nombre.isBlank()) return nombre;
+        return t.getCorreo() != null ? t.getCorreo() : "—";
     }
 
     /**
@@ -59,7 +86,9 @@ public class ReporteService {
         Optional<Reporte> found = reporteRepository.findById(id);
         if (found.isEmpty())
             return new ApiResponse("Reporte no encontrado", true, HttpStatus.NOT_FOUND);
-        return new ApiResponse("OK", found.get(), HttpStatus.OK);
+        Reporte r = found.get();
+        enrichNombreTecnicoAsignado(r);
+        return new ApiResponse("OK", r, HttpStatus.OK);
     }
 
     /**
@@ -70,6 +99,7 @@ public class ReporteService {
     @Transactional(readOnly = true)
     public ApiResponse findByActivo(Long activoId) {
         List<Reporte> list = reporteRepository.findByActivoId(activoId);
+        list.forEach(this::enrichNombreTecnicoAsignado);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
@@ -141,5 +171,21 @@ public class ReporteService {
         }
         reporteRepository.save(entity);
         return new ApiResponse("Reporte actualizado", entity, HttpStatus.OK);
+    }
+
+    /**
+     * Elimina un reporte: mantenimiento asociado (si existe), evidencias y el propio reporte.
+     */
+    @Transactional
+    public ApiResponse delete(Long id) {
+        Optional<Reporte> found = reporteRepository.findById(id);
+        if (found.isEmpty())
+            return new ApiResponse("Reporte no encontrado", true, HttpStatus.NOT_FOUND);
+        mantenimientoRepository.findByReporteId(id).ifPresent(m -> mantenimientoService.delete(m.getId()));
+        for (ImagenReporte img : imagenReporteRepository.findByReporteId(id)) {
+            imagenReporteService.delete(img.getId());
+        }
+        reporteRepository.deleteById(id);
+        return new ApiResponse("Reporte eliminado", HttpStatus.OK);
     }
 }

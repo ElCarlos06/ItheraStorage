@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import FormModal from "../../../../../components/FormModal/FormModal";
+import FormModalTextarea from "../../../../../components/FormModal/FormModalTextarea";
 import Select from "../../../../../components/Select/Select";
 import { usersApi } from "../../../../../api/usersApi";
 import { toast } from "../../../../../utils/toast.jsx";
@@ -128,16 +129,14 @@ export default function AssignResguardoModal({ open, onClose, onGuardar }) {
         />
       </div>
 
-      <div className="form-modal__field">
-        <label className="form-modal__label">OBSERVACIONES</label>
-        <textarea
-          placeholder="Describe el motivo de asignación, condiciones especiales del activo, etc."
-          value={form.observaciones}
-          onChange={handleChange("observaciones")}
-          className="form-modal__textarea assign-resguardo-modal__textarea"
-          rows={5}
-        />
-      </div>
+      <FormModalTextarea
+        label="OBSERVACIONES"
+        placeholder="Describe el motivo de asignación, condiciones especiales del activo, etc."
+        value={form.observaciones}
+        onChange={handleChange("observaciones")}
+        textareaClassName="assign-resguardo-modal__textarea"
+        rows={5}
+      />
     </FormModal>
   );
 }

@@ -1,6 +1,4 @@
 .activos-page--empty {
-  display: flex;
-  flex-direction: column;
   height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
   overflow: hidden;
@@ -23,34 +21,19 @@
 
 .activos-view__stats {
   flex-shrink: 0;
-  margin-bottom: 24px;
 }
 
 .activos-view__toolbar {
   flex-shrink: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
   min-height: 88px;
   background: var(--moon-goku);
   border: 1.337px solid var(--moon-content-border);
   border-radius: var(--moon-radius-s-lg);
-  padding: 20px 24px;
 }
 
 .activos-view__buscador {
-  flex: 1;
   min-width: 260px;
   max-width: 540px;
-}
-
-.activos-view__actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
 }
 
 .activos-view__error {
@@ -63,17 +46,10 @@
 }
 
 .activos-view__loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 280px;
-  padding: 32px;
 }
 
 .activos-view__list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   min-height: 0;
 }
 
@@ -102,17 +78,9 @@
   margin: 0;
 }
 
-.activos-view__asset-card-wrap {
-  transition: transform 0.2s ease;
-}
-
 .activos-view__asset-card {
   border: 1.466px solid var(--moon-content-border);
   border-radius: var(--moon-radius-s-lg);
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .activos-view__asset-content {

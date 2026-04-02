@@ -8,10 +8,10 @@ export default function PageHeader({
   return (
     <header className="page-header">
       {overline && (
-        <p className="page-header__overline">{overline}</p>
+        <p className="page-header__overline mb-2">{overline}</p>
       )}
       {title && (
-        <h1 className="page-header__title">{title}</h1>
+        <h1 className="page-header__title mb-2">{title}</h1>
       )}
       {subtitle && (
         <p className="page-header__subtitle">{subtitle}</p>

@@ -1,12 +1,6 @@
 .modal-overlay {
-  position: fixed;
-  inset: 0;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: rgba(0, 0, 0, 0.5);
-  padding: 24px;
   animation: modal-overlay-in 0.2s ease-out;
 }
 
@@ -17,6 +11,10 @@
   overflow-y: auto;
   box-shadow: var(--moon-shadow-md);
   animation: modal-content-in 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-content.modal-content--mantenimiento {
+  border-radius: 32px;
 }
 
 @keyframes modal-overlay-in {

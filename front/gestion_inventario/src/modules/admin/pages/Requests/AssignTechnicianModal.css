@@ -1,0 +1,38 @@
+
+.assign-tecnico-modal .form-modal__footer .btn--primary {
+  background-color: rgba(52, 72, 240, 0.6);
+  color: #fff;
+  border-radius: 16px;
+}
+
+.assign-tecnico-modal .form-modal__footer .btn--primary:hover {
+  background-color: rgba(52, 72, 240, 0.85);
+}
+
+.assign-tecnico-modal .form-modal__footer .btn--outline {
+  border-radius: 16px;
+  border: 1.337px solid var(--moon-content-border);
+  min-height: 54px;
+  padding: 0 20px;
+}
+
+.assign-tecnico-modal .form-modal__footer .btn--outline:hover {
+  background: var(--moon-gohan);
+}
+
+.assign-tecnico-modal .form-modal__field {
+  box-sizing: border-box;
+  max-width: 100%;
+  width: 100%;
+}
+
+.assign-tecnico-modal .assign-tecnico-modal__textarea-tall.form-modal__textarea {
+  min-height: 122px;
+}
+
+.assign-tecnico-modal__hint {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--moon-content-text-secondary);
+}

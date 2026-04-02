@@ -6,6 +6,9 @@ import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.assets.AssetsService;
 import mx.edu.utez.modules.bitacora.BitacoraService;
+import mx.edu.utez.modules.imagen_mantenimiento.ImagenMantenimiento;
+import mx.edu.utez.modules.imagen_mantenimiento.ImagenMantenimientoRepository;
+import mx.edu.utez.modules.imagen_mantenimiento.ImagenMantenimientoService;
 import mx.edu.utez.modules.prioridades.Prioridad;
 import mx.edu.utez.modules.prioridades.PrioridadRepository;
 import mx.edu.utez.modules.reportes.Reporte;
@@ -33,6 +36,8 @@ public class MantenimientoService {
     private final PrioridadRepository prioridadRepository;
     private final BitacoraService bitacoraService;
     private final AssetsService assetsService;
+    private final ImagenMantenimientoRepository imagenMantenimientoRepository;
+    private final ImagenMantenimientoService imagenMantenimientoService;
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
@@ -87,6 +92,9 @@ public class MantenimientoService {
         entity.setUsuarioAdmin(admin.get());
         entity.setPrioridad(prioridad.get());
         entity.setTipoAsignado(dto.getTipoAsignado());
+        if (dto.getObservaciones() != null && !dto.getObservaciones().isBlank()) {
+            entity.setObservaciones(dto.getObservaciones());
+        }
         entity.setEstadoMantenimiento("Asignado");
         mantenimientoRepository.save(entity);
         Long activoId = activo.get().getId();
@@ -132,5 +140,20 @@ public class MantenimientoService {
 
         mantenimientoRepository.save(entity);
         return new ApiResponse("Mantenimiento actualizado", entity, HttpStatus.OK);
+    }
+
+    /**
+     * Elimina un mantenimiento y sus evidencias asociadas.
+     */
+    @Transactional
+    public ApiResponse delete(Long id) {
+        Optional<Mantenimiento> found = mantenimientoRepository.findById(id);
+        if (found.isEmpty())
+            return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
+        for (ImagenMantenimiento img : imagenMantenimientoRepository.findByMantenimientoId(id)) {
+            imagenMantenimientoService.delete(img.getId());
+        }
+        mantenimientoRepository.deleteById(id);
+        return new ApiResponse("Mantenimiento eliminado", HttpStatus.OK);
     }
 }

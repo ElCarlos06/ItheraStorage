@@ -77,4 +77,13 @@ public class ReporteController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    /**
+     * Elimina un reporte y sus datos relacionados (mantenimiento si existe, evidencias).
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
+        ApiResponse response = reporteService.delete(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
 }

@@ -1,7 +1,5 @@
 .users-page--empty,
 .users-page--loading {
-  display: flex;
-  flex-direction: column;
   height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
   overflow: hidden;
@@ -32,34 +30,19 @@
 
 .users-view__stats {
   flex-shrink: 0;
-  margin-bottom: 24px;
 }
 
 .users-view__toolbar {
   flex-shrink: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
   min-height: 88px;
   background: var(--moon-goku);
   border: 1.337px solid var(--moon-content-border);
   border-radius: var(--moon-radius-s-lg);
-  padding: 20px 24px;
 }
 
 .users-view__buscador {
-  flex: 1;
   min-width: 260px;
   max-width: 540px;
-}
-
-.users-view__actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
 }
 
 .users-view__error {
@@ -84,9 +67,6 @@
 }
 
 .users-view__list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   min-height: 0;
 }
 
@@ -104,18 +84,6 @@
 
 .users-view__card-wrap {
   position: relative;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.users-view__card-wrap:hover {
-  transform: translateY(-2px);
-}
-
-.users-view__card-wrap:hover .users-view__card {
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(79, 70, 229, 0.06);
 }
 
 .users-view__card {
@@ -123,14 +91,9 @@
   border: 1.466px solid #e2e2e2;
   border-radius: 16px;
   overflow: hidden;
-  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .users-view__card-inner {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 24px;
   padding: 21px 24px;
   min-height: 127px;
 }
@@ -163,9 +126,6 @@
 }
 
 .users-view__data-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   gap: 32px 48px;
   flex: 1;
   min-width: 0;

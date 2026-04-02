@@ -3,30 +3,12 @@
   border: 1.337px solid var(--moon-beerus);
   border-radius: var(--moon-radius-s-lg);
   padding: 25px;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.25s ease;
-}
-
-.chart-card:hover {
-  box-shadow: var(--moon-shadow-md);
-}
-
-.chart-card__header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
 }
 
 .chart-card__icon {
   width: 48px;
   height: 48px;
   border-radius: var(--moon-radius-s-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
   box-shadow: var(--moon-shadow-sm);
 }
 
@@ -50,13 +32,6 @@
   color: var(--moon-chichi);
 }
 
-.chart-card__title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .chart-card__title {
   font-size: 16px;
   font-weight: 700;
@@ -74,6 +49,5 @@
 }
 
 .chart-card__body {
-  flex: 1;
   min-height: 200px;
 }

@@ -24,6 +24,8 @@ export default function Button({
   disabled,
   fullWidth,
   className = "",
+  title,
+  ...rest
 }) {
   const content = children ?? text;
   const variantClass = VARIANTS[variant] ?? VARIANTS.primary;
@@ -33,9 +35,11 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      title={title}
       className={`btn btn--${size} ${variantClass} ${fullWidth ? "btn--full" : ""} ${className}`.trim()}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      {...rest}
     >
       {iconLeft && (
         <span className="btn__icon btn__icon--left">

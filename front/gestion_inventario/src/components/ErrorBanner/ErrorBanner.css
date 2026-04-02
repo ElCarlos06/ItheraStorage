@@ -1,32 +1,21 @@
 .error-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
   background: var(--moon-dodoria-10);
   color: var(--moon-dodoria);
   border: 1px solid rgba(211, 48, 74, 0.2);
-  border-radius: var(--moon-radius-s-md);
   font-size: 14px;
   line-height: 1.5;
 }
 
 .error-banner__icon {
-  flex-shrink: 0;
   margin-top: 1px;
   opacity: 0.9;
 }
 
 .error-banner__message {
-  flex: 1;
-  margin: 0;
   font-family: var(--moon-font-sans);
-  font-weight: 500;
 }
 
 .error-banner__dismiss {
-  flex-shrink: 0;
   width: 28px;
   height: 28px;
   padding: 0;

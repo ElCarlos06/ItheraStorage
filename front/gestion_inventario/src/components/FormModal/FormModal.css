@@ -6,24 +6,13 @@
 }
 
 .form-modal__inner {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
   box-sizing: border-box;
   background: var(--moon-goku);
 }
 
 .form-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 24px 32px;
   border-bottom: 1.337px solid var(--moon-content-border);
-}
-
-.form-modal__header-text {
-  flex: 1;
 }
 
 .form-modal__title {
@@ -45,14 +34,8 @@
 }
 
 .form-modal__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 40px;
   height: 40px;
-  padding: 0;
-  border: none;
-  background: transparent;
   border-radius: 12px;
   cursor: pointer;
   color: var(--moon-content-text-secondary);
@@ -71,9 +54,6 @@
 }
 
 .form-modal__form {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
   padding: 24px 32px 32px;
   flex: 1;
 }
@@ -143,8 +123,8 @@
 
 .form-modal__textarea {
   width: 100%;
-  min-height: 88px;
-  max-height: 160px;
+  min-height: 100px;
+  max-height: min(60vh, 360px);
   padding: 12px 16px;
   font-family: var(--moon-font-sans);
   font-size: 15px;
@@ -154,6 +134,40 @@
   border: 1.337px solid var(--moon-content-border);
   border-radius: 12px;
   resize: vertical;
+  box-sizing: border-box;
+}
+
+.form-modal__textarea--error {
+  border-color: var(--moon-dodoria) !important;
+}
+
+.form-modal__textarea-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 6px;
+  min-height: 18px;
+}
+
+.form-modal__textarea-error-wrap {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--moon-dodoria);
+  line-height: 1.3;
+}
+
+.form-modal__textarea-error-wrap:empty {
+  display: none;
+}
+
+.form-modal__textarea-counter {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--moon-content-text-secondary);
 }
 
 .form-modal__textarea::placeholder {
@@ -167,10 +181,6 @@
 }
 
 .form-modal__footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
   margin: 0 -32px -32px -32px;
   padding: 24px 32px 32px;
   border-top: 1.337px solid var(--moon-content-border);

@@ -46,12 +46,7 @@
 
 .settings-upload {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 200px;
-  padding: 32px;
   background: rgba(79, 70, 229, 0.04);
   border: 2px dashed var(--moon-piccolo-60);
   border-radius: var(--moon-radius-s-md);

@@ -25,6 +25,10 @@ const reportes = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+
+  /** DELETE /api/reportes/:id */
+  deleteReporte: (id) =>
+    request(`/api/reportes/${id}`, { method: "DELETE" }),
 };
 
 const mantenimientos = {
@@ -54,6 +58,10 @@ const mantenimientos = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+
+  /** DELETE /api/mantenimientos/:id */
+  deleteMantenimiento: (id) =>
+    request(`/api/mantenimientos/${id}`, { method: "DELETE" }),
 };
 
 export const solicitudesApi = {

@@ -93,7 +93,7 @@ export default function Settings({ profile: profileProp, onSaveProfile }) {
               </p>
             </div>
             <div
-              className={`settings-upload ${dragOver ? "settings-upload--dragover" : ""} ${uploadingPhoto ? "settings-upload--loading" : ""}`}
+              className={`settings-upload d-flex flex-column align-items-center justify-content-center py-5 px-4 ${dragOver ? "settings-upload--dragover" : ""} ${uploadingPhoto ? "settings-upload--loading" : ""}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}

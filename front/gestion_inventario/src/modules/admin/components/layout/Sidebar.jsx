@@ -53,6 +53,7 @@ export default function Sidebar() {
             <NavLink
               key={item.to}
               to={item.to}
+              title={`Ir a ${item.label}`}
               className={({ isActive }) =>
                 `admin-sidebar__item ${isActive ? "admin-sidebar__item--active" : ""}`
               }
@@ -85,7 +86,11 @@ export default function Sidebar() {
                 className="admin-sidebar__avatar-img"
               />
             </div>
-            <Link to="/ajustes" className="admin-sidebar__user-info-link">
+            <Link
+              to="/ajustes"
+              className="admin-sidebar__user-info-link"
+              title="Ir a ajustes de cuenta"
+            >
               <div className="admin-sidebar__user-info">
                 <span className="admin-sidebar__user-name">
                   {profile?.nombreCompleto.split(" ")[0]}
@@ -98,6 +103,7 @@ export default function Sidebar() {
             onClick={handleLogout}
             type="button"
             className="admin-sidebar__logout"
+            title="Cerrar sesión y volver al inicio"
           >
             <Icon icon={SoftwareLogOut} size={30} />
             <span>Cerrar Sesión</span>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import FormModal from "../../../../components/FormModal/FormModal";
+import FormModalTextarea from "../../../../components/FormModal/FormModalTextarea";
 import Input from "../../../../components/Input/Input";
 import Select from "../../../../components/Select/Select";
 import { FilesSave } from "@heathmont/moon-icons";
@@ -416,16 +417,13 @@ export default function NewAssetModal({
         </div>
       </div>
 
-      <div className="form-modal__field">
-        <label className="form-modal__label">Descripción Detallada</label>
-        <textarea
-          placeholder="Especificaciones técnicas, marca, modelo, etc."
-          value={form.descripcion}
-          onChange={handleChange("descripcion")}
-          className="form-modal__textarea"
-          rows={4}
-        />
-      </div>
+      <FormModalTextarea
+        label="Descripción Detallada"
+        placeholder="Especificaciones técnicas, marca, modelo, etc."
+        value={form.descripcion}
+        onChange={handleChange("descripcion")}
+        rows={4}
+      />
     </FormModal>
   );
 }

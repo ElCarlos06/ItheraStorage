@@ -1,14 +1,4 @@
-.reported-assets-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .reported-assets-list__item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 17px;
   background: var(--moon-gohan);
   border: 1.337px solid var(--moon-beerus);
   border-radius: var(--moon-radius-s-md);
@@ -18,13 +8,9 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-weight: 700;
   font-size: 16px;
   color: white;
-  flex-shrink: 0;
 }
 
 .reported-assets-list__rank--chichi {
@@ -37,11 +23,6 @@
 
 .reported-assets-list__rank--teal {
   background: var(--moon-teal);
-}
-
-.reported-assets-list__content {
-  flex: 1;
-  min-width: 0;
 }
 
 .reported-assets-list__name {
@@ -62,13 +43,6 @@
 
 .reported-assets-list__status {
   margin-top: 6px;
-}
-
-.reported-assets-list__meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  flex-shrink: 0;
 }
 
 .reported-assets-list__count {

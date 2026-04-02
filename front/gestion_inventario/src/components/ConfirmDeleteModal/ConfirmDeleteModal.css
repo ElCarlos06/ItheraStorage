@@ -23,21 +23,12 @@
 }
 
 .confirm-delete-modal__inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 20px;
   padding: 52px 48px;
 }
 
 .confirm-delete-modal__icon {
   width: 280px;
   height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .confirm-delete-modal__icon img {
@@ -61,15 +52,6 @@
   color: var(--moon-content-text-secondary);
   margin: 0;
   line-height: 1.5;
-}
-
-.confirm-delete-modal__actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-  margin-top: 8px;
-  width: 100%;
 }
 
 .confirm-delete-modal__actions .btn {
