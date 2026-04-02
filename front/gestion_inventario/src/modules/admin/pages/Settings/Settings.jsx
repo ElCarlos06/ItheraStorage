@@ -6,23 +6,25 @@ import { GenericUpload, FilesSave } from "@heathmont/moon-icons";
 import Icon from "../../../../components/Icon/Icon";
 import "./Settings.css";
 import { getProfileFromToken } from "../../../../api/authApi";
-import { imagenPerfilApi } from "../../../../api/imagenPerfilApi";
 import { toast } from "../../../../utils/toast.jsx";
+import {
+  useProfileImage,
+  useUploadProfileImage,
+} from "../../../../hooks/useProfileImage";
 
-export default function Settings({
-  profile: profileProp,
-  onSaveProfile,
-  onUploadPhoto,
-}) {
+export default function Settings({ profile: profileProp, onSaveProfile }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     const data = getProfileFromToken();
     if (data) setProfile(data);
     setLoading(false);
   }, []);
+
+  const { data: avatarUrl } = useProfileImage(profile?.correo);
+  const uploadMutation = useUploadProfileImage();
+  const uploadingPhoto = uploadMutation.isPending;
 
   const [dragOver, setDragOver] = useState(false);
 
@@ -36,17 +38,18 @@ export default function Settings({
       toast.error("La imagen no debe superar 5MB");
       return;
     }
-    setUploadingPhoto(true);
-    imagenPerfilApi
-      .upload(profile.correo, file)
-      .then((res) => {
-        toast.success("Foto de perfil actualizada correctamente");
-        window.dispatchEvent(new CustomEvent("profile-photo-updated"));
-      })
-      .catch((err) => {
-        toast.error(err?.message ?? "Error al subir la foto");
-      })
-      .finally(() => setUploadingPhoto(false));
+
+    uploadMutation.mutate(
+      { correo: profile.correo, file },
+      {
+        onSuccess: () => {
+          toast.success("Foto de perfil actualizada correctamente");
+        },
+        onError: (err) => {
+          toast.error(err?.message ?? "Error al subir la foto");
+        },
+      },
+    );
   };
 
   const handleFileSelect = (e) => {
@@ -94,7 +97,10 @@ export default function Settings({
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={() => !uploadingPhoto && document.getElementById("photo-upload")?.click()}
+              onClick={() =>
+                !uploadingPhoto &&
+                document.getElementById("photo-upload")?.click()
+              }
             >
               <input
                 id="photo-upload"
@@ -104,6 +110,9 @@ export default function Settings({
                 className="settings-upload__input"
                 aria-label="Subir foto de perfil"
                 disabled={uploadingPhoto}
+                onClick={
+                  (e) => e.stopPropagation() // yo bien licensiado en ingles haciendo burla al toromax e
+                }
               />
               <Icon
                 icon={GenericUpload}
@@ -111,7 +120,9 @@ export default function Settings({
                 className="settings-upload__icon"
               />
               <p className="settings-upload__text">
-                {uploadingPhoto ? "Subiendo…" : "Arrastra una imagen o haz clic para subir"}
+                {uploadingPhoto
+                  ? "Subiendo…"
+                  : "Arrastra una imagen o haz clic para subir"}
               </p>
               <p className="settings-upload__hint">PNG, JPG hasta 5MB</p>
             </div>
@@ -125,6 +136,14 @@ export default function Settings({
               </p>
             </div>
             <div className="settings-info">
+              <div className="settings-info__avatar-container">
+                <img
+                  src={avatarUrl || "/public/default-avatar.png"}
+                  alt="Foto de perfil"
+                  className="settings-info__avatar"
+                />
+              </div>
+              <hr />
               <div className="settings-info__row">
                 <div className="settings-info__field">
                   <span className="settings-info__label">Nombre Completo</span>

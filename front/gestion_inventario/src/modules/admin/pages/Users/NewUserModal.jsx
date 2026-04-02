@@ -15,11 +15,18 @@ import {
   validarFechaNacimiento,
   validarRol,
   validarArea,
+  handleOnChangeCurp,
+  handleOnChangeName,
 } from "../../../../utils/validaciones";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import "./NewUserModal.css";
 
-export default function NewUserModal({ open, onClose, onGuardar, initialData }) {
+export default function NewUserModal({
+  open,
+  onClose,
+  onGuardar,
+  initialData,
+}) {
   const isEdit = !!initialData;
   const [form, setForm] = useState({
     nombre: "",
@@ -40,13 +47,19 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
         .getRoles()
         .then((res) => {
           // Roles es un catálogo pequeño, devuelve lista simple en .data
-          const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+          const list = Array.isArray(res?.data)
+            ? res.data
+            : Array.isArray(res)
+              ? res
+              : [];
           setRoles(list);
         })
         .catch(() => setRoles([]));
       rolesApi
         .getAreas()
-        .then((res) => setAreas(Array.isArray(res?.data?.content) ? res.data.content : []))
+        .then((res) =>
+          setAreas(Array.isArray(res?.data?.content) ? res.data.content : []),
+        )
         .catch(() => setAreas([]));
     }
   }, [open]);
@@ -62,7 +75,14 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
         area: String(initialData.idArea ?? initialData.area ?? ""),
       });
     } else if (open) {
-      setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
+      setForm({
+        nombre: "",
+        correo: "",
+        nacimiento: "",
+        curp: "",
+        rol: "",
+        area: "",
+      });
     }
   }, [open, initialData]);
 
@@ -108,7 +128,14 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
       } else {
         await authApi.register(payload);
       }
-      setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
+      setForm({
+        nombre: "",
+        correo: "",
+        nacimiento: "",
+        curp: "",
+        rol: "",
+        area: "",
+      });
       setErrores({});
       onGuardar?.();
       onClose?.();
@@ -120,7 +147,14 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
   };
 
   const handleClose = () => {
-    setForm({ nombre: "", correo: "", nacimiento: "", curp: "", rol: "", area: "" });
+    setForm({
+      nombre: "",
+      correo: "",
+      nacimiento: "",
+      curp: "",
+      rol: "",
+      area: "",
+    });
     setErrores({});
     onClose?.();
   };
@@ -160,23 +194,29 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
 
           {/* Nombre */}
           <div className="nuevo-usuario-modal__field">
-            <label className="nuevo-usuario-modal__label">Nombre Completo*</label>
+            <label className="nuevo-usuario-modal__label">
+              Nombre Completo*
+            </label>
             <Input
               placeholder="Nombre completo (sin puntos ni comas al inicio)"
               value={form.nombre}
-              onChange={handleChange("nombre")}
+              onChange={(e) => handleOnChangeName(e, setForm, setErrores)}
               className="nuevo-usuario-modal__input"
               aria-invalid={!!errores.nombre}
             />
             {errores.nombre && (
-              <span className="nuevo-usuario-modal__error-msg">{errores.nombre}</span>
+              <span className="nuevo-usuario-modal__error-msg">
+                {errores.nombre}
+              </span>
             )}
           </div>
 
           {/* Correo + Fecha nacimiento */}
           <div className="nuevo-usuario-modal__row">
             <div className="nuevo-usuario-modal__field nuevo-usuario-modal__field--flex">
-              <label className="nuevo-usuario-modal__label">Correo Electrónico*</label>
+              <label className="nuevo-usuario-modal__label">
+                Correo Electrónico*
+              </label>
               <Input
                 type="email"
                 placeholder="usuario@institucion.edu.mx"
@@ -186,11 +226,15 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
                 aria-invalid={!!errores.correo}
               />
               {errores.correo && (
-                <span className="nuevo-usuario-modal__error-msg">{errores.correo}</span>
+                <span className="nuevo-usuario-modal__error-msg">
+                  {errores.correo}
+                </span>
               )}
             </div>
             <div className="nuevo-usuario-modal__field nuevo-usuario-modal__field--flex">
-              <label className="nuevo-usuario-modal__label">Fecha de Nacimiento*</label>
+              <label className="nuevo-usuario-modal__label">
+                Fecha de Nacimiento*
+              </label>
               <Input
                 type="date"
                 value={form.nacimiento}
@@ -199,7 +243,9 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
                 aria-invalid={!!errores.nacimiento}
               />
               {errores.nacimiento && (
-                <span className="nuevo-usuario-modal__error-msg">{errores.nacimiento}</span>
+                <span className="nuevo-usuario-modal__error-msg">
+                  {errores.nacimiento}
+                </span>
               )}
             </div>
           </div>
@@ -211,18 +257,14 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
               placeholder="18 caracteres (formato oficial mexicano)"
               value={form.curp}
               maxLength={18}
-              onChange={(e) =>
-                handleChange("curp")({
-                  target: {
-                    value: e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase(),
-                  },
-                })
-              }
+              onChange={(e) => handleOnChangeCurp(e, setForm, setErrores)}
               className="nuevo-usuario-modal__input"
               aria-invalid={!!errores.curp}
             />
             {errores.curp && (
-              <span className="nuevo-usuario-modal__error-msg">{errores.curp}</span>
+              <span className="nuevo-usuario-modal__error-msg">
+                {errores.curp}
+              </span>
             )}
           </div>
 
@@ -234,14 +276,19 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
                 labelClassName="nuevo-usuario-modal__label"
                 value={form.rol}
                 onChange={handleSelect("rol")}
-                options={roles.map((r) => ({ value: String(r.id), label: r.nombre }))}
+                options={roles.map((r) => ({
+                  value: String(r.id),
+                  label: r.nombre,
+                }))}
                 placeholder="Seleccionar..."
                 required
                 aria-invalid={!!errores.rol}
                 variant="ghost"
               />
               {errores.rol && (
-                <span className="nuevo-usuario-modal__error-msg">{errores.rol}</span>
+                <span className="nuevo-usuario-modal__error-msg">
+                  {errores.rol}
+                </span>
               )}
             </div>
             <div className="nuevo-usuario-modal__field nuevo-usuario-modal__field--flex">
@@ -250,20 +297,30 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
                 labelClassName="nuevo-usuario-modal__label"
                 value={form.area}
                 onChange={handleSelect("area")}
-                options={areas.map((a) => ({ value: String(a.id), label: a.nombre }))}
+                options={areas.map((a) => ({
+                  value: String(a.id),
+                  label: a.nombre,
+                }))}
                 placeholder="Seleccionar..."
                 required
                 aria-invalid={!!errores.area}
                 variant="ghost"
               />
               {errores.area && (
-                <span className="nuevo-usuario-modal__error-msg">{errores.area}</span>
+                <span className="nuevo-usuario-modal__error-msg">
+                  {errores.area}
+                </span>
               )}
             </div>
           </div>
 
           <footer className="nuevo-usuario-modal__footer">
-            <Button type="button" variant="outline" size="small" onClick={handleClose}>
+            <Button
+              type="button"
+              variant="outline"
+              size="small"
+              onClick={handleClose}
+            >
               Cancelar
             </Button>
             <Button
@@ -274,7 +331,11 @@ export default function NewUserModal({ open, onClose, onGuardar, initialData }) 
               iconSize={30}
               disabled={loading}
             >
-              {loading ? "Guardando…" : isEdit ? "Guardar cambios" : "Guardar Usuario"}
+              {loading
+                ? "Guardando…"
+                : isEdit
+                  ? "Guardar cambios"
+                  : "Guardar Usuario"}
             </Button>
           </footer>
         </form>

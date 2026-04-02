@@ -11,10 +11,10 @@ import {
 import Icon from "../../../../components/Icon/Icon";
 import logoActivos360 from "../../../../assets/activos360_logo.png";
 import { getProfileFromToken } from "../../../../api/authApi";
-import { useEffect, useMemo, useState } from "react";
-import { imagenPerfilApi } from "../../../../api/imagenPerfilApi";
+import { useMemo, useState } from "react";
 import Modal from "../../../../components/Modal/Modal";
 import { UserRound } from "lucide-react";
+import { useProfileImage } from "../../../../hooks/useProfileImage";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: GenericHome },
@@ -26,32 +26,13 @@ const navItems = [
 
 export default function Sidebar() {
   const profile = useMemo(() => getProfileFromToken(), []);
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const { data: avatarUrl } = useProfileImage(profile?.correo);
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");
     window.location.replace("/");
   };
-
-  const cargarAvatar = () => {
-    if (profile?.correo) {
-      imagenPerfilApi
-        .getByCorreo(profile.correo)
-        .then((res) => setAvatarUrl(res.data?.urlCloudinary))
-        .catch(() => setAvatarUrl(null));
-    }
-  };
-
-  useEffect(() => {
-    cargarAvatar();
-  }, [profile?.correo]);
-
-  useEffect(() => {
-    const handler = () => cargarAvatar();
-    window.addEventListener("profile-photo-updated", handler);
-    return () => window.removeEventListener("profile-photo-updated", handler);
-  }, [profile?.correo]);
 
   const imgSrc = avatarUrl || "/public/default-avatar.png";
 

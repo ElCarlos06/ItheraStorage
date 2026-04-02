@@ -131,3 +131,70 @@ export function validarContrasenaLogin(contrasena) {
   }
   return null;
 }
+
+function isNotAValidCharacter(val) {
+  if (val.includes(".")) return true;
+  if (val.includes(",")) return true;
+  if (val.includes("-")) return true;
+  if (val.includes("_")) return true;
+  if (val.includes("/")) return true;
+  if (val.includes("\\")) return true;
+  if (val.includes("*")) return true;
+  if (val.includes("+")) return true;
+  if (val.includes("=")) return true;
+  if (val.includes("!")) return true;
+  if (val.includes("?")) return true;
+  if (val.includes("¡")) return true;
+  if (val.includes("¿")) return true;
+  if (val.includes("#")) return true;
+  if (val.includes("%")) return true;
+  if (val.includes('"')) return true;
+  if (val.includes("'")) return true;
+  if (val.includes("$")) return true;
+  if (val.includes("&")) return true;
+  if (val.includes("@")) return true;
+  if (val.includes("{")) return true;
+  if (val.includes("}")) return true;
+  if (val.includes("[")) return true;
+  if (val.includes("]")) return true;
+  if (val.includes("(")) return true;
+  if (val.includes(")")) return true;
+  if (val.includes("|")) return true;
+  if (val.includes("<")) return true;
+  if (val.includes(">")) return true;
+  if (val.includes("~")) return true;
+  if (val.includes("`")) return true;
+  if (val.includes("^")) return true;
+  return false;
+}
+
+export function handleOnChangeName(e, setForm, setErrores) {
+  const value = e.target.value;
+
+  if (isNotAValidCharacter(value) || !isNaN(value)) {
+    setErrores((prev) => ({
+      ...prev,
+      nombre:
+        "No se permiten puntos, comas, guiones, barras, asteriscos, signos de exclamación, interrogación o números",
+    }));
+    return;
+  }
+
+  setForm((prev) => ({ ...prev, nombre: value }));
+  setErrores((prev) => ({ ...prev, nombre: null }));
+}
+
+export function handleOnChangeCurp(e, setForm, setErrores) {
+  const value = e.target.value;
+
+  if (isNotAValidCharacter(value)) {
+    setErrores((prev) => ({
+      ...prev,
+      curp: "No se permiten puntos, comas, guiones, barras, asteriscos, signos de exclamación o interrogación",
+    }));
+    return;
+  }
+
+  setForm((prev) => ({ ...prev, curp: value.toUpperCase() }));
+  setErrores((prev) => ({ ...prev, curp: null }));
+}
