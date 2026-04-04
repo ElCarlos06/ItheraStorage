@@ -92,8 +92,8 @@ public class BitacoraService {
             String estadoOperativoNuevo
     ) {
         Long uid = usuarioId;
-        if (uid == null && jwtProvider != null && jwtProvider.getCurrentUser() != null)
-            uid = jwtProvider.getCurrentUser().getId();
+        if (uid == null)
+            uid = jwtProvider.getCurrentUser().map(UserDetailsImp::getId).orElse(null);
 
         if (uid == null) {
             log.warn("Bitácora: no se pudo registrar evento '{}' (sin usuario)", tipoEvento);
@@ -146,12 +146,8 @@ public class BitacoraService {
     }
 
     private User handleUser() {
-        UserDetailsImp current = jwtProvider.getCurrentUser();
-
-        // Si es null, la request llegó sin autenticación válida
-        // → no debería pasar si el endpoint está protegido
-        if (current == null)
-            throw new CustomException("No hay usuario autenticado en el contexto", HttpStatus.UNAUTHORIZED);
+        UserDetailsImp current = jwtProvider.getCurrentUser()
+                .orElseThrow(() -> new CustomException("Usuario no encontrado", HttpStatus.UNAUTHORIZED));
 
         return userRepository.findById(current.getId())
                 .orElseThrow(() -> new CustomException(

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,5 +47,37 @@ public interface AssetsRepository extends JpaRepository<Assets, Long> {
     @Query("SELECT a.numeroSerie FROM Assets a WHERE a.numeroSerie IN :series")
     Set<String> findSeriesExistentes(@Param("series") Set<String> series);
 
+//    @Query("""
+//    SELECT
+//      COUNT(a) as total,
+//      SUM(CASE WHEN a.estadoCustodia = 'Disponible' THEN 1 ELSE 0 END) as disponibles,
+//      SUM(CASE WHEN a.estadoCustodia = 'Resguardado' THEN 1 ELSE 0 END) as resguardados,
+//      SUM(CASE WHEN a.estadoOperativo = 'Mantenimiento' THEN 1 ELSE 0 END) as enMantenimiento,
+//      SUM(CASE WHEN a.estadoOperativo = 'Reportado' THEN 1 ELSE 0 END) as reportados
+//    FROM Assets a WHERE a.esActivo = true AND a.fechaAlta BETWEEN :inicio AND :fin
+//""")
+//    AssetsProjection findAssetsStatsByWeek(LocalDate inicio, LocalDate fin);
+
+    @Query("""
+    SELECT 
+      COUNT(a) as total,
+      SUM(CASE WHEN a.estadoCustodia = 'Disponible' THEN 1 ELSE 0 END) as disponibles,
+      SUM(CASE WHEN a.estadoCustodia = 'Resguardado' THEN 1 ELSE 0 END) as resguardados,
+      SUM(CASE WHEN a.estadoOperativo = 'Mantenimiento' THEN 1 ELSE 0 END) as enMantenimiento,
+      SUM(CASE WHEN a.estadoOperativo = 'Reportado' THEN 1 ELSE 0 END) as reportados
+    FROM Assets a WHERE a.esActivo = true
+""")
+    AssetsProjection findAssetsStatsGlobal();
+
+    @Query("""
+    SELECT 
+      COUNT(a) as total,
+      SUM(CASE WHEN a.estadoCustodia = 'Disponible' THEN 1 ELSE 0 END) as disponibles,
+      SUM(CASE WHEN a.estadoCustodia = 'Resguardado' THEN 1 ELSE 0 END) as resguardados,
+      SUM(CASE WHEN a.estadoOperativo = 'Mantenimiento' THEN 1 ELSE 0 END) as enMantenimiento,
+      SUM(CASE WHEN a.estadoOperativo = 'Reportado' THEN 1 ELSE 0 END) as reportados
+    FROM Assets a WHERE a.esActivo = true AND a.fechaAlta < :lastWeek
+""")
+    AssetsProjection findAssetsStatsOfLastWeek(LocalDate lastWeek);
 }
 

@@ -43,9 +43,9 @@ export default function StatusPieChart({ data = [] }) {
           layout="horizontal"
           align="center"
           verticalAlign="bottom"
-          formatter={(value, name, item) => (
+          formatter={(value, item) => (
             <span style={{ color: "var(--moon-trunks)", fontSize: 14 }}>
-              {item.payload?.name}: {item.payload?.value}
+              {value}: {item.payload?.value}
             </span>
           )}
         />

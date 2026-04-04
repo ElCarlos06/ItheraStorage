@@ -36,4 +36,9 @@ export const activosApi = {
     request(`/api/activos/${id}/status`, {
       method: "PATCH",
     }),
+  /**
+   * Obtener estadísticas de activos
+   * GET /api/activos/stats
+   */
+  getStats: () => request("/api/activos/stats").then((r) => r.data),
 };

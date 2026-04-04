@@ -27,8 +27,7 @@ const reportes = {
     }),
 
   /** DELETE /api/reportes/:id */
-  deleteReporte: (id) =>
-    request(`/api/reportes/${id}`, { method: "DELETE" }),
+  deleteReporte: (id) => request(`/api/reportes/${id}`, { method: "DELETE" }),
 };
 
 const mantenimientos = {
@@ -62,6 +61,9 @@ const mantenimientos = {
   /** DELETE /api/mantenimientos/:id */
   deleteMantenimiento: (id) =>
     request(`/api/mantenimientos/${id}`, { method: "DELETE" }),
+
+  /** GET /api/mantenimientos/stats */
+  getStats: () => request(`/api/mantenimientos/stats`).then((r) => r.data),
 };
 
 export const solicitudesApi = {

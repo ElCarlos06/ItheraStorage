@@ -50,6 +50,12 @@ public class AssetsController {
                 .body(response);
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse> getStats() {
+        ApiResponse response = assetsService.getAssetsStats();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     /**
      * Registra un nuevo activo.
      * @param dto Datos del activo a registrar.

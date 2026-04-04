@@ -53,7 +53,7 @@ public class MainSecurity {
                         .requestMatchers("/api/roles/**", "/api/areas/**", "/api/users/**", "/api/imports/").hasAnyAuthority("ROLE_Administrador")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activos/**").hasAnyAuthority("ROLE_Administrador", "ROLE_Tecnico", "ROLE_Empleado")
                         .requestMatchers("/api/qr/**", "/api/campus/**", "/api/edificios/**", "/api/espacios/**", "/api/tipo-activos/**", "/api/marcas/**", "/api/modelos/**", "/api/activos/**")
-                        .hasAnyAuthority("ROLE_Administrador", "ROLE_Técnico")
+                        .hasAnyAuthority("ROLE_Administrador", "ROLE_Tecnico")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

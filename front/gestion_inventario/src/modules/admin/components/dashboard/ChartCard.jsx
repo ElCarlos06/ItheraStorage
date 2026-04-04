@@ -22,7 +22,10 @@ export default function ChartCard({
           <div className="chart-card__title-row d-flex align-items-center gap-2 flex-wrap">
             <h3 className="chart-card__title">{title}</h3>
             {statusBadge != null && (
-              <StatusBadge status={statusBadge.status} size={statusBadge.size ?? "small"}>
+              <StatusBadge
+                status={statusBadge.status}
+                size={statusBadge.size ?? "small"}
+              >
                 {statusBadge.text}
               </StatusBadge>
             )}

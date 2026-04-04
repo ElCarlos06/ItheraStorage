@@ -9,6 +9,8 @@ import mx.edu.utez.modules.bitacora.BitacoraService;
 import mx.edu.utez.modules.imagen_mantenimiento.ImagenMantenimiento;
 import mx.edu.utez.modules.imagen_mantenimiento.ImagenMantenimientoRepository;
 import mx.edu.utez.modules.imagen_mantenimiento.ImagenMantenimientoService;
+import mx.edu.utez.modules.mantenimientos.projections.MantenimientoProjection;
+import mx.edu.utez.modules.mantenimientos.projections.TiempoPromedioProjection;
 import mx.edu.utez.modules.prioridades.Prioridad;
 import mx.edu.utez.modules.prioridades.PrioridadRepository;
 import mx.edu.utez.modules.reportes.Reporte;
@@ -21,14 +23,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 public class MantenimientoService {
 
+    private final ImagenMantenimientoService imagenMantenimientoService;
+    private final ImagenMantenimientoRepository imagenMantenimientoRepository;
     private final MantenimientoRepository mantenimientoRepository;
     private final ReporteRepository reporteRepository;
     private final AssetsRepository assetsRepository;
@@ -36,8 +44,6 @@ public class MantenimientoService {
     private final PrioridadRepository prioridadRepository;
     private final BitacoraService bitacoraService;
     private final AssetsService assetsService;
-    private final ImagenMantenimientoRepository imagenMantenimientoRepository;
-    private final ImagenMantenimientoService imagenMantenimientoService;
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
@@ -150,10 +156,48 @@ public class MantenimientoService {
         Optional<Mantenimiento> found = mantenimientoRepository.findById(id);
         if (found.isEmpty())
             return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
-        for (ImagenMantenimiento img : imagenMantenimientoRepository.findByMantenimientoId(id)) {
+
+        for (ImagenMantenimiento img : imagenMantenimientoRepository.findByMantenimientoId(id))
             imagenMantenimientoService.delete(img.getId());
-        }
+
         mantenimientoRepository.deleteById(id);
         return new ApiResponse("Mantenimiento eliminado", HttpStatus.OK);
+    }
+
+    /**
+     * Obtiene las estdísticas de los mantenimientos como promedio de duración de los mantenimientos por tipo de este mismo por mes,
+     * técnicos con más activos reparados.
+     * @return <code>ApiResponse</code> con 2 listas de las stats de los mantenimientos.
+     */
+    @Transactional(readOnly = true)
+    public ApiResponse getMantenimientosStats() {
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicio = normalizeDate(hoy);
+
+        // Va a tomar la fecha más cercana a el inicio o fin de un semestre
+        LocalDate fin = inicio.getMonthValue() == 1
+                ? LocalDate.of(hoy.getYear(), Month.JUNE, 30)
+                : LocalDate.of(hoy.getYear(), Month.DECEMBER, 31);
+
+        List<TiempoPromedioProjection> timeProjections =
+                mantenimientoRepository.findTiempoPromedioPorSemestre(inicio, fin);
+
+        List<MantenimientoProjection> mantenimientoProjections = mantenimientoRepository.findMantenimientosStatsGlobal();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("promedioAtencion", timeProjections);
+        stats.put("tecnicoMantenimiento", mantenimientoProjections);
+        return new ApiResponse("OK", stats, HttpStatus.OK);
+
+    }
+
+    private LocalDate normalizeDate(LocalDate date) {
+
+        if (date.getMonthValue() >= 7)
+            return LocalDate.of(date.getYear(), Month.JULY, 1);
+        else
+            return LocalDate.of(date.getYear(), Month.JANUARY, 1);
+
     }
 }

@@ -67,6 +67,16 @@ public class MantenimientoController {
     }
 
     /**
+     * Estadístiucas sobre los manteniemientos, tiempos promedio de atención por mes técnicos con más manetnimientos completados
+     * @return <code>ApiResponse</code> con un resumen de las estadísticas de mantenimientos.
+     */
+    @GetMapping("/stats")
+    public  ResponseEntity<ApiResponse> getStats() {
+        ApiResponse response = mantenimientoService.getMantenimientosStats();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    /**
      * Registra un nuevo mantenimiento (inicia proceso de atención).
      * @param dto Datos del mantenimiento a crear.
      * @return ResponseEntity con el mantenimiento creado.

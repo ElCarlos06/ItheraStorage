@@ -15,39 +15,14 @@ import StatusPieChart from "../../components/dashboard/StatusPieChart";
 import AttentionLineChart from "../../components/dashboard/AttentionLineChart";
 import TechnicianBarChart from "../../components/dashboard/TechnicianBarChart";
 import ReportedAssetsList from "../../components/dashboard/ReportedAssetsList";
+import EmptyState from "../../../../components/EmptyState/EmptyState";
+import { activosApi } from "../../../../api/activosApi";
+import { solicitudesApi } from "../../../../api/solicitudesApi";
+import { useQuery } from "@tanstack/react-query";
 
-const STATS = [
-  {
-    icon: ShopBag,
-    value: "247",
-    label: "Total de Activos",
-    badge: { text: "+12%", status: "disponible" },
-  },
-  {
-    icon: GenericUser,
-    value: "189",
-    label: "Resguardados",
-    badge: { text: "+8%", status: "resguardado" },
-  },
-  {
-    icon: GenericSettings,
-    value: "12",
-    label: "En Mantenimiento",
-    badge: { text: "12", status: "mantenimiento" },
-  },
-  {
-    icon: NotificationsBell,
-    value: "8",
-    label: "Reportes Activos",
-    badge: { text: "+2", status: "reportado" },
-  },
-];
-
-const PIE_DATA = [
-  { name: "Disponible", value: 46 },
-  { name: "Resguardado", value: 189 },
-  { name: "Mantenimiento", value: 12 },
-];
+// Helper para formatear los badges
+const fmtBadge = (val, suffix = "") =>
+  val == null ? "0" : `${val > 0 ? "+" : ""}${val}${suffix}`;
 
 const LINE_DATA = [
   { month: "Ene", correctivo: 4.5, preventivo: 2.2 },
@@ -68,10 +43,113 @@ const BAR_DATA = [
 const REPORTED_ASSETS = [
   { id: 1, name: "Laptop Dell Latitude 5420", type: "Hardware", reports: 12 },
   { id: 2, name: "Impresora HP LaserJet Pro", type: "Hardware", reports: 9 },
-  { id: 3, name: "Monitor LG 24\"", type: "Hardware", reports: 6 },
+  { id: 3, name: 'Monitor LG 24"', type: "Hardware", reports: 6 },
 ];
 
+const MESES = {
+  January: "Enero",
+  February: "Febrero",
+  March: "Marzo",
+  April: "Abril",
+  May: "Mayo",
+  June: "Junio",
+  July: "Julio",
+  August: "Agosto",
+  September: "Septiembre",
+  October: "Octubre",
+  November: "Noviembre",
+  December: "Diciembre",
+};
+
 export default function Dashboard() {
+  const { data: activosStats } = useQuery({
+    queryKey: ["activosStats"],
+    queryFn: () => activosApi.getStats(),
+  });
+
+  const { data: mantenimientosStats, isLoading } = useQuery({
+    queryKey: ["mantenimientosStats"],
+    queryFn: () => solicitudesApi.mantenimientos.getStats(),
+  });
+
+  console.log(mantenimientosStats);
+
+  const { promedioAtencion = [], tecnicoMantenimiento = [] } =
+    mantenimientosStats ?? {};
+
+  const STATS = [
+    {
+      icon: ShopBag,
+      value: activosStats?.total ?? "...",
+      label: "Total de Activos",
+      badge: {
+        text: fmtBadge(activosStats?.pctTotal, "%"),
+        status: "disponible",
+      },
+    },
+    {
+      icon: GenericUser,
+      value: activosStats?.resguardados ?? "...",
+      label: "Resguardados",
+      badge: {
+        text: fmtBadge(activosStats?.pctResguardados, "%"),
+        status: "resguardado",
+      },
+    },
+    {
+      icon: GenericSettings,
+      value: activosStats?.enMantenimiento ?? "...",
+      label: "En Mantenimiento",
+      badge: {
+        text: fmtBadge(activosStats?.pctMantenimiento, "%"),
+        status: "mantenimiento",
+      },
+    },
+    {
+      icon: NotificationsBell,
+      value: activosStats?.reportados ?? "...",
+      label: "Reportes Activos",
+      badge: {
+        text: fmtBadge(activosStats?.pctReportados, "%"),
+        status: "reportado",
+      },
+    },
+  ];
+
+  const PIE_DATA = [
+    { name: "Disponible", value: activosStats?.disponibles },
+    { name: "Resguardado", value: activosStats?.resguardados },
+    { name: "Mantenimiento", value: activosStats?.enMantenimiento },
+  ];
+
+  const currentMonth = new Date().getMonth() + 1;
+  const isFirstSemester = currentMonth <= 6;
+  const semesterMonths = isFirstSemester
+    ? ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"]
+    : ["Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+  const LINE_DATA = semesterMonths.map((m) => ({
+    month: m,
+    correctivo: 0,
+    preventivo: 0,
+  }));
+
+  promedioAtencion.forEach((curr) => {
+    const target = LINE_DATA.find((item) => item.month === MESES[curr.mes]);
+    if (target) {
+      if (curr.tipoMantenimiento === "CORRECTIVO") {
+        target.correctivo = curr.promedioHoras;
+      } else {
+        target.preventivo = curr.promedioHoras;
+      }
+    }
+  });
+
+  const BAR_DATA = tecnicoMantenimiento.map((t) => ({
+    name: t.tecnico,
+    total: t.numMantenimientos,
+  }));
+
   return (
     <>
       <PageHeader
@@ -124,7 +202,14 @@ export default function Dashboard() {
               subtitle="Carga de trabajo y desempeño"
               iconBg="purple"
             >
-              <TechnicianBarChart data={BAR_DATA} />
+              {BAR_DATA.length > 0 ? (
+                <TechnicianBarChart data={BAR_DATA} />
+              ) : (
+                <EmptyState
+                  message="No hay mantenimientos de técnicos registrados."
+                  hasSearch={false}
+                />
+              )}
             </ChartCard>
           </div>
           <div className="col-12 col-xl-6">

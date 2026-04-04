@@ -11,6 +11,7 @@ import mx.edu.utez.modules.resguardos.ResguardoRepository;
 import mx.edu.utez.modules.tipo_activos.TipoActivo;
 import mx.edu.utez.modules.tipo_activos.TipoActivoRepository;
 import mx.edu.utez.modules.qr.QRService;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,9 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -297,4 +298,68 @@ public class AssetsService {
                 "Activo dado de baja (desactivado)", custAnt, "Disponible", opAnt, "OK");
         return new ApiResponse("Activo desactivado", entity, HttpStatus.OK);
     }
+
+    /**
+     * Se encarga de juntar las estadisticas de los activos de esta semana vs la semana pasada, para luego calcular el porcentaje de cambio semanal.
+     * @return <code>ApiResponse</code> con las estadisticas mapeadas
+     */
+    @Transactional(readOnly = true)
+    public ApiResponse getAssetsStats() {
+        // Semana actual
+        // LocalDate hoy = LocalDate.now();
+        // LocalDate inicioEstaSemana = hoy.with(DayOfWeek.MONDAY);
+        // Obtiene la semana pasada a la actual xd
+        LocalDate week =  LocalDate.now().minusWeeks(1);
+        // Semana anterior del lunes a domingo del pasao
+        // LocalDate inicioSemanaAnterior = inicioEstaSemana.minusWeeks(1);
+        // LocalDate finSemanaAnterior = inicioEstaSemana.minusDays(1);
+
+        // Proyecciones de la bd XD
+        AssetsProjection global = assetsRepository.findAssetsStatsGlobal(); // Totales globales sin filtro de fecha
+        AssetsProjection lastWeek = assetsRepository.findAssetsStatsOfLastWeek(week); // Totales de la semana anterior
+        // AssetsProjection estaSemana = assetsRepository.findAssetsStatsByWeek(inicioEstaSemana, hoy);
+        // AssetsProjection semanaAnterior = assetsRepository.findAssetsStatsByWeek(inicioSemanaAnterior, finSemanaAnterior);
+
+        Map<String, Long> json = getJson(global, lastWeek); // La global y la semana anetrior
+
+        return new ApiResponse("Estadísticas de Activos", json, HttpStatus.OK);
+    }
+
+    /**
+     * Pone en un Map los resultados que obtuvimos de la qiuery y ya, si lo dejaba en getAssetStats se iba a ver bien largo XD
+     * @param global Proyecciones globales de los activos actualmente
+     * @param lastWeek Proyecciones de los activos de la semana pasada a la actual
+     * @return Un <code>Map<String, Long></code> con los resultados mapeaos
+     */
+    private Map<String, Long> getJson(AssetsProjection global, AssetsProjection lastWeek) {
+        Map<String, Long> json = new HashMap<>();
+
+        // Valores actuales globales
+        json.put("total", global.getTotal());
+        json.put("disponibles", global.getDisponibles());
+        json.put("resguardados", global.getResguardados());
+        json.put("enMantenimiento", global.getEnMantenimiento());
+        json.put("reportados", global.getReportados());
+
+        // % cambio semanal por categoría
+        json.put("pctTotal",        calcPct(global.getTotal(), lastWeek.getTotal()));
+        json.put("pctResguardados", calcPct(global.getResguardados(), lastWeek.getResguardados()));
+        json.put("pctMantenimiento",calcPct(global.getEnMantenimiento(), lastWeek.getEnMantenimiento()));
+        json.put("pctReportados",   calcPct(global.getReportados(), lastWeek.getReportados()));
+
+        return json;
+    }
+
+    /**
+     * Retorna el porcentaje de las proyecciones actual vs anterior, redondeado al entero más cercano.
+     * Si el valor anterior es 0, retorna 100% si el actual es >0, o 0% si el actual es 0.
+     * @param actual Total de proyecciones para la semana actual
+     * @param anterior Total de proyecciones para la semana pasada
+     * @return <code>Long</code> con el "porcentaje" XD
+     */
+    private long calcPct(long actual, long anterior) {
+        if (anterior == 0) return actual > 0 ? 100 : 0;
+        return Math.round(((actual - anterior) * 100.0) / anterior);
+    }
+
 }
