@@ -1,4 +1,4 @@
-package com.example.activos360.ui.models
+package com.example.activos360.ui.modals
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Surface
@@ -18,7 +18,6 @@ import com.example.activos360.ui.components.MoonIcon
 import com.example.activos360.ui.components.MoonIcons
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -138,7 +137,93 @@ fun ResguardoItemCard(onConfirmClick: () -> Unit) {
 }
 
 @Composable
+fun ReporteItemCard(onConfirmClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White,
+        shadowElevation = 1.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row (verticalAlignment = Alignment.CenterVertically) {
+                // Icono Laptop
+                Surface(
+                    color = Color(0xFFF1F2F6),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    MoonIcon(
+                        icon = MoonIcons.DevicesMacbook,
+                        contentDescription = null,
+                        size = 24.dp,
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text("ACTIVO #0482", fontSize = 12.sp, color = Color.Gray)
+                    Text("MacBook Pro 16\"", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Badge "EN PROCESO"
+                Surface(
+                    color = Color(0xFFF5A2BD),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "Reportado",
+                        color = Color(0xFFE91E63),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+
+                // Botón Confirmar
+                Button(
+                    onClick = onConfirmClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B88FF)),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
+                ) {
+                    Text("Atender", fontSize = 14.sp)
+                }
+            }
+        }
+    }
+}
+
+
+/*
+@Composable
 @Preview
 fun ResguardosModalPreview() {
     ResguardosModal(onDismiss = {}, onConfirmClick = {})
+}*/
+@Preview(showBackground = true, backgroundColor = 0xFFF5F7FA)
+@Composable
+fun ReporteItemCardPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
+        // La invocamos con un lambda vacío para el clic
+        ReporteItemCard(onConfirmClick = { /* Simular clic */ })
+
+        // Espacio por si quieres ver cómo se ve una debajo de otra
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // La invocamos con un lambda vacío para el clic
+        ReporteItemCard(onConfirmClick = { /* Simular clic */ })
+    }
 }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -76,3 +77,16 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
         )
     }
 }
+
+@Preview(showSystemUi = true) // showSystemUi para verlo como un celular real
+@Composable
+fun TecnicoMainScreenPreview() {
+    // Creamos un NavController de mentira para que el Preview no truene
+    val fakeNavController = rememberNavController()
+
+    // Llamamos a tu pantalla pasando el fakeNavController
+    TecnicoMainScreen(navControllerPrincipal = fakeNavController)
+}
+
+// OJO: Si no tienes creado el UserProfile, créalo vacío aquí
+// para que el Preview pueda compilar sin errores:

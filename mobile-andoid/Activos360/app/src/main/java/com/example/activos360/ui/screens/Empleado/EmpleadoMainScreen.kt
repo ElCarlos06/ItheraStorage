@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import android.net.Uri
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -175,3 +176,14 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
         )
     }
 }
+
+@Preview(showSystemUi = true, name = "Vista Empleado Principal")
+@Composable
+fun EmpleadoMainScreenPreview() {
+    // Simulamos el NavController que viene desde el MainActivity
+    val navControllerFalso = rememberNavController()
+
+    // Invocamos tu pantalla
+    EmpleadoMainScreen(navControllerPrincipal = navControllerFalso)
+}
+

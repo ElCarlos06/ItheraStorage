@@ -205,7 +205,6 @@ fun DetallesActivoScreen(
     }
 }
 
-
 @Preview(showBackground = true, widthDp = 393, heightDp = 852)
 @Composable
 fun preview() {

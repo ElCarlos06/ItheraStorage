@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.components.Canvas2
 import com.example.activos360.ui.components.QRScanner
+import com.example.activos360.ui.components.ReportesBanner
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
 // 1. Borra el import de com.example.activos360.navigation.NavigationBar
 // 2. Asegúrate de que importe el de com.example.activos360.ui.components.BottomCustomBar

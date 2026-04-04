@@ -1,5 +1,6 @@
 package com.example.activos360.ui.modals
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -7,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.activos360.ui.components.Buttons
@@ -59,5 +61,24 @@ fun AssetDetailModal(
                 onClick = onVerDetallesClick
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+fun AssetDetailModalPreview() {
+    // Creamos un contenedor simple para que el Preview tenga donde "flotar"
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Gray.copy(alpha = 0.1f)),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        AssetDetailModal(
+            idActivo = "ACT-987654",
+            onDismiss = { },
+            onVerDetallesClick = { }
+        )
     }
 }
