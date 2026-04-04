@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import PageHeader from "../../components/dashboard/PageHeader";
 import Pagination from "../../components/layout/Pagination";
 import Buscador from "../../../../components/Buscador/Buscador";
@@ -16,6 +17,27 @@ import { solicitudesApi } from "../../../../api/solicitudesApi";
 import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
 import { toast } from "../../../../utils/toast.jsx";
 import "./Requests.css";
+
+// Activo sin campo nombre en API: armamos etiqueta con tipo + serie / etiqueta / descripción
+function activoLabelDesdeApi(activo) {
+  if (!activo || typeof activo !== "object") return "—";
+  const tipoRaw = activo.tipoActivo ?? activo.tipo_activo;
+  const tipo =
+    typeof tipoRaw === "string"
+      ? tipoRaw
+      : (tipoRaw?.nombre ?? activo.tipo_activo?.nombre ?? "");
+  const serie = activo.numeroSerie ?? activo.numero_serie ?? "";
+  const etq = activo.etiqueta ?? "";
+  const desc = (activo.descripcion ?? "").trim();
+  if (tipo && serie) return `${tipo} · ${serie}`;
+  if (tipo && etq) return `${tipo} · ${etq}`;
+  if (tipo) return String(tipo);
+  if (serie) return serie;
+  if (etq) return etq;
+  if (desc)
+    return desc.length > 72 ? `${desc.slice(0, 69)}…` : desc;
+  return "—";
+}
 
 function prioridadToBadgeStatus(prioridad) {
   const p = (prioridad ?? "").toString().toLowerCase();
@@ -52,8 +74,13 @@ function mapReporteRow(s) {
     idReporte: s.id ?? s.id_reporte,
     idActivo: activo.id ?? activo.id_activo,
     idPrioridad: prioridadObj.id ?? s.id_prioridad,
-    codigo: activo.codigoActivo ?? activo.codigo ?? s.codigo ?? "-",
-    activoNombre: activo.nombre ?? activo.numeroSerie ?? "-",
+    codigo:
+      activo.etiqueta ??
+      activo.codigoActivo ??
+      activo.codigo ??
+      s.codigo ??
+      "-",
+    activoNombre: activoLabelDesdeApi(activo),
     nombreUsuario:
       usuario.nombreCompleto ?? usuario.nombre ?? s.nombreUsuario ?? "-",
     tipoFalla,
@@ -91,8 +118,12 @@ function mapMantenimientoRow(m) {
     idReporte: reporte.id ?? reporte.id_reporte,
     idActivo: activo.id ?? activo.id_activo,
     idPrioridad: prioridadObj.id,
-    codigo: activo.codigoActivo ?? activo.codigo ?? "-",
-    activoNombre: activo.nombre ?? activo.numeroSerie ?? "-",
+    codigo:
+      activo.etiqueta ??
+      activo.codigoActivo ??
+      activo.codigo ??
+      "-",
+    activoNombre: activoLabelDesdeApi(activo),
     nombreUsuario:
       usuario.nombreCompleto ?? usuario.nombre ?? "-",
     tipoFalla,
@@ -117,15 +148,23 @@ function mapResponse(content, activeTab) {
 }
 
 const TABS = [
-  { key: "reportes", label: "Reportes", title: "Ver reportes de fallas" },
+  {
+    key: "reportes",
+    label: "Reportes",
+    title: "Pendientes de asignar técnico (desaparecen al asignar)",
+  },
   {
     key: "mantenimientos",
     label: "Mantenimiento",
-    title: "Ver solicitudes de mantenimiento",
+    title: "Mantenimientos y seguimiento por técnico",
   },
 ];
 
 export default function Requests() {
+  const queryClient = useQueryClient();
+  const invalidateSolicitudes = () =>
+    queryClient.invalidateQueries({ queryKey: ["solicitudes"] });
+
   const [activeTab, setActiveTab] = useState("reportes");
   const [search, setSearch] = useState("");
   const [modalReporte, setModalReporte] = useState(null);
@@ -137,7 +176,6 @@ export default function Requests() {
   const {
     isLoading: loading,
     error,
-    invalidate,
     currentPage,
     setCurrentPage,
     content,
@@ -145,7 +183,7 @@ export default function Requests() {
     queryKey: ["solicitudes", activeTab],
     queryFn: (page, size) =>
       activeTab === "reportes"
-        ? solicitudesApi.reportes.getReportes(page, size)
+        ? solicitudesApi.reportes.getReportes(page, size, "DESC", true)
         : solicitudesApi.mantenimientos.getMantenimientos(page, size),
     errorMessage: "Error al cargar solicitudes",
     pageSize,
@@ -168,11 +206,11 @@ export default function Requests() {
     return solicitudes.filter(
       (s) =>
         (s.codigo ?? "").toLowerCase().includes(q) ||
+        (s.activoNombre ?? "").toLowerCase().includes(q) ||
         (s.nombreUsuario ?? "").toLowerCase().includes(q) ||
         (s.tipoFalla ?? "").toLowerCase().includes(q) ||
         (s.descripcion ?? "").toLowerCase().includes(q) ||
-        (s.accionesRealizadas ?? "").toLowerCase().includes(q) ||
-        (s.tecnicoAsignado ?? "").toLowerCase().includes(q),
+        (s.accionesRealizadas ?? "").toLowerCase().includes(q),
     );
   }, [solicitudes, search]);
 
@@ -198,7 +236,7 @@ export default function Requests() {
       <PageHeader
         overline="SOLICITUDES"
         title="Solicitudes de los usuarios"
-        subtitle="Administra los reportes y los mantenimientos realizados"
+        subtitle="Reportes: bandeja sin técnico. Mantenimiento: ya asignados. Al asignar, el ítem pasa a Mantenimiento."
       />
 
       <section className="requests-view d-flex flex-column gap-3">
@@ -230,7 +268,7 @@ export default function Requests() {
         </div>
 
         {error && (
-          <ErrorBanner message={error} onDismiss={() => invalidate()} />
+          <ErrorBanner message={error} onDismiss={() => invalidateSolicitudes()} />
         )}
 
         {loading ? (
@@ -269,6 +307,9 @@ export default function Requests() {
                     >
                       <div className="requests-view__card-body-inner">
                         <p className="requests-view__numero">{sol.codigo}</p>
+                        <p className="requests-view__activo-nombre" title={sol.activoNombre}>
+                          {sol.activoNombre}
+                        </p>
                         <div className="requests-view__data-row d-flex flex-wrap align-items-center">
                           <div className="requests-view__data-col">
                             <p className="requests-view__label">Reportado por</p>
@@ -303,14 +344,6 @@ export default function Requests() {
                           <div className="requests-view__data-col">
                             <p className="requests-view__label">Aula</p>
                             <p className="requests-view__value">{sol.aula}</p>
-                          </div>
-                          <div className="requests-view__data-col">
-                            <p className="requests-view__label">
-                              Técnico asignado
-                            </p>
-                            <p className="requests-view__value requests-view__value--truncate">
-                              {sol.tecnicoAsignado}
-                            </p>
                           </div>
                           <div className="requests-view__data-col requests-view__data-col--prioridad">
                             <p className="requests-view__label">Prioridad</p>
@@ -385,7 +418,8 @@ export default function Requests() {
         onClose={() => setAssignReporte(null)}
         reporte={assignReporte}
         onAssigned={() => {
-          invalidate();
+          invalidateSolicitudes();
+          setAssignReporte(null);
           setModalReporte(null);
         }}
       />
@@ -411,7 +445,7 @@ export default function Requests() {
               await solicitudesApi.reportes.deleteReporte(id);
             }
             toast.success("Eliminado correctamente");
-            invalidate();
+            invalidateSolicitudes();
             setModalReporte(null);
             setModalMantenimientoId(null);
             setAssignReporte(null);

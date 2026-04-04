@@ -11,12 +11,6 @@ import mx.edu.utez.modules.espacios.Espacio;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * Entidad que representa un Activo Fijo dentro de la organización.
- * Extiende de BaseEntity para heredar el ID autogenerado.
- *
- * @author Ithera Team
- */
 @Entity
 @Table(name = "ACTIVO")
 @AttributeOverride(name = "id", column = @Column(name = "id_activo"))
@@ -43,11 +37,11 @@ public class Assets extends BaseEntity {
     @JoinColumn(name = "id_espacio", nullable = false)
     private Espacio espacio;
 
-    /** Estado de custodia (ej. Disponible, Asignado, En Mantenimiento). */
+    /** estado_custodia: quién tiene el bien físico (no es lo mismo que operativo). */
     @Column(name = "estado_custodia", nullable = false, length = 50)
     private String estadoCustodia = "Disponible";
 
-    /** Condición operativa del activo (ej. OK, Falla, Obsoleto). */
+    /** estado_operativo: daño, taller o baja; independiente de custodia. */
     @Column(name = "estado_operativo", nullable = false, length = 50)
     private String estadoOperativo = "OK";
 

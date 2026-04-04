@@ -46,7 +46,20 @@
   font-weight: 600;
   line-height: 24px;
   color: #1e2939;
-  margin: 0 0 16px 0;
+  margin: 0 0 4px 0;
+}
+
+.requests-view__activo-nombre {
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #475569;
+  margin: 0 0 14px 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .requests-view__data-row {
@@ -88,10 +101,6 @@
 }
 
 .requests-view__data-col:nth-child(7) {
-  flex: 0 1 140px;
-}
-
-.requests-view__data-col:nth-child(8) {
   flex: 0 1 auto;
 }
 

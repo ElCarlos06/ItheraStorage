@@ -1,9 +1,12 @@
 import { request } from "./base";
 
 const reportes = {
-  /** GET /api/reportes?page=:page&size=:size */
-  getReportes: (page = 0, size = 10, direction = "DESC") =>
-    request(`/api/reportes?page=${page}&size=${size}&direction=${direction}`),
+  /** GET /api/reportes?page=:page&size=:size — sinAsignar=true = solo pendientes de asignar técnico */
+  getReportes: (page = 0, size = 10, direction = "DESC", sinAsignar = false) => {
+    const q = `page=${page}&size=${size}&direction=${direction}`;
+    const extra = sinAsignar ? "&sinAsignar=true" : "";
+    return request(`/api/reportes?${q}${extra}`);
+  },
 
   /** GET /api/reportes/:id */
   getReporteById: (id) => request(`/api/reportes/${id}`),

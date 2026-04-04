@@ -2,6 +2,8 @@ package mx.edu.utez.modules.mantenimientos;
 
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.modules.assets.AssetEstadoHelper;
+import mx.edu.utez.modules.assets.AssetEstados;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.assets.AssetsService;
@@ -76,11 +78,20 @@ public class MantenimientoService {
         Optional<Reporte> reporte = reporteRepository.findById(dto.getIdReporte());
         if (reporte.isEmpty())
             return new ApiResponse("Reporte no encontrado", true, HttpStatus.NOT_FOUND);
+        Reporte rep = reporte.get();
+        if (!rep.getActivo().getId().equals(dto.getIdActivo()))
+            return new ApiResponse("El reporte no corresponde al activo indicado", true, HttpStatus.BAD_REQUEST);
         if (mantenimientoRepository.findByReporteId(dto.getIdReporte()).isPresent())
             return new ApiResponse("Ya existe un mantenimiento para ese reporte", true, HttpStatus.CONFLICT);
         Optional<Assets> activo = assetsRepository.findById(dto.getIdActivo());
         if (activo.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
+        AssetEstadoHelper.advertirSiCombinacionInusual(activo.get());
+        if (!AssetEstadoHelper.puedeAsignarMantenimiento(activo.get()))
+            return new ApiResponse(
+                    "Solo se puede asignar mantenimiento con el activo en estado operativo Reportado (sin baja)",
+                    true,
+                    HttpStatus.BAD_REQUEST);
         Optional<User> tecnico = userRepository.findById(dto.getIdUsuarioTecnico());
         if (tecnico.isEmpty())
             return new ApiResponse("Técnico no encontrado", true, HttpStatus.NOT_FOUND);
@@ -92,7 +103,7 @@ public class MantenimientoService {
             return new ApiResponse("Prioridad no encontrada", true, HttpStatus.NOT_FOUND);
 
         Mantenimiento entity = new Mantenimiento();
-        entity.setReporte(reporte.get());
+        entity.setReporte(rep);
         entity.setActivo(activo.get());
         entity.setUsuarioTecnico(tecnico.get());
         entity.setUsuarioAdmin(admin.get());
@@ -102,15 +113,20 @@ public class MantenimientoService {
             entity.setObservaciones(dto.getObservaciones());
         }
         entity.setEstadoMantenimiento("Asignado");
+        entity.setFechaInicio(LocalDateTime.now());
         mantenimientoRepository.save(entity);
+        rep.setEstadoReporte("En Proceso");
+        reporteRepository.save(rep);
         Long activoId = activo.get().getId();
         String opAnt = activo.get().getEstadoOperativo();
-        assetsRepository.updateEstadoOperativo(activoId, "Mantenimiento");
+        String cust = activo.get().getEstadoCustodia();
+        assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_MANTENIMIENTO);
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Mantenimiento",
-                "Mantenimiento asignado a " + tecnico.get().getNombreCompleto(),
-                null, null, opAnt, "Mantenimiento");
-        return new ApiResponse("Mantenimiento registrado", entity, HttpStatus.CREATED);
+                "Mantenimiento asignado a " + tecnico.get().getNombreCompleto()
+                        + " (custodia=" + cust + "; operativo Reportado→Mantenimiento)",
+                cust, cust, opAnt, AssetEstados.OPERATIVO_MANTENIMIENTO);
+        return new ApiResponse("Mantenimiento asignado exitosamente", entity, HttpStatus.CREATED);
     }
 
     @Transactional
@@ -136,11 +152,17 @@ public class MantenimientoService {
                 entity.setFechaFin(LocalDateTime.now());
                 Long activoId = entity.getActivo().getId();
                 String opAnt = entity.getActivo().getEstadoOperativo();
-                assetsRepository.updateEstadoOperativo(activoId, "OK");
+                String cust = entity.getActivo().getEstadoCustodia();
+                String conclusion = dto.getConclusion() != null ? dto.getConclusion() : entity.getConclusion();
+                String nuevoOp = AssetEstadoHelper.operativoTrasCierreMantenimiento(conclusion);
+                assetsRepository.updateEstadoOperativo(activoId, nuevoOp);
                 assetsService.evictAssetCache(activoId);
+                String msg = AssetEstadoHelper.esConclusionIrreparable(conclusion)
+                        ? "Mantenimiento cerrado como Irreparable; activo permanece en Mantenimiento hasta baja aprobada"
+                        : "Mantenimiento finalizado: " + (conclusion != null ? conclusion : "Concluido");
                 bitacoraService.registrarEvento(activoId, null, "Cierre Mantenimiento",
-                        "Mantenimiento finalizado: " + (dto.getConclusion() != null ? dto.getConclusion() : "Concluido"),
-                        null, null, opAnt, "OK");
+                        msg + " (custodia=" + cust + ")",
+                        cust, cust, opAnt, nuevoOp);
             }
         }
 
@@ -148,27 +170,45 @@ public class MantenimientoService {
         return new ApiResponse("Mantenimiento actualizado", entity, HttpStatus.OK);
     }
 
-    /**
-     * Elimina un mantenimiento y sus evidencias asociadas.
-     */
     @Transactional
     public ApiResponse delete(Long id) {
         Optional<Mantenimiento> found = mantenimientoRepository.findById(id);
         if (found.isEmpty())
             return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
 
+        Mantenimiento entity = found.get();
+        Long reporteId = entity.getReporte().getId();
+        Long activoId = entity.getActivo().getId();
+        String opAnt = entity.getActivo().getEstadoOperativo();
+        String cust = entity.getActivo().getEstadoCustodia();
+
         for (ImagenMantenimiento img : imagenMantenimientoRepository.findByMantenimientoId(id))
             imagenMantenimientoService.delete(img.getId());
 
         mantenimientoRepository.deleteById(id);
+
+        reporteRepository.findById(reporteId).ifPresent(rep -> {
+            rep.setEstadoReporte("Pendiente");
+            reporteRepository.save(rep);
+        });
+        assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_REPORTADO);
+        assetsService.evictAssetCache(activoId);
+        bitacoraService.registrarEvento(activoId, null, "Eliminación mantenimiento",
+                "Se eliminó la asignación de técnico; el reporte vuelve a la bandeja sin asignar (custodia=" + cust + ")",
+                cust, cust, opAnt, AssetEstados.OPERATIVO_REPORTADO);
         return new ApiResponse("Mantenimiento eliminado", HttpStatus.OK);
     }
 
-    /**
-     * Obtiene las estdísticas de los mantenimientos como promedio de duración de los mantenimientos por tipo de este mismo por mes,
-     * técnicos con más activos reparados.
-     * @return <code>ApiResponse</code> con 2 listas de las stats de los mantenimientos.
-     */
+    // solo BD + imágenes; ReporteService borra reporte y ajusta activo después
+    @Transactional
+    public void deleteForCascadeEliminarReporte(Long id) {
+        Optional<Mantenimiento> found = mantenimientoRepository.findById(id);
+        if (found.isEmpty()) return;
+        for (ImagenMantenimiento img : imagenMantenimientoRepository.findByMantenimientoId(id))
+            imagenMantenimientoService.delete(img.getId());
+        mantenimientoRepository.deleteById(id);
+    }
+
     @Transactional(readOnly = true)
     public ApiResponse getMantenimientosStats() {
 

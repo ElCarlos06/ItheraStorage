@@ -2,6 +2,7 @@ package mx.edu.utez.modules.resguardos;
 
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.modules.assets.AssetEstados;
 import mx.edu.utez.modules.assets.Assets;
 import mx.edu.utez.modules.assets.AssetsRepository;
 import mx.edu.utez.modules.assets.AssetsService;
@@ -92,10 +93,11 @@ public class ResguardoService {
         // Flujo de estatus: al asignar a empleado → En Proceso (valor exacto del ENUM)
         Long activoId = activo.get().getId();
         String custAnt = activo.get().getEstadoCustodia();
-        assetsRepository.updateEstadoCustodia(activoId, "En Proceso");
+        assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_EN_PROCESO);
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Resguardo",
-                "Asignado a " + empleado.get().getNombreCompleto(), custAnt, "En Proceso", null, null);
+                "Asignado a " + empleado.get().getNombreCompleto(),
+                custAnt, AssetEstados.CUSTODIA_EN_PROCESO, null, null);
 
         return new ApiResponse("Resguardo registrado", entity, HttpStatus.CREATED);
     }
@@ -115,21 +117,21 @@ public class ResguardoService {
                 entity.setFechaConfirmacion(LocalDateTime.now());
                 Long activoId = entity.getActivo().getId();
                 String custAnt = entity.getActivo().getEstadoCustodia();
-                assetsRepository.updateEstadoCustodia(activoId, "Resguardado");
+                assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_RESGUARDADO);
                 assetsService.evictAssetCache(activoId);
                 bitacoraService.registrarEvento(activoId, null, "Confirmacion Resguardo",
                         "Resguardo confirmado por " + entity.getUsuarioEmpleado().getNombreCompleto(),
-                        custAnt, "Resguardado", null, null);
+                        custAnt, AssetEstados.CUSTODIA_RESGUARDADO, null, null);
             }
             if ("Devuelto".equals(dto.getEstadoResguardo())) {
                 entity.setFechaDevolucion(LocalDateTime.now());
                 Long activoId = entity.getActivo().getId();
                 String custAnt = entity.getActivo().getEstadoCustodia();
-                assetsRepository.updateEstadoCustodia(activoId, "Disponible");
+                assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_DISPONIBLE);
                 assetsService.evictAssetCache(activoId);
                 bitacoraService.registrarEvento(activoId, null, "Devolucion Resguardo",
                         "Activo devuelto por " + entity.getUsuarioEmpleado().getNombreCompleto(),
-                        custAnt, "Disponible", null, null);
+                        custAnt, AssetEstados.CUSTODIA_DISPONIBLE, null, null);
             }
         }
         resguardoRepository.save(entity);

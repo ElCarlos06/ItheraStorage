@@ -168,7 +168,7 @@ export default function AssignTechnicianModal({
     setSubmitting(true);
     try {
       await solicitudesApi.mantenimientos.createMantenimiento(body);
-      toast.success("Mantenimiento asignado correctamente");
+      toast.success("Mantenimiento asignado exitosamente");
       onAssigned?.();
       handleClose();
     } catch (err) {
