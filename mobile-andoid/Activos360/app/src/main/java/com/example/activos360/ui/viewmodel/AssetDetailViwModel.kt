@@ -1,5 +1,7 @@
 package com.example.activos360.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +16,9 @@ import com.example.activos360.core.util.long
 import com.example.activos360.core.util.string
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class AssetDetailUiState(
     val isLoading: Boolean = false,
@@ -118,6 +123,8 @@ class AssetDetailViewModel : ViewModel() {
     fun confirmarResguardo(
         activoId: Long,
         observaciones: String? = null,
+        fotos: List<Uri> = emptyList(),
+        context: Context? = null,
         onSuccess: (() -> Unit)? = null
     ) {
         viewModelScope.launch {
@@ -158,6 +165,10 @@ class AssetDetailViewModel : ViewModel() {
                     throw IllegalStateException("No se pudo confirmar el resguardo (${updateResp.code()})")
                 }
 
+                if (fotos.isNotEmpty() && context != null) {
+                    subirFotosActivo(activoId, fotos, context)
+                }
+
                 uiState = uiState.copy(isLoading = false)
                 onSuccess?.invoke()
             } catch (e: Exception) {
@@ -166,6 +177,19 @@ class AssetDetailViewModel : ViewModel() {
                     errorMessage = e.localizedMessage ?: "Error al confirmar resguardo"
                 )
             }
+        }
+    }
+
+    private suspend fun subirFotosActivo(activoId: Long, fotos: List<Uri>, context: Context) {
+        fotos.forEachIndexed { index, uri ->
+            try {
+                val stream = context.contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                val bytes = stream.readBytes()
+                stream.close()
+                val requestBody = bytes.toRequestBody("image/*".toMediaType())
+                val part = MultipartBody.Part.createFormData("file", "foto_${index + 1}.jpg", requestBody)
+                ApiProvider.imagenActivoApi.subirImagen(activoId, part)
+            } catch (_: Exception) { }
         }
     }
  }

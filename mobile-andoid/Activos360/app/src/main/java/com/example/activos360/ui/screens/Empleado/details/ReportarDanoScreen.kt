@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ fun ReportarDanoScreen(
     onBack: () -> Unit,
     onReportarSuccess: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     var selectedTipoNombre by remember { mutableStateOf("") }
     var selectedPrioridadNivel by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
@@ -92,6 +94,8 @@ fun ReportarDanoScreen(
                             tipoNombre = selectedTipoNombre,
                             prioridadNivel = selectedPrioridadNivel,
                             descripcionFalla = descripcion.trim(),
+                            fotos = fotos,
+                            context = context,
                             onSuccess = onReportarSuccess
                         )
                     },

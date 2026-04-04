@@ -1,15 +1,22 @@
 package com.example.activos360.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activos360.back.model.ReporteDTO
 import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.core.network.ApiProvider
+import com.example.activos360.core.util.asMap
+import com.example.activos360.core.util.long
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class TipoFallaItem(val id: Long, val nombre: String)
 data class PrioridadItem(val id: Long, val nivel: String)
@@ -89,6 +96,8 @@ class ReportarViewModel : ViewModel() {
         tipoNombre: String,
         prioridadNivel: String,
         descripcionFalla: String,
+        fotos: List<Uri> = emptyList(),
+        context: Context? = null,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
@@ -116,6 +125,10 @@ class ReportarViewModel : ViewModel() {
                 val resp = ApiProvider.reporteApi.save6(dto)
 
                 if (resp.isSuccessful) {
+                    val reporteId = resp.body()?.data.asMap()?.long("id")
+                    if (reporteId != null && fotos.isNotEmpty() && context != null) {
+                        subirFotos(reporteId, fotos, context)
+                    }
                     _uiState.value = _uiState.value.copy(isLoading = false)
                     onSuccess()
                 } else {
@@ -130,6 +143,19 @@ class ReportarViewModel : ViewModel() {
                     errorMessage = e.localizedMessage ?: "Error al reportar daño"
                 )
             }
+        }
+    }
+
+    private suspend fun subirFotos(reporteId: Long, fotos: List<Uri>, context: Context) {
+        fotos.forEachIndexed { index, uri ->
+            try {
+                val stream = context.contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                val bytes = stream.readBytes()
+                stream.close()
+                val requestBody = bytes.toRequestBody("image/*".toMediaType())
+                val part = MultipartBody.Part.createFormData("file", "foto_${index + 1}.jpg", requestBody)
+                ApiProvider.imagenReporteApi.subirImagen(reporteId, part)
+            } catch (_: Exception) { }
         }
     }
 }

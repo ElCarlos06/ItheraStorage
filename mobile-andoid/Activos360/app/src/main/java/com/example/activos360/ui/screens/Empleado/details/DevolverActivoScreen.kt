@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +52,7 @@ fun DevolverActivoScreen(
     onBack: () -> Unit,
     onDevolverSuccess: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     var observaciones by remember { mutableStateOf("") }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
@@ -86,6 +88,8 @@ fun DevolverActivoScreen(
                         viewModel.devolver(
                             activoId = activoId,
                             observaciones = observaciones,
+                            fotos = fotos,
+                            context = context,
                             onSuccess = onDevolverSuccess
                         )
                     },
@@ -126,7 +130,7 @@ fun DevolverActivoScreen(
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-
+/*
                 Text(
                     text = "Las fotos son obligatorias para procesar la devolución",
                     fontSize = 12.sp,
@@ -134,7 +138,7 @@ fun DevolverActivoScreen(
                     color = DodoriaWarning,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
-                )
+                )*/
 
                 Spacer(modifier = Modifier.height(16.dp))
 

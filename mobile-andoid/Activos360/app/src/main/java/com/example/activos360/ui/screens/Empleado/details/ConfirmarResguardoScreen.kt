@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +48,7 @@ fun ConfirmarResguardoScreen(
     onConfirmed: () -> Unit,
     viewModel: AssetDetailViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val checks = remember { mutableStateListOf(false, false, false, false) }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
@@ -72,9 +75,11 @@ fun ConfirmarResguardoScreen(
                         }
                         viewModel.confirmarResguardo(
                             activoId = activoId,
-                            observaciones = observaciones, // La variable de tu TextField
+                            observaciones = observaciones,
+                            fotos = fotos,
+                            context = context,
                             onSuccess = {
-                                onConfirmed() // Si el back responde bien, ejecutamos esto para salir
+                                onConfirmed()
                             }
                         )
                     }
@@ -96,12 +101,12 @@ fun ConfirmarResguardoScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Reutilizamos la MainAssetCard que ya tienes en el otro archivo
                 MainAssetCard(id = "ACTIVO #$activoId", nombre = "Activo")
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Filas de Checkboxes
                 val opciones = listOf("¿Enciende correctamente?", "Pantalla sin daños", "Incluye cargador original", "Sin daños estéticos")
@@ -120,7 +125,7 @@ fun ConfirmarResguardoScreen(
                             colors = CheckboxDefaults.colors(checkedColor = Color(0xFF7B88FF))
                         )
                     }
-                    Divider(color = Color(0xFFF1F2F6), thickness = 1.dp)
+                    HorizontalDivider(Modifier, thickness = 1.dp, color = Color(0xFFF1F2F6))
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -140,6 +145,6 @@ fun ConfirmarResguardoScreen(
 @Composable
 @Preview
 fun previewConfirmarResguardo() {
-    ConfirmarResguardoScreen(activoId = 1, onBack = {}, onConfirmed = {})
+    ConfirmarResguardoScreen(activoId = 1,onBack = {}, onConfirmed = {})
 }
 

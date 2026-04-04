@@ -85,7 +85,7 @@ class EmpleadoViewModel : ViewModel() {
         return when (data) {
             is Map<*, *> -> {
                 val url = (data["urlCloudinary"] as? String)
-                    ?: (data["url"] as? String) 
+                    ?: (data["url"] as? String)
                 Log.d("EmpleadoVM", "urlFromData map keys=${data.keys}, url=$url")
                 url
             }

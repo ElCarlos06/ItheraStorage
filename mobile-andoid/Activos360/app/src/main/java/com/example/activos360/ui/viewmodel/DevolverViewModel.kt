@@ -1,5 +1,7 @@
 package com.example.activos360.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activos360.back.model.ResguardoDTO
@@ -13,6 +15,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class DevolverUiState(
     val isLoading: Boolean = false,
@@ -26,6 +31,8 @@ class DevolverViewModel : ViewModel() {
     fun devolver(
         activoId: Long,
         observaciones: String?,
+        fotos: List<Uri> = emptyList(),
+        context: Context? = null,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
@@ -64,6 +71,10 @@ class DevolverViewModel : ViewModel() {
                     throw IllegalStateException("No se pudo procesar la devolución (${updateResp.code()})")
                 }
 
+                if (fotos.isNotEmpty() && context != null) {
+                    subirFotosActivo(activoId, fotos, context)
+                }
+
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 onSuccess()
             } catch (e: Exception) {
@@ -72,6 +83,19 @@ class DevolverViewModel : ViewModel() {
                     errorMessage = e.localizedMessage ?: "Error al devolver activo"
                 )
             }
+        }
+    }
+
+    private suspend fun subirFotosActivo(activoId: Long, fotos: List<Uri>, context: Context) {
+        fotos.forEachIndexed { index, uri ->
+            try {
+                val stream = context.contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                val bytes = stream.readBytes()
+                stream.close()
+                val requestBody = bytes.toRequestBody("image/*".toMediaType())
+                val part = MultipartBody.Part.createFormData("file", "foto_${index + 1}.jpg", requestBody)
+                ApiProvider.imagenActivoApi.subirImagen(activoId, part)
+            } catch (_: Exception) { }
         }
     }
 }
