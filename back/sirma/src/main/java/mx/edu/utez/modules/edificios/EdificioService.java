@@ -14,6 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Lógica de negocio que administra la información operada sobre Edificios en el sistema.
+ *
+ * @author Ithera Team
+ */
 @Service
 @AllArgsConstructor
 public class EdificioService {
@@ -22,12 +27,24 @@ public class EdificioService {
     private final CampusRepository campusRepository;
     private final EspacioRepository espacioRepository;
 
+    /**
+     * Muestra todo el catálogo activo de edificios con paginación integrada.
+     *
+     * @param pageable Preferencias de envoltura del cliente.
+     * @return Conjunto en ApiResponse.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
         Page<Edificio> page = edificioRepository.findAllByEsActivoTrue(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
+    /**
+     * Encuentra y devuelve un Edificio empleando su Id.
+     *
+     * @param id Entero base asociado.
+     * @return Instancia 1:1 o error de no existir.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findById(Long id) {
         Optional<Edificio> found = edificioRepository.findById(id);
@@ -36,12 +53,25 @@ public class EdificioService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Agrupa y lista de golpe todos los Edificios emparentados hacia el parámetro de campus entregado.
+     *
+     * @param campusId Base o FK de referencia.
+     * @return Conjunto de elementos.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByCampus(Long campusId) {
         List<Edificio> list = edificioRepository.findByCampusIdAndEsActivoTrue(campusId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Valida que no haya un edificio con el mismo nombre y guarda un registro.
+     * También permite resucitar uno si por baja previa coincidiera con sus estatutos.
+     *
+     * @param dto Input DTO con toda la data esencial.
+     * @return Formato empaquetado para el endpoint respectivo.
+     */
     @Transactional
     public ApiResponse save(EdificioDTO dto) {
         Optional<Campus> campus = campusRepository.findById(dto.getIdCampus());
@@ -64,6 +94,13 @@ public class EdificioService {
         return new ApiResponse("Edificio registrado", entity, HttpStatus.CREATED);
     }
 
+    /**
+     * Actualiza el valor o las propiedades de este sin colisionar con entidades hermanas activas en la BD.
+     *
+     * @param id ID Principal.
+     * @param dto Base validada de actualización.
+     * @return <code>ApiResponse</code> con el feedback en el Payload.
+     */
     @Transactional
     public ApiResponse update(Long id, EdificioDTO dto) {
         Optional<Edificio> found = edificioRepository.findById(id);
@@ -82,6 +119,13 @@ public class EdificioService {
         return new ApiResponse("Edificio actualizado", entity, HttpStatus.OK);
     }
 
+    /**
+     * Invierte la bandera booleana en base de datos.
+     * De ser una inactividad forzada, se pasará en efecto cascada apagando los espacios contenidos.
+     *
+     * @param id Principal objeto.
+     * @return Éxito.
+     */
     @Transactional
     public ApiResponse toggleStatus(Long id) {
         Optional<Edificio> found = edificioRepository.findById(id);
@@ -100,6 +144,12 @@ public class EdificioService {
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
     }
 
+    /**
+     * Eliminación de borrado profundo (DELETE) ignorando historial. Cascada manual.
+     *
+     * @param id Clave referenciada a exterminar.
+     * @return Estatus.
+     */
     @Transactional
     public ApiResponse deleteById(Long id) {
         Optional<Edificio> found = edificioRepository.findById(id);

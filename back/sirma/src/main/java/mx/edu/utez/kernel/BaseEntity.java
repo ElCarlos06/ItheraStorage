@@ -20,6 +20,9 @@ import lombok.Setter;
 @Setter
 public class BaseEntity {
 
+    /**
+     * Identificador autoincremental único que representa a la entidad dentro de la base de datos.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

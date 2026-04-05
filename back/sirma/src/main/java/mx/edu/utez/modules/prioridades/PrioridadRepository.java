@@ -11,5 +11,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PrioridadRepository extends JpaRepository<Prioridad, Long> {
+
+    /**
+     * Verifica la existencia de una prioridad que se llame de igual manera.
+     * @param nivel Valor del nivel para búsqueda exacta.
+     * @return <code>true</code> en caso de ya haber sido persistido; <code>false</code> de lo contrario.
+     */
     boolean existsByNivel(String nivel);
 }

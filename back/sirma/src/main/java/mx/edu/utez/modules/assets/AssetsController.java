@@ -50,6 +50,10 @@ public class AssetsController {
                 .body(response);
     }
 
+    /**
+     * Recupera estadísticas generales de los activos registrados (ej. totales, inactivos, por estado, etc.).
+     * @return ResponseEntity conteniendo el <code>ApiResponse</code> con el objeto de estadísticas.
+     */
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse> getStats() {
         ApiResponse response = assetsService.getAssetsStats();

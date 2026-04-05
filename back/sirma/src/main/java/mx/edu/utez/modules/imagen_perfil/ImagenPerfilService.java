@@ -5,6 +5,7 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.modules.users.User;
 import mx.edu.utez.modules.users.UserRepository;
+import mx.edu.utez.util.CloudinaryPaths;
 import mx.edu.utez.util.CloudinaryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,6 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenPerfilRepository> {
-
-	private static final String CARPETA_CLOUDINARY = "sirma/perfiles";
 
 	private final UserRepository userRepository;
 
@@ -48,7 +47,7 @@ public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenP
 			return new ApiResponse("Usuario no encontrado", true, HttpStatus.NOT_FOUND);
 
 		User usuario = found.get();
-		String carpetaUsuario = CARPETA_CLOUDINARY + "/" + usuario.getNumeroEmpleado();
+		String carpetaUsuario = CloudinaryPaths.PERFILES + "/" + usuario.getNumeroEmpleado();
 
 		// 1. Eliminar foto anterior si existe (para mantener solo una activa y limpia)
 		Optional<ImagenPerfil> imagenPrevia = repository.findByUsuarioId(usuario.getId());

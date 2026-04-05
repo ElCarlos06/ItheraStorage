@@ -11,14 +11,35 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Interface Repository de JPA. Desglosa los servicios CRUD e implementa queries transaccionales
+ * requeridas para consultar las reparaciones o mantenimientos y recolectar sus métricas estadísticas.
+ *
+ * @author Ithera Team
+ */
 @Repository
 public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Long> {
+
+    /**
+     * Localiza a un mantenimiento asegurando la dependencia sobre un respectivo Reporte madre.
+     * @param reporteId Identificación del origen del trámite.
+     * @return El trámite envuelto o su ausencia.
+     */
     @Query("SELECT m FROM Mantenimiento m WHERE m.reporte.id = :reporteId")
     Optional<Mantenimiento> findByReporteId(@Param("reporteId") Long reporteId);
+
+    /** Descarga o extrae todo el compendio de atenciones que el activo específico ha sufrido. */
     List<Mantenimiento> findByActivoId(Long activoId);
+
+    /** Facilita el acceso a la bandeja de mantenimientos responsabilizada a un único operador de soporte. */
     List<Mantenimiento> findByUsuarioTecnicoId(Long tecnicoId);
+
+    /** Colecciona todos los mantenimientos categorizados al estado parametrizado pasado. */
     List<Mantenimiento> findByEstadoMantenimiento(String estado);
 
+    /**
+     * Calcula a los top 4 de técnicos basados sobre el total o número descenciente de tickets que exitosamente ellos hayan logrado concluir.
+     */
     @Query("""
         SELECT m.usuarioTecnico.nombreCompleto AS tecnico, COUNT(m) AS numMantenimientos
         FROM Mantenimiento m
@@ -29,6 +50,10 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
     """)
     List<MantenimientoProjection> findMantenimientosStatsGlobal();
 
+    /**
+     * Arroja un desglose mes por mes en un lapso determinado estimando y cuantificando las horas promediadas por atención finalizada,
+     * dividiendo por el tipo de trabajo (Preventivo/Correctivo).
+     */
     @Query(value = """
         SELECT 
             MONTHNAME(m.fecha_inicio) AS mes,

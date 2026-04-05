@@ -4,6 +4,7 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.modules.mantenimientos.Mantenimiento;
 import mx.edu.utez.modules.mantenimientos.MantenimientoRepository;
+import mx.edu.utez.util.CloudinaryPaths;
 import mx.edu.utez.util.CloudinaryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,6 @@ import java.util.Optional;
  */
 @Service
 public class ImagenMantenimientoService extends BaseImagenService<ImagenMantenimiento, ImagenMantenimientoRepository> {
-
-    private static final String CARPETA_CLOUDINARY = "sirma/mantenimientos";
 
     private final MantenimientoRepository mantenimientoRepository;
 
@@ -46,7 +45,7 @@ public class ImagenMantenimientoService extends BaseImagenService<ImagenMantenim
         if (found.isEmpty())
             return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
         try {
-            Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_CLOUDINARY);
+            Map<String, Object> resultado = cloudinaryService.upload(file, CloudinaryPaths.mantenimientos(mantenimientoId));
 
             ImagenMantenimiento img = new ImagenMantenimiento();
             img.setMantenimiento(found.get());

@@ -20,9 +20,11 @@ import mx.edu.utez.kernel.BaseEntity;
 @NoArgsConstructor
 public class Prioridad extends BaseEntity {
 
+    /** Título o descripción del nivel de prioridad (ej. Baja, Media, Alta). */
     @Column(name = "nivel", nullable = false, length = 50, unique = true)
     private String nivel;
 
+    /** Cantidad de horas estimadas o pactadas como máximo para dar respuesta. */
     @Column(name = "tiempo_respuesta_horas")
     private Integer tiempoRespuestaHoras;
 

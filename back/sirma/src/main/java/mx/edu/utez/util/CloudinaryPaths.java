@@ -18,7 +18,19 @@ public class CloudinaryPaths {
     public static final String REPORTES = BASE_SIRMA + "/reportes";
     public static final String MANTENIMIENTOS = BASE_SIRMA + "/mantenimientos";
     public static final String PERFILES = BASE_SIRMA + "/perfiles";
+
+    public static String activos(Long id) {
+        return ACTIVOS + "/" + id + "/imagenes";
+    }
     
+    public static String reportes(Long id) {
+        return REPORTES + "/" + id;
+    }
+
+    public static String mantenimientos(Long id) {
+        return MANTENIMIENTOS + "/" + id;
+    }
+
     // Evitar instanciación
     private CloudinaryPaths() {}
 }

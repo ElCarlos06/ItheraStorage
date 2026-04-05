@@ -15,6 +15,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio que contiene la lógica de negocio para la gestión de tipos de activo.
+ *
+ * @author Ithera Team
+ */
 @Service
 @AllArgsConstructor
 public class TipoActivoService {
@@ -22,6 +27,13 @@ public class TipoActivoService {
     private final TipoActivoRepository tipoActivoRepository;
     private final AssetsRepository assetsRepository;
 
+    /**
+     * Obtiene una página de tipos de activo que se encuentran activos.
+     * También calcula y asigna la cantidad de activos asociados a cada tipo.
+     *
+     * @param pageable Información de paginación y ordenamiento.
+     * @return ApiResponse con la página de tipos de activo y la cantidad asociada.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
         Page<TipoActivo> page = tipoActivoRepository.findByEsActivoTrue(pageable);
@@ -46,6 +58,12 @@ public class TipoActivoService {
         return new ApiResponse("OK", result, HttpStatus.OK);
     }
 
+    /**
+     * Busca un tipo de activo específico por su identificador.
+     *
+     * @param id Identificador único del tipo de activo.
+     * @return ApiResponse con el tipo de activo si se encuentra, o un mensaje de error si no existe.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findById(Long id) {
         Optional<TipoActivo> found = tipoActivoRepository.findById(id);
@@ -54,6 +72,12 @@ public class TipoActivoService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Registra un nuevo tipo de activo o reactiva uno existente con el mismo nombre.
+     *
+     * @param dto Objeto con los datos del tipo de activo a guardar.
+     * @return ApiResponse con el resultado de la operación de registro.
+     */
     @Transactional
     public ApiResponse save(TipoActivoDTO dto) {
 
@@ -82,6 +106,13 @@ public class TipoActivoService {
         return new ApiResponse("Tipo de activo registrado", nuevaEntity, HttpStatus.CREATED);
     }
 
+    /**
+     * Actualiza la información de un tipo de activo existente.
+     *
+     * @param id Identificador único del tipo de activo a actualizar.
+     * @param dto Objeto con los nuevos datos a actualizar en el tipo de activo.
+     * @return ApiResponse con el resultado de la actualización.
+     */
     @Transactional
     public ApiResponse update(Long id, TipoActivoDTO dto) {
         Optional<TipoActivo> found = tipoActivoRepository.findById(id);
@@ -99,6 +130,12 @@ public class TipoActivoService {
         return new ApiResponse("Tipo de activo actualizado", entity, HttpStatus.OK);
     }
 
+    /**
+     * Alterna el estado (activo/inactivo) de un tipo de activo.
+     *
+     * @param id Identificador único del tipo de activo cuyo estado se cambiará.
+     * @return ApiResponse indicando el éxito del cambio de estado.
+     */
     @Transactional
     public ApiResponse toggleStatus(Long id) {
         Optional<TipoActivo> found = tipoActivoRepository.findById(id);
@@ -110,6 +147,12 @@ public class TipoActivoService {
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
     }
 
+    /**
+     * Mapea los datos de un DTO a una entidad TipoActivo.
+     *
+     * @param dto Objeto de transferencia de datos con la información de origen.
+     * @param entity Entidad JPA que será actualizada con los datos del DTO.
+     */
     private void mapEntity(TipoActivoDTO dto, TipoActivo entity) {
         entity.setTipoBien(dto.getTipoBien());
         entity.setDescripcion(dto.getDescripcion());

@@ -241,6 +241,8 @@ public class AssetsService {
     /**
      * Invalida la caché de un activo tras cambios de estado (custodia/operativo).
      * Llamar desde ResguardoService y ReporteService después de actualizar.
+     *
+     * @param id Identificador del activo al que se le aplicará el evict en caché.
      */
     @Caching(evict = {
         @CacheEvict(value = "assets", key = "#id"),
@@ -250,14 +252,23 @@ public class AssetsService {
         // La anotación realiza la evicción
     }
 
-    /** Trunca un string al máximo de caracteres para evitar Data truncated en MySQL. */
+    /** Trunca un string al máximo de caracteres para evitar Data truncated en MySQL.
+     *
+     * @param s Cadena original a truncar.
+     * @param maxLen Límite máximo permitido.
+     * @return Cadena truncada de acuerdo con el límite estipulado.
+     */
     private static String truncate(String s, int maxLen) {
         if (s == null) return null;
         if (s.length() <= maxLen) return s;
         return s.substring(0, maxLen);
     }
 
-    /** Normaliza estado_custodia a valores exactos del ENUM en BD: Disponible | En Proceso | Resguardado | Baja */
+    /** Normaliza estado_custodia a valores exactos del ENUM en BD: Disponible | En Proceso | Resguardado | Baja
+     *
+     * @param s Cadena de estatus recibida desde el cliente.
+     * @return Equivalente normalizado acorde a las constantes reales.
+     */
     private static String normalizeEstadoCustodia(String s) {
         if (s == null) return "Disponible";
         String lower = s.trim().toLowerCase();
@@ -268,7 +279,11 @@ public class AssetsService {
         return s;
     }
 
-    /** Redondea costo a 2 decimales y limita a DECIMAL(10,2) para evitar Data truncated. */
+    /** Redondea costo a 2 decimales y limita a DECIMAL(10,2) para evitar Data truncated.
+     *
+     * @param costo Valor original de tipo BigDecimal.
+     * @return Valor decimal formateado de forma segura.
+     */
     private static java.math.BigDecimal safeCosto(java.math.BigDecimal costo) {
         if (costo == null) return null;
         return costo.setScale(2, RoundingMode.HALF_UP);

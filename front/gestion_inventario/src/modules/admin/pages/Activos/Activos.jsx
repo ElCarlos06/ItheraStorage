@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useCallback } from "react";
 import NewAssetModal from "./NewAssetModal";
 import AssignResguardoModal from "./components/AssignResguardoModal";
+import ReleaseResguardoModal from "./components/ReleaseResguardoModal";
 import HistorialActivoModal from "./components/HistorialActivoModal";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
@@ -44,6 +45,7 @@ export default function Activos({
   onEditar,
   onHistorial,
   onDetalles,
+  onLiberar,
 }) {
   const [search, setSearch] = useState("");
   const [modalNuevoOpen, setModalNuevoOpen] = useState(false);
@@ -51,6 +53,7 @@ export default function Activos({
   const [modalEditAsset, setModalEditAsset] = useState(null);
   const [confirmDeleteAsset, setConfirmDeleteAsset] = useState(null);
   const [modalAssignAsset, setModalAssignAsset] = useState(null);
+  const [modalReleaseAsset, setModalReleaseAsset] = useState(null);
   const [modalHistorialAsset, setModalHistorialAsset] = useState(null);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
@@ -100,13 +103,19 @@ export default function Activos({
       if (!file) return;
       try {
         const result = await importApi.upload(file);
-        
+
         if (result?.error) {
           // Hubo rechazos, mostramos toast de error con el detalle por más tiempo
-          toast.error(result.message || "Importación terminada con errores.", 8000);
+          toast.error(
+            result.message || "Importación terminada con errores.",
+            8000,
+          );
         } else {
           // Todo perfecto
-          toast.success(result?.message || "Activos importados correctamente", 5000);
+          toast.success(
+            result?.message || "Activos importados correctamente",
+            5000,
+          );
         }
         await onRefresh?.();
       } catch (error) {
@@ -128,7 +137,10 @@ export default function Activos({
         subtitle="Administra tipos de activos y ubicaciones"
       />
 
-      <section className="activos-view d-flex flex-column flex-grow-1 min-vh-0" aria-label="Inventario de activos">
+      <section
+        className="activos-view d-flex flex-column flex-grow-1 min-vh-0"
+        aria-label="Inventario de activos"
+      >
         <div className="activos-view__stats row g-3 mb-4">
           {stats.map((stat, i) => (
             <div key={i} className="col-12 col-sm-6 col-xl-3">
@@ -203,7 +215,16 @@ export default function Activos({
                   onHistorial={
                     onHistorial ?? ((item) => setModalHistorialAsset(item))
                   }
-                  onDetalles={() => setModalAssignAsset(item)}
+                  onDetalles={() => {
+                    const isAsignado =
+                      item.estadoCustodia === "Resguardado" ||
+                      item.estadoCustodia === "En Proceso";
+                    if (isAsignado) {
+                      setModalReleaseAsset(item);
+                    } else {
+                      setModalAssignAsset(item);
+                    }
+                  }}
                 />
               ))
             )}
@@ -267,6 +288,17 @@ export default function Activos({
           } catch (err) {
             toast.error(err.message ?? "Error al asignar resguardo");
           }
+        }}
+      />
+      <ReleaseResguardoModal
+        open={!!modalReleaseAsset}
+        onClose={() => setModalReleaseAsset(null)}
+        asset={modalReleaseAsset}
+        onLiberar={async (resguardoId, data) => {
+          try {
+            await onLiberar?.(resguardoId, data);
+            setModalReleaseAsset(null);
+          } catch (err) {}
         }}
       />
       <HistorialActivoModal

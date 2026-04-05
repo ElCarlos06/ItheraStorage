@@ -6,6 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Objeto de Transferencia de Datos (DTO) para la entidad TipoActivo.
+ *
+ * @author Ithera Team
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,4 +40,3 @@ public class TipoActivoDTO {
     private Long cantidad;
 
 }
-

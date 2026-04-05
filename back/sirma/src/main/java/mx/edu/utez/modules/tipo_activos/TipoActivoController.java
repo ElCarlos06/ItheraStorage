@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Controlador REST que gestiona las peticiones HTTP relacionadas con los tipos de activo.
+ *
+ * @author Ithera Team
+ */
 @RestController
 @RequestMapping("/api/tipo-activos")
 @AllArgsConstructor

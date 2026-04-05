@@ -115,6 +115,27 @@ export default function ActivosPage() {
     }
   };
 
+  const handleLiberarResguardo = async (resguardo, formData) => {
+    try {
+      const payload = {
+        idActivo: resguardo.activo?.id ?? resguardo.idActivo,
+        idUsuarioEmpleado: resguardo.usuarioEmpleado?.id ?? resguardo.idUsuarioEmpleado,
+        idUsuarioAdmin: resguardo.usuarioAdmin?.id ?? resguardo.idUsuarioAdmin,
+        estadoResguardo: "Devuelto",
+        observacionesDev: formData.observaciones || null,
+      };
+      
+      const res = await resguardosApi.update(resguardo.id, payload);
+      if (res?.error)
+        throw new Error(res.message ?? "Error al liberar resguardo");
+      invalidate();
+      toast.success("Resguardo liberado correctamente");
+    } catch (err) {
+      toast.error(err.message ?? "Error al liberar resguardo");
+      throw err;
+    }
+  };
+
   return (
     <Activos
       activos={activos}
@@ -130,6 +151,7 @@ export default function ActivosPage() {
       onEditar={handleEditar}
       onEliminar={handleEliminar}
       onDetalles={handleAsignarResguardo}
+      onLiberar={handleLiberarResguardo}
       onRefresh={invalidate}
     />
   );

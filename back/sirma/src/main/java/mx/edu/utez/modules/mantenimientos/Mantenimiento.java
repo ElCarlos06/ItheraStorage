@@ -68,32 +68,32 @@ public class Mantenimiento extends BaseEntity {
     @Column(name = "acciones_realizadas", columnDefinition = "TEXT")
     private String accionesRealizadas;
 
-    /** Piezas utilizadas en el mantenimiento. */
+    /** Piezas utilizadas o refacciones que se requirieron en el mantenimiento. */
     @Column(name = "piezas_utilizadas", columnDefinition = "TEXT")
     private String piezasUtilizadas;
 
-    /** Conclusión del mantenimiento (Reparado/Irreparable). */
+    /** Conclusión determinando la vida del activo (Reparado/Irreparable). */
     @Column(name = "conclusion")
     private String conclusion; // Reparado | Irreparable (null hasta cierre)
 
-    /** Observaciones adicionales del mantenimiento. */
+    /** Observaciones adicionales relativas al proceso y las maniobras. */
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
-    /** Costo asociado al mantenimiento. */
+    /** Costo monetario estimado e insumido asociado al mantenimiento llevado a cabo. */
     @Column(name = "costo", precision = 10, scale = 2)
     private BigDecimal costo;
 
-    /** Fecha y hora de inicio del mantenimiento. */
+    /** Instante de tiempo o inicio explícito en que se arrancaron gestiones del mantenimiento. */
     @Column(name = "fecha_inicio")
     private LocalDateTime fechaInicio;
 
-    /** Fecha y hora de fin del mantenimiento. */
+    /** Instante de tiempo marcando el cierre o la culminación y resolución del mantenimiento. */
     @Column(name = "fecha_fin")
     private LocalDateTime fechaFin;
 
-    /** Estado actual del mantenimiento. */
+    /** Estado de progresión general de esta reparación (Asignado, En Proceso, Finalizado). */
     @Column(name = "estado_mantenimiento", nullable = false)
-    private String estadoMantenimiento = "Asignado"; // Asignado | En Proceso | Finalizado
+    private String estadoMantenimiento = "Asignado"; // Asignado  En Proceso  Finalizado
 
 }
