@@ -20,9 +20,15 @@ import mx.edu.utez.kernel.BaseEntity;
 @NoArgsConstructor
 public class Area extends BaseEntity {
 
+    /**
+     * Nombre descriptivo y único del área.
+     */
     @Column(name = "nombre", nullable = false, length = 100, unique = true)
     private String nombre;
 
+    /**
+     * Breve descripción de la funcionalidad o propósito del área.
+     */
     @Column(name = "descripcion", length = 255)
     private String descripcion;
 

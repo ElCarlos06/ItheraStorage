@@ -55,6 +55,7 @@ public class CloudinaryService {
                 fileBytes,
                 ObjectUtils.asMap(
                         "folder", folder,
+                        "asset_folder", folder,
                         "resource_type", "image",
                         "overwrite", false
                 )

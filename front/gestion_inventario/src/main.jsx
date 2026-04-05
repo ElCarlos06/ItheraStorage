@@ -10,7 +10,15 @@ import "/node_modules/bootstrap-icons/font/bootstrap-icons.css";
 
 import App from "./App.jsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,        // 5 min → no refetch automático mientras sea "fresh"
+      refetchOnWindowFocus: false,      // no recargar al volver a la pestaña
+      retry: 1,                         // solo 1 reintento en caso de error
+    },
+  },
+});
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

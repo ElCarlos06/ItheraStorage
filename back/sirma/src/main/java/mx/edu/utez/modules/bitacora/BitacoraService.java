@@ -17,6 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio encargado de gestionar y procesar todas las operaciones relacionadas
+ * a la Bitácora del sistema y sus auditorías.
+ *
+ * @author Ithera Team
+ */
 @Log4j2
 @Service
 @AllArgsConstructor
@@ -27,12 +33,23 @@ public class BitacoraService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
 
+    /**
+     * Consulta para extraer todo el historial presente en el registro de auditoría.
+     *
+     * @return <code>ApiResponse</code> detallando el arreglo de eventos junto al código HTTP.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findAll() {
         List<Bitacora> list = bitacoraRepository.findAll();
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Proporciona los detalles particulares de un evento guardado.
+     *
+     * @param id Identificador que funge como llave del evento en la bitácora.
+     * @return Transforma u opta un error si no fue localizado, incrustado en el <code>ApiResponse</code>.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findById(Long id) {
         Optional<Bitacora> found = bitacoraRepository.findById(id);
@@ -41,12 +58,24 @@ public class BitacoraService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Revisa todas las alteraciones por las que ha atravesado o afectado a un activo.
+     *
+     * @param activoId Id del objeto <code>Assets</code> al que se examina.
+     * @return Lista completa envuelta en un <code>ApiResponse</code>.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByActivo(Long activoId) {
         List<Bitacora> list = bitacoraRepository.findByActivoId(activoId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Retorna todas las interacciones realizadas en su momento o instigadas por un autor identificado.
+     *
+     * @param usuarioId Clave única del <code>User</code> que ejecutó estos eventos.
+     * @return <code>ApiResponse</code> con el arreglo de estos elementos en bitácora.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByUsuario(Long usuarioId) {
         List<Bitacora> list = bitacoraRepository.findByUsuarioId(usuarioId);
@@ -54,6 +83,13 @@ public class BitacoraService {
     }
 
     // Bitácora es INSERT ONLY — no se actualiza ni elimina
+    /**
+     * Conforma y guarda un nuevo registro manual en la tabla.
+     * Al funcionar puramente de historial y auditoría, está diseñado para ser INSERT ONLY y sin Updates/Deletes.
+     *
+     * @param dto Molde de datos que viene directamente de la capa de control.
+     * @return Representación del éxito o el fallo si el activo/usuario subyacente no figura en sistema.
+     */
     @Transactional
     public ApiResponse save(BitacoraDTO dto) {
         Optional<Assets> activo = assetsRepository.findById(dto.getIdActivo());
@@ -79,6 +115,15 @@ public class BitacoraService {
     /**
      * Registra un evento en la bitácora sin lanzar excepciones.
      * Si usuarioId es null, usa el usuario autenticado actual.
+     *
+     * @param activoId Identificador del activo físico modificado.
+     * @param usuarioId Clave del usuario ejecutor, u obtenida remotamente del contexto token de no especificarse.
+     * @param tipoEvento Cadena descriptiva categórica del asunto actual.
+     * @param descripcion Detalles adicionales que enriquecen la descripción del movimiento.
+     * @param estadoCustodiaAnterior Anterior situación que ostentaba el campo.
+     * @param estadoCustodiaNuevo Entorno o estatus actualizado tras el suceso.
+     * @param estadoOperativoAnterior Lo análogo del estado custodia, pero a nivel operativo.
+     * @param estadoOperativoNuevo Última situación operativa resultante para guardar.
      */
     @Transactional
     public void registrarEvento(
@@ -91,9 +136,8 @@ public class BitacoraService {
             String estadoOperativoAnterior,
             String estadoOperativoNuevo
     ) {
-        Long uid = usuarioId;
-        if (uid == null)
-            uid = jwtProvider.getCurrentUser().map(UserDetailsImp::getId).orElse(null);
+        Long currentUserId = jwtProvider.getCurrentUser().map(UserDetailsImp::getId).orElse(null);
+        Long uid = (currentUserId != null) ? currentUserId : usuarioId;
 
         if (uid == null) {
             log.warn("Bitácora: no se pudo registrar evento '{}' (sin usuario)", tipoEvento);
@@ -145,6 +189,12 @@ public class BitacoraService {
         bitacoraRepository.saveAll(registros);
     }
 
+    /**
+     * Auxiliar que intercepta el entorno actual y resuelve la instancia de User en base al token en sesión.
+     *
+     * @return Entidad completa e inferida del autor.
+     * @throws CustomException Si las credenciales o la persistencia es inválida.
+     */
     private User handleUser() {
         UserDetailsImp current = jwtProvider.getCurrentUser()
                 .orElseThrow(() -> new CustomException("Usuario no encontrado", HttpStatus.UNAUTHORIZED));
@@ -156,4 +206,3 @@ public class BitacoraService {
     }
 
 }
-

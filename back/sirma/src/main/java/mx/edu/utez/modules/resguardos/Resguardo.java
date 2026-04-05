@@ -10,6 +10,12 @@ import mx.edu.utez.modules.users.User;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad JPA que representa un Resguardo (asignación formal de un activo a un usuario) en SIRMA.
+ * Mapea a la tabla RESGUARDO.
+ *
+ * @author Ithera Team
+ */
 @Entity
 @Table(name = "RESGUARDO")
 @AttributeOverride(name = "id", column = @Column(name = "id_resguardo"))
@@ -56,4 +62,3 @@ public class Resguardo extends BaseEntity {
     private Integer centinelaActivo;
 
 }
-

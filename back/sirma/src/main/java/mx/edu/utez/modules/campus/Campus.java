@@ -20,12 +20,15 @@ import mx.edu.utez.kernel.BaseEntity;
 @NoArgsConstructor
 public class Campus extends BaseEntity {
 
+    /** Nombre del campus (ej. Sur, Norte, Centro). */
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
+    /** Descripción detallada o dirección abreviada del campus. */
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    /** Bandera de control lógico para determinar si el campus está activo/disponible. */
     @Column(name = "es_activo", nullable = false)
     private Boolean esActivo = true;
 

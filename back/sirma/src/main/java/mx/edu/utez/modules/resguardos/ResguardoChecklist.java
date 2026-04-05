@@ -6,6 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mx.edu.utez.kernel.BaseEntity;
 
+/**
+ * Entidad JPA que representa un elemento de comprobación (checklist) durante la asignación/devolución de un resguardo.
+ * Mapea a la tabla RESGUARDO_CHECKLIST.
+ *
+ * @author Ithera Team
+ */
 @Entity
 @Table(name = "RESGUARDO_CHECKLIST")
 @AttributeOverride(name = "id", column = @Column(name = "id_checklist"))
@@ -25,4 +31,3 @@ public class ResguardoChecklist extends BaseEntity {
     private String resultado; // OK | Falla | No Aplica
 
 }
-

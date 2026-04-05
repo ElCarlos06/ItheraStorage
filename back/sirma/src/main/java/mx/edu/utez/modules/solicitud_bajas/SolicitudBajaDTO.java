@@ -5,6 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Objeto de Transferencia de Datos (DTO) para la entidad SolicitudBaja.
+ *
+ * @author Ithera Team
+ */
 @Getter
 @Setter
 @NoArgsConstructor

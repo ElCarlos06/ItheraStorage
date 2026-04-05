@@ -4,6 +4,7 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.imagen.BaseImagenService;
 import mx.edu.utez.modules.reportes.Reporte;
 import mx.edu.utez.modules.reportes.ReporteRepository;
+import mx.edu.utez.util.CloudinaryPaths;
 import mx.edu.utez.util.CloudinaryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,6 @@ import java.util.Optional;
  */
 @Service
 public class ImagenReporteService extends BaseImagenService<ImagenReporte, ImagenReporteRepository> {
-
-    private static final String CARPETA_CLOUDINARY = "sirma/reportes";
 
     private final ReporteRepository reporteRepository;
 
@@ -46,7 +45,8 @@ public class ImagenReporteService extends BaseImagenService<ImagenReporte, Image
         if (found.isEmpty())
             return new ApiResponse("Reporte no encontrado", true, HttpStatus.NOT_FOUND);
         try {
-            Map<String, Object> resultado = cloudinaryService.upload(file, CARPETA_CLOUDINARY);
+            String folder = CloudinaryPaths.reportes(reporteId);
+            Map<String, Object> resultado = cloudinaryService.upload(file, folder);
 
             ImagenReporte img = new ImagenReporte();
             img.setReporte(found.get());

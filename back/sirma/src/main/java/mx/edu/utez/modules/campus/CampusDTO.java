@@ -17,14 +17,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CampusDTO {
 
+    /** Diferenciador único de campus en el sistema (nulo para crear). */
     private Long id;
 
+    /** Nombre de carácter obligatorio que identificará al campus. */
     @NotBlank(message = "El nombre del campus es obligatorio")
     @Size(max = 100, message = "El nombre del campus no debe exceder 100 caracteres")
     private String nombre;
 
+    /** Notas o datos de contacto rápidos respecto al campus correspondiente. */
     private String descripcion;
 
+    /** Nivel de disponibilidad del objeto. */
     private Boolean esActivo;
 
 }

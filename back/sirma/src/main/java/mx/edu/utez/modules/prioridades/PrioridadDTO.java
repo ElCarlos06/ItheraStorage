@@ -17,12 +17,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PrioridadDTO {
 
+    /** Identificador general numérico subyacente. */
     private Long id;
 
+    /** Valor descriptivo del nivel de prioridad. */
     @NotBlank(message = "El nivel de prioridad es obligatorio")
     @Size(max = 50, message = "El nivel de prioridad no debe exceder 50 caracteres")
     private String nivel;
 
+    /** Cantidad límite en horas que el sistema tomará como tiempo de respuesta ideal. */
     private Integer tiempoRespuestaHoras;
 
 }

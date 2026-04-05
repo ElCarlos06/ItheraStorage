@@ -15,6 +15,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Repositorio de Spring Data JPA para la entidad TipoActivo.
+ *
+ * @author Ithera Team
+ */
 @Repository
 public interface TipoActivoRepository extends JpaRepository<TipoActivo, Long> {
     boolean existsByNombreAndEsActivoTrue(String nombre);

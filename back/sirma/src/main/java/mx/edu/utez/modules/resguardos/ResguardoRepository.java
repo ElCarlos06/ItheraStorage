@@ -7,6 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repositorio de Spring Data JPA para la entidad Resguardo.
+ *
+ * @author Ithera Team
+ */
 @Repository
 public interface ResguardoRepository extends JpaRepository<Resguardo, Long> {
     List<Resguardo> findByActivoId(Long activoId);
@@ -21,4 +26,3 @@ public interface ResguardoRepository extends JpaRepository<Resguardo, Long> {
     boolean existsByUsuarioEmpleado_IdAndActivo_IdAndEstadoResguardo(
             Long usuarioEmpleadoId, Long activoId, String estadoResguardo);
 }
-

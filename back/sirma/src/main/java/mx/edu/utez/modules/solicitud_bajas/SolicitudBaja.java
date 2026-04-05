@@ -11,6 +11,12 @@ import mx.edu.utez.modules.users.User;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad JPA que representa una solicitud de baja definitiva o temporal de un activo.
+ * Mapea a la tabla SOLICITUD_BAJA.
+ *
+ * @author Ithera Team
+ */
 @Entity
 @Table(name = "SOLICITUD_BAJA")
 @AttributeOverride(name = "id", column = @Column(name = "id_solicitud_baja"))
@@ -51,4 +57,3 @@ public class SolicitudBaja extends BaseEntity {
     private Integer centinelaPendiente;
 
 }
-

@@ -19,6 +19,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio que contiene la lógica de negocio para la gestión de resguardos de activos.
+ *
+ * @author Ithera Team
+ */
 @Service
 @AllArgsConstructor
 public class ResguardoService {
@@ -29,12 +34,24 @@ public class ResguardoService {
     private final BitacoraService bitacoraService;
     private final UserRepository userRepository;
 
+    /**
+     * Obtiene una página listando todos los resguardos registrados en el sistema.
+     *
+     * @param pageable Información de paginación y ordenamiento.
+     * @return ApiResponse con la página de resultados.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
         Page<Resguardo> page = resguardoRepository.findAll(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
+    /**
+     * Busca un resguardo específico por su identificador.
+     *
+     * @param id Identificador único del resguardo.
+     * @return ApiResponse con el resguardo encontrado o un mensaje de error si no existe.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findById(Long id) {
         Optional<Resguardo> found = resguardoRepository.findById(id);
@@ -43,18 +60,37 @@ public class ResguardoService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Recupera todos los resguardos asociados a un activo específico.
+     *
+     * @param activoId Identificador del activo físico.
+     * @return ApiResponse con la lista de resguardos históricos o actuales de ese activo.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByActivo(Long activoId) {
         List<Resguardo> list = resguardoRepository.findByActivoId(activoId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Obtiene los resguardos asignados a un empleado específico.
+     *
+     * @param userId Identificador del usuario empleado.
+     * @return ApiResponse con la lista de resguardos correspondientes al empleado.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByEmpleado(Long userId) {
         List<Resguardo> list = resguardoRepository.findByUsuarioEmpleadoId(userId);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Guarda y asigna un nuevo resguardo pendiente a un empleado.
+     * Valida que el activo exista y que no esté ya asignado conflictivamente.
+     *
+     * @param dto Datos del resguardo a generar.
+     * @return ApiResponse confirmando la creación e iniciando el estado de custodia.
+     */
     @Transactional
     public ApiResponse save(ResguardoDTO dto) {
         Optional<Assets> activo = assetsRepository.findById(dto.getIdActivo());
@@ -90,7 +126,7 @@ public class ResguardoService {
         entity.setEstadoResguardo("Pendiente");
         resguardoRepository.save(entity);
 
-        // Flujo de estatus: al asignar a empleado → En Proceso (valor exacto del ENUM)
+        // Flujo de estatus: al asignar a empleado -> En Proceso (valor exacto del ENUM)
         Long activoId = activo.get().getId();
         String custAnt = activo.get().getEstadoCustodia();
         assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_EN_PROCESO);
@@ -102,6 +138,14 @@ public class ResguardoService {
         return new ApiResponse("Resguardo registrado", entity, HttpStatus.CREATED);
     }
 
+    /**
+     * Actualiza el estado de un resguardo y registra sus observaciones correspondientes,
+     * afectando el estado de custodia del activo central en caso de confirmación o devolución.
+     *
+     * @param id Identificador del resguardo a modificar.
+     * @param dto Nuevos datos y observaciones a aplicar.
+     * @return ApiResponse con el resultado actualizado.
+     */
     @Transactional
     public ApiResponse update(Long id, ResguardoDTO dto) {
         Optional<Resguardo> found = resguardoRepository.findById(id);

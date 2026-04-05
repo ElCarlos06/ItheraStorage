@@ -19,6 +19,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio que contiene la lógica de negocio para la gestión de solicitudes de baja de activos.
+ *
+ * @author Ithera Team
+ */
 @Service
 @AllArgsConstructor
 public class SolicitudBajaService {
@@ -29,12 +34,24 @@ public class SolicitudBajaService {
     private final UserRepository userRepository;
     private final BitacoraService bitacoraService;
 
+    /**
+     * Recupera una lista paginada general de todas las solicitudes de baja.
+     *
+     * @param pageable Configuración de paginación.
+     * @return ApiResponse con la información empaquetada de la base de datos.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
         Page<SolicitudBaja> page = solicitudBajaRepository.findAll(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
+    /**
+     * Busca y retorna la especificación completa de una solicitud de baja.
+     *
+     * @param id Identificador de la solicitud.
+     * @return ApiResponse indicando éxito o no localización.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findById(Long id) {
         Optional<SolicitudBaja> found = solicitudBajaRepository.findById(id);
@@ -43,12 +60,25 @@ public class SolicitudBajaService {
         return new ApiResponse("OK", found.get(), HttpStatus.OK);
     }
 
+    /**
+     * Recupera solicitudes filtrándolas por su etapa actual.
+     *
+     * @param estado Puede ser "Pendiente", "Aprobada" o "Rechazada".
+     * @return Objeto englobando las listas coincidentes.
+     */
     @Transactional(readOnly = true)
     public ApiResponse findByEstado(String estado) {
         List<SolicitudBaja> list = solicitudBajaRepository.findByEstado(estado);
         return new ApiResponse("OK", list, HttpStatus.OK);
     }
 
+    /**
+     * Empieza y construye una solicitud inicial justificada por razones de mantenimiento irrecuperable.
+     * Evita crear solicitudes múltiples concurrentes si el mantenimiento base ya la amparaba.
+     *
+     * @param dto Detalles necesarios propuestos por un técnico validador de los daños operacionales.
+     * @return Respuesta afirmativa confirmando registro incipiente en espera de revisión administrativa.
+     */
     @Transactional
     public ApiResponse save(SolicitudBajaDTO dto) {
         Optional<Assets> activo = assetsRepository.findById(dto.getIdActivo());
@@ -73,6 +103,13 @@ public class SolicitudBajaService {
         return new ApiResponse("Solicitud de baja registrada", entity, HttpStatus.CREATED);
     }
 
+    /**
+     * Revaloriza o sentencia una solicitud (aprobación/negación) marcando las observaciones de quien adminstre.
+     *
+     * @param id Id en base a cual basarse.
+     * @param dto Resoluciones finales de aceptación emitidas al campo "estado".
+     * @return Informe con los datos guardados finalizándolo.
+     */
     @Transactional
     public ApiResponse update(Long id, SolicitudBajaDTO dto) {
         Optional<SolicitudBaja> found = solicitudBajaRepository.findById(id);

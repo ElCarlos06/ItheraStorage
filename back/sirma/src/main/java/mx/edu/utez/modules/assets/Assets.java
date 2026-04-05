@@ -11,6 +11,12 @@ import mx.edu.utez.modules.espacios.Espacio;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * Entidad JPA que representa un Activo dentro de SIRMA.
+ * Almacena los detalles físicos, económicos, de estado y de ubicación de cualquier recurso institucional.
+ *
+ * @author Ithera Team
+ */
 @Entity
 @Table(name = "ACTIVO")
 @AttributeOverride(name = "id", column = @Column(name = "id_activo"))
@@ -43,21 +49,25 @@ public class Assets extends BaseEntity {
 
     /** estado_operativo: daño, taller o baja; independiente de custodia. */
     @Column(name = "estado_operativo", nullable = false, length = 50)
-    private String estadoOperativo = "OK";
+    private String estadoOperativo = "OK";  
 
     /** Descripción detallada del activo. */
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    /** Costo monetario de adquisición o valor actual del activo. */
     @Column(name = "costo", precision = 10, scale = 2)
     private BigDecimal costo;
 
+    /** Referencia o cadena del código QR asociado al activo. */
     @Column(name = "qr_codigo", length = 255, unique = true)
     private String qrCodigo;
 
+    /** Fecha de alta o ingreso del activo al sistema. */
     @Column(name = "fecha_alta", nullable = false)
     private LocalDate fechaAlta;
 
+    /** Indicador lógico de si el activo está habilitado y visible en consultas generales. */
     @Column(name = "es_activo", nullable = false)
     private Boolean esActivo = true;
 

@@ -51,7 +51,7 @@ public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenA
         Map<String, Object> resultado;
         try {
             // Usamos la nueva constante centralizada
-            resultado = cloudinaryService.upload(file, CloudinaryPaths.ACTIVOS);
+            resultado = cloudinaryService.upload(file, CloudinaryPaths.activos(activoId));
         } catch (IOException e) {
             return new ApiResponse("Error al subir imagen a Cloudinary", true, HttpStatus.INTERNAL_SERVER_ERROR);
         }

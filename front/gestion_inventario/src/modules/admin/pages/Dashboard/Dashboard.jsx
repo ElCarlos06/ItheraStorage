@@ -24,28 +24,6 @@ import { useQuery } from "@tanstack/react-query";
 const fmtBadge = (val, suffix = "") =>
   val == null ? "0" : `${val > 0 ? "+" : ""}${val}${suffix}`;
 
-const LINE_DATA = [
-  { month: "Ene", correctivo: 4.5, preventivo: 2.2 },
-  { month: "Feb", correctivo: 4.8, preventivo: 2.5 },
-  { month: "Mar", correctivo: 4.2, preventivo: 2.8 },
-  { month: "Abr", correctivo: 5, preventivo: 2.5 },
-  { month: "May", correctivo: 4.6, preventivo: 3 },
-  { month: "Jun", correctivo: 4.4, preventivo: 2.6 },
-];
-
-const BAR_DATA = [
-  { name: "José García", total: 24 },
-  { name: "María Sánchez", total: 22 },
-  { name: "Carlos Ramírez", total: 19 },
-  { name: "Laura Martínez", total: 17 },
-];
-
-const REPORTED_ASSETS = [
-  { id: 1, name: "Laptop Dell Latitude 5420", type: "Hardware", reports: 12 },
-  { id: 2, name: "Impresora HP LaserJet Pro", type: "Hardware", reports: 9 },
-  { id: 3, name: 'Monitor LG 24"', type: "Hardware", reports: 6 },
-];
-
 const MESES = {
   January: "Enero",
   February: "Febrero",
@@ -67,12 +45,16 @@ export default function Dashboard() {
     queryFn: () => activosApi.getStats(),
   });
 
-  const { data: mantenimientosStats, isLoading } = useQuery({
+  const { data: mantenimientosStats } = useQuery({
     queryKey: ["mantenimientosStats"],
     queryFn: () => solicitudesApi.mantenimientos.getStats(),
   });
 
-  console.log(mantenimientosStats);
+  const { data: reportesStats } = useQuery({
+    queryKey: ["reportesStats"],
+    queryFn: () => solicitudesApi.reportes.getStats(),
+  });
+
 
   const { promedioAtencion = [], tecnicoMantenimiento = [] } =
     mantenimientosStats ?? {};
@@ -148,6 +130,13 @@ export default function Dashboard() {
   const BAR_DATA = tecnicoMantenimiento.map((t) => ({
     name: t.tecnico,
     total: t.numMantenimientos,
+  }));
+
+  const REPORTED_ASSETS = reportesStats?.map((r, idx) => ({
+    id: idx + 1,
+    name: r.nombreActivo,
+    type: r.tipoActivo,
+    reports: r.numReportes,
   }));
 
   return (

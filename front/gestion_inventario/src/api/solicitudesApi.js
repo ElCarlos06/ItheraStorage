@@ -2,7 +2,12 @@ import { request } from "./base";
 
 const reportes = {
   /** GET /api/reportes?page=:page&size=:size — sinAsignar=true = solo pendientes de asignar técnico */
-  getReportes: (page = 0, size = 10, direction = "DESC", sinAsignar = false) => {
+  getReportes: (
+    page = 0,
+    size = 10,
+    direction = "DESC",
+    sinAsignar = false,
+  ) => {
     const q = `page=${page}&size=${size}&direction=${direction}`;
     const extra = sinAsignar ? "&sinAsignar=true" : "";
     return request(`/api/reportes?${q}${extra}`);
@@ -31,6 +36,9 @@ const reportes = {
 
   /** DELETE /api/reportes/:id */
   deleteReporte: (id) => request(`/api/reportes/${id}`, { method: "DELETE" }),
+
+  /** GET /api/reportes/stats */
+  getStats: () => request(`/api/reportes/stats`).then((r) => r.data),
 };
 
 const mantenimientos = {

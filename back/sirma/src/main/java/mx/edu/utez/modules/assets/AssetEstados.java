@@ -1,5 +1,11 @@
 package mx.edu.utez.modules.assets;
 
+/**
+ * Clase de constantes para los estados de un activo.
+ * Agrupa los distintos valores que pueden tomar los estados de custodia y operativos en la plataforma.
+ *
+ * @author Ithera Team
+ */
 public final class AssetEstados {
 
     private AssetEstados() {}
