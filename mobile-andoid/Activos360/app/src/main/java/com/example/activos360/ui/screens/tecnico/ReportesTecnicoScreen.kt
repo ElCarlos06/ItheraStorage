@@ -12,70 +12,80 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Buttons
-import com.example.activos360.ui.components.HeaderRegresar
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.activos360.ui.components.CaracteristicasSeccion
 import com.example.activos360.ui.components.FilaPrioridad
 import com.example.activos360.ui.components.FilaTipoFalla
+import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.InfoCard
 import com.example.activos360.ui.components.MainAssetCard
-import com.example.activos360.ui.components.MoonIcon
-import com.example.activos360.ui.components.MoonIcons
 import com.example.activos360.ui.components.SeccionDescripcion
 import com.example.activos360.ui.components.SeccionEvidencia
 import com.example.activos360.ui.components.SeccionUsuarioReporte
+import com.example.activos360.ui.viewmodel.TecnicoReporteViewModel
 
 @Composable
-fun ReportesTecnicoScreen(onBack: () -> Unit) {
-    // 1. Estado para saber qué pestaña está seleccionada
-    // 0 = Información, 1 = Reporte
-    var tabSeleccionada  by  remember { mutableStateOf(0) }
+fun ReportesTecnicoScreen(
+    activoId: Long,
+    mantenimientoId: Long,
+    onBack: () -> Unit,
+    viewModel: TecnicoReporteViewModel = viewModel()
+) {
+    var tabSeleccionada by remember { mutableStateOf(0) }
+    val uiState = viewModel.uiState
 
-    Scaffold (
+    LaunchedEffect(activoId, mantenimientoId) {
+        viewModel.load(activoId, mantenimientoId)
+    }
+
+    Scaffold(
         bottomBar = {
-            // El botón de Atender solo se muestra si estamos en la pestaña 0 (Información)
-            if (tabSeleccionada == 0) {
+            // "Atender" solo aparece en la pestaña Reporte cuando el técnico puede atender
+            if (tabSeleccionada == 1 && uiState.puedeAtender) {
                 Box(modifier = Modifier.padding(24.dp)) {
-                    Buttons(text = "Atender", onClick = { /* TODO */ })
+                    Buttons(
+                        text = if (uiState.isAtendiendo) "Procesando..." else "Atender",
+                        enabled = !uiState.isAtendiendo,
+                        onClick = { viewModel.atender() }
+                    )
                 }
             }
         }
     ) { paddingValues ->
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = paddingValues.calculateBottomPadding())
                 .background(Color.White)
         ) {
-            // 2. Header Azul
-            HeaderRegresar(titulo = "Detalles del\nactivo", onBackClick = onBack)
+            HeaderRegresar(titulo = "Detalles del activo y\nel reporte", onBackClick = onBack)
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. SELECTOR DE PESTAÑAS (Las Píldoras)
             SelectorPestañas(
                 seleccionada = tabSeleccionada,
                 onTabSelected = { tabSeleccionada = it }
@@ -83,42 +93,129 @@ fun ReportesTecnicoScreen(onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. CONTENIDO DINÁMICO
-            if (tabSeleccionada == 0) {
-                // Aquí va lo que ya tenemos: MainAssetCard, InfoCard, etc.
-                ContenidoDetallesActivo()
-
-            } else {
+            if (uiState.isLoading) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        // Quitamos el padding horizontal de aquí para que sea igual a la otra pestaña
-                        .padding(top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(48.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Envolvemos todo en un padding consistente de 24dp
-                    // SOLO si tus componentes no lo traen ya por dentro.
-                    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-
-                        MainAssetCard(
-                            id = "#M-2024-1523",
-                            nombre = "MacBook Pro 16\""
-                        )
-
-                        // Espacio entre la tarjeta y la primera fila
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        FilaTipoFalla(titulo = "Tipo de falla", valor = "Eléctrica")
-                        FilaPrioridad(prioridad = "ALTA")
-                        SeccionUsuarioReporte(nombreUsuario = "Dan")
-                        SeccionDescripcion(cuerpo = "La laptop no enciende...")
-                        SeccionEvidencia()
-
-                        Spacer(modifier = Modifier.height(40.dp))
-                    }
+                    CircularProgressIndicator(color = Color(0xFF7B88FF))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("Cargando...", color = Color.Gray)
                 }
+            } else if (uiState.errorMessage != null) {
+                Text(
+                    text = uiState.errorMessage!!,
+                    color = Color(0xFFD33030),
+                    modifier = Modifier.padding(24.dp)
+                )
+            } else if (tabSeleccionada == 0) {
+                TabInformacion(uiState.activoEtiqueta, uiState.activoNombre, uiState.activoNumeroSerie, uiState.activoEstadoOperativo, uiState.activoEstadoCustodia, activoId)
+            } else {
+                TabReporte(
+                    etiqueta = uiState.activoEtiqueta,
+                    nombre = uiState.activoNombre,
+                    tipoFalla = uiState.tipoFalla,
+                    prioridad = uiState.prioridad,
+                    reporterNombre = uiState.reporterNombre,
+                    reporterFotoUrl = uiState.reporterFotoUrl,
+                    fechaDisplay = uiState.fechaDisplay,
+                    descripcion = uiState.descripcion,
+                    evidenciaUrls = uiState.evidenciaUrls
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun TabInformacion(
+    etiqueta: String,
+    nombre: String,
+    numeroSerie: String,
+    estadoOperativo: String,
+    estadoCustodia: String,
+    activoId: Long
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(top = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        MainAssetCard(
+            id = etiqueta.ifBlank { "ACTIVO #$activoId" },
+            nombre = nombre.ifBlank { "Activo #$activoId" }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        InfoCard(
+            imageVector = Icons.Outlined.BookmarkBorder,
+            label = "Etiqueta",
+            value = etiqueta.ifBlank { "-" }
+        )
+        InfoCard(
+            imageVector = Icons.Outlined.GridView,
+            label = "Estado custodia",
+            value = estadoCustodia.ifBlank { "-" }
+        )
+
+        CaracteristicasSeccion(
+            lista = listOfNotNull(
+                "Número de serie: ${numeroSerie.ifBlank { "-" }}",
+                "Estado operativo: ${estadoOperativo.ifBlank { "-" }}"
+            )
+        )
+
+        Spacer(modifier = Modifier.height(100.dp))
+    }
+}
+
+@Composable
+private fun TabReporte(
+    etiqueta: String,
+    nombre: String,
+    tipoFalla: String,
+    prioridad: String,
+    reporterNombre: String,
+    reporterFotoUrl: String?,
+    fechaDisplay: String,
+    descripcion: String,
+    evidenciaUrls: List<String>
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+    ) {
+        MainAssetCard(
+            id = etiqueta.ifBlank { "Activo" },
+            nombre = nombre.ifBlank { etiqueta }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        FilaTipoFalla(titulo = "Tipo de falla", valor = tipoFalla.ifBlank { "-" })
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F2F6))
+
+        FilaPrioridad(prioridad = prioridad.ifBlank { "MEDIA" })
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F2F6))
+
+        SeccionUsuarioReporte(
+            fotoUrl = reporterFotoUrl,
+            nombreUsuario = reporterNombre.ifBlank { "Usuario" },
+            etiquetaReporte = "Reportado por",
+            fechaCompleta = fechaDisplay
+        )
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F2F6))
+
+        SeccionDescripcion(cuerpo = descripcion)
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F2F6))
+
+        SeccionEvidencia(imagenes = evidenciaUrls)
+
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
@@ -128,14 +225,14 @@ fun SelectorPestañas(seleccionada: Int, onTabSelected: (Int) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .height(56.dp), // Un poquito más alto para que se vea más moderno
-        shape = RoundedCornerShape(50.dp), // <--- ESTO HACE LA BARRA GRIS REDONDA
+            .height(56.dp),
+        shape = RoundedCornerShape(50.dp),
         color = Color(0xFFF8F9FF)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(6.dp), // ESTE PADDING es clave para que la píldora azul "flote" dentro
+                .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             PestañaItem(
@@ -160,7 +257,7 @@ fun PestañaItem(titulo: String, estaActiva: Boolean, modifier: Modifier, onClic
         modifier = modifier
             .fillMaxHeight()
             .clickable { onClick() },
-        shape = RoundedCornerShape(50.dp), // <--- ESTO HACE EL BOTÓN AZUL REDONDO
+        shape = RoundedCornerShape(50.dp),
         color = if (estaActiva) Color(0xFF7B88FF) else Color.Transparent,
         contentColor = if (estaActiva) Color.White else Color.Gray
     ) {
@@ -172,62 +269,4 @@ fun PestañaItem(titulo: String, estaActiva: Boolean, modifier: Modifier, onClic
             )
         }
     }
-}
-
-//Detalles de los cativos, aqui carlos usa su magia para conectar
-
-
-@Composable
-fun ContenidoDetallesActivo() {
-    // Usamos una Column con scroll por si la info es mucha en pantallas chicas
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(top = 8.dp), // Un pequeño respiro arriba
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 1. Tarjeta Principal (Reutilizando tu componente)
-        MainAssetCard(
-            id = "ACTIVO #0482",
-            nombre = "MacBook Pro 16\""
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 2. InfoCard de Marca (Reutilizando tu componente)
-        InfoCard(
-            imageVector = Icons.Outlined.BookmarkBorder,
-            label = "Marca",
-            value = "Apple"
-        )
-
-        // 3. InfoCard de Modelo
-        InfoCard(
-            imageVector = Icons.Outlined.GridView,
-            label = "Modelo",
-            value = "Pro 16"
-        )
-
-        // 4. Sección de Características
-        CaracteristicasSeccion(
-            lista = listOf(
-                "Característica 1",
-                "Característica 2",
-                "Característica 3"
-            )
-        )
-
-        // Espacio final para que el botón de "Atender" no tape la última info
-        Spacer(modifier = Modifier.height(100.dp))
-    }
-}
-
-
-
-@Preview(showSystemUi = true, name = "Vista Detalle Técnico Real")
-@Composable
-fun DetalleReporteTecnicoPreview() {
-    // LLAMA DIRECTAMENTE A TU PANTALLA REAL
-    ReportesTecnicoScreen(onBack = { })
 }

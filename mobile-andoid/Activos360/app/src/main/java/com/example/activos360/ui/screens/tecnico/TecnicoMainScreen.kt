@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -14,49 +15,100 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.activos360.ui.screens.Empleado.TecnicoHome
-
+import android.util.Log
+import com.example.activos360.core.auth.TokenManager
+import com.example.activos360.core.network.ApiProvider
+import com.example.activos360.core.util.QrParse
+import com.example.activos360.core.util.asMap
+import com.example.activos360.core.util.long
+import com.example.activos360.core.util.string
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.modals.AssetDetailModal
-import com.example.activos360.core.util.QrParse
+import com.example.activos360.ui.screens.Empleado.TecnicoHome
+import kotlinx.coroutines.launch
 
 @Composable
 fun TecnicoMainScreen(navControllerPrincipal: NavController) {
-    // 1. Creamos un controlador para nav entre Scanner y Perfil
+    Log.d("TECNICO_SCAN", "=== TecnicoMainScreen COMPUESTO ===")
     val bottomNavController = rememberNavController()
+    val scope = rememberCoroutineScope()
 
-    // --- VARIABLES DE ESTADO PARA EL MODAL ---
     var showModal by remember { mutableStateOf(false) }
     var codigoEscaneado by remember { mutableStateOf("") }
 
-    // 2. Scaffold
     Scaffold(
         bottomBar = {
-            // Le pasamos el controlador para que los botones sepan a dónde ir
             BottomCustomBar(
                 navController = bottomNavController,
                 onQrScanned = { codigo ->
-                    // guardamos el código y mostramos el modal
-                    codigoEscaneado = codigo
-                    showModal = true
+                    val activoId = QrParse.extractActivoId(codigo) ?: 0L
+                    scope.launch {
+                        var navegoDirecto = false
+                        try {
+                            val userId = TokenManager.getUserIdFromToken()
+                            Log.d("TECNICO_SCAN", "activoId=$activoId userId=$userId")
+
+                            if (activoId > 0L) {
+                                val resp = ApiProvider.mantenimientoApi.findByActivo2(activoId)
+                                Log.d("TECNICO_SCAN", "HTTP ${resp.code()}, bodyNull=${resp.body() == null}")
+
+                                if (resp.isSuccessful) {
+                                    // El backend puede devolver lista directa O paginado {content:[...]}
+                                    @Suppress("UNCHECKED_CAST")
+                                    val rawData = resp.body()?.data
+                                    Log.d("TECNICO_SCAN", "data type=${rawData?.javaClass?.simpleName}, value=$rawData")
+
+                                    val list: List<Map<String, Any?>> = when (rawData) {
+                                        is List<*> -> rawData.filterIsInstance<Map<String, Any?>>()
+                                        is Map<*, *> -> (rawData["content"] as? List<*>)
+                                            ?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
+                                        else -> emptyList()
+                                    }
+                                    Log.d("TECNICO_SCAN", "mantenimientos encontrados: ${list.size}")
+
+                                    val miMantenimiento = list.firstOrNull { m ->
+                                        val tecnicoId = (m["usuarioTecnico"].asMap())?.long("id")
+                                            ?: m.long("idUsuarioTecnico")
+                                        val estado = m.string("estadoMantenimiento")?.lowercase() ?: ""
+                                        Log.d("TECNICO_SCAN", "  mtn id=${m.entries.find { it.key == "id" }?.value} tecnicoId=$tecnicoId estado=$estado")
+                                        // Si no tenemos userId del token, comparamos solo si encontramos exactamente 1 mtn activo
+                                        val estadoActivo = estado !in listOf("completado", "cerrado")
+                                        if (userId != null) tecnicoId == userId && estadoActivo
+                                        else estadoActivo
+                                    }
+
+                                    if (miMantenimiento != null) {
+                                        val mantenimientoId = miMantenimiento.long("id") ?: 0L
+                                        Log.d("TECNICO_SCAN", "Navegando a reporte_tecnico/$activoId/$mantenimientoId")
+                                        navControllerPrincipal.navigate("reporte_tecnico/$activoId/$mantenimientoId")
+                                        navegoDirecto = true
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("TECNICO_SCAN", "Error: ${e.message}", e)
+                        }
+
+                        if (!navegoDirecto) {
+                            codigoEscaneado = codigo
+                            showModal = true
+                        }
+                    }
                 }
             )
         }
     ) { paddingValues ->
-
         NavHost(
             navController = bottomNavController,
-            startDestination = "scanner", // Cuando entre, que muestre el scanner primero
-            modifier = Modifier.padding(top = paddingValues.calculateTopPadding(),
-                bottom = 0.dp)
+            startDestination = "scanner",
+            modifier = Modifier.padding(
+                top = paddingValues.calculateTopPadding(),
+                bottom = 0.dp
+            )
         ) {
-
-            // Ruta del Scanner
             composable("scanner") {
                 TecnicoHome()
             }
-
-            // Ruta del Perfil
             composable("perfil") {
                 UserProfile()
             }
@@ -66,11 +118,9 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
     if (showModal) {
         AssetDetailModal(
             idActivo = codigoEscaneado,
-            onDismiss = { showModal = false }, // Si el usuario cierra el modal deslizando
+            onDismiss = { showModal = false },
             onVerDetallesClick = {
-                showModal = false // Cerramos el modal
-
-                // NAVEGAMOS A LA VISTA COMPLETA PASANDO EL ID
+                showModal = false
                 val id = QrParse.extractActivoId(codigoEscaneado) ?: 0L
                 navControllerPrincipal.navigate("detalles_activo/$id")
             }
@@ -78,15 +128,9 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
     }
 }
 
-@Preview(showSystemUi = true) // showSystemUi para verlo como un celular real
+@Preview(showSystemUi = true)
 @Composable
 fun TecnicoMainScreenPreview() {
-    // Creamos un NavController de mentira para que el Preview no truene
     val fakeNavController = rememberNavController()
-
-    // Llamamos a tu pantalla pasando el fakeNavController
     TecnicoMainScreen(navControllerPrincipal = fakeNavController)
 }
-
-// OJO: Si no tienes creado el UserProfile, créalo vacío aquí
-// para que el Preview pueda compilar sin errores:

@@ -41,7 +41,7 @@ fun Canvas2(viewModel: EmpleadoViewModel = viewModel())  {
         ) {
 
             Text(
-                text = "Hola, \n $nombre",
+                text = "Hola, \n$nombre",
                 color = Color.White,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold

@@ -17,6 +17,7 @@ import com.example.activos360.ui.screens.Empleado.details.DevolverActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import androidx.compose.runtime.remember
 import com.example.activos360.core.auth.TokenManager
+import com.example.activos360.ui.screens.tecnico.ReportesTecnicoScreen
 import com.example.activos360.ui.screens.tecnico.TecnicoMainScreen
 
 @Composable
@@ -28,6 +29,7 @@ fun Navigation() {
             val role = TokenManager.getRoleFromToken() ?: ""
             when {
                 role.contains("Empleado", ignoreCase = true) -> "home_empleado"
+                role.contains("Tecnico", ignoreCase = true) -> "home_tecnico"
                 else -> "home_admin"
             }
         } else {
@@ -65,7 +67,7 @@ fun Navigation() {
 
         // Alias para no romper navegación vieja (LoginViewModel aún usa home_admin)
         composable("home_admin") {
-            EmpleadoMainScreen(navController)
+            //EmpleadoMainScreen(navController)
         }
 
         composable(
@@ -143,6 +145,22 @@ fun Navigation() {
                 activoNombre = nombre,
                 onBack = { navController.popBackStack() },
                 onDevolverSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "reporte_tecnico/{activoId}/{mantenimientoId}",
+            arguments = listOf(
+                navArgument("activoId") { type = NavType.LongType },
+                navArgument("mantenimientoId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val activoId = backStackEntry.arguments?.getLong("activoId") ?: 0L
+            val mantenimientoId = backStackEntry.arguments?.getLong("mantenimientoId") ?: 0L
+            ReportesTecnicoScreen(
+                activoId = activoId,
+                mantenimientoId = mantenimientoId,
+                onBack = { navController.popBackStack() }
             )
         }
 
