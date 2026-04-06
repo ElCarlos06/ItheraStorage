@@ -1,10 +1,12 @@
-.activos-page--empty {
+.activos-page--empty,
+.activos-page--loading {
   height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
   overflow: hidden;
 }
 
-.activos-page--empty .page-header {
+.activos-page--empty .page-header,
+.activos-page--loading .page-header {
   flex-shrink: 0;
 }
 
@@ -12,7 +14,8 @@
   background: var(--moon-goku);
 }
 
-.activos-page--empty .activos-view {
+.activos-page--empty .activos-view,
+.activos-page--loading .activos-view {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -45,8 +48,16 @@
   font-size: 14px;
 }
 
-.activos-view__loading {
-  min-height: 280px;
+.activos-view__list--loading {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.activos-view__list--loading .loading-state {
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 .activos-view__list {

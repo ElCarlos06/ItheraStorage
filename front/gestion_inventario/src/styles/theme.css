@@ -117,3 +117,12 @@
   min-width: 200px;
   max-width: 640px;
 }
+
+/* Sonner: el contenedor no captura hover → el temporizador no se pausa y el toast no queda "pegado" */
+[data-sonner-toaster] {
+  pointer-events: none;
+}
+
+[data-sonner-toast] {
+  pointer-events: auto;
+}

@@ -13,7 +13,6 @@ import logoActivos360 from "../../../../assets/activos360_logo.png";
 import { getProfileFromToken } from "../../../../api/authApi";
 import { useMemo, useState } from "react";
 import Modal from "../../../../components/Modal/Modal";
-import { UserRound } from "lucide-react";
 import { useProfileImage } from "../../../../hooks/useProfileImage";
 
 const navItems = [
@@ -34,7 +33,7 @@ export default function Sidebar() {
     window.location.replace("/");
   };
 
-  const imgSrc = avatarUrl || "/public/default-avatar.png";
+  const imgSrc = avatarUrl || "/default-avatar.svg";
 
   return (
     <>
@@ -81,7 +80,7 @@ export default function Sidebar() {
               title="Ver foto de perfil"
             >
               <img
-                src={imgSrc || <UserRound />}
+                src={imgSrc}
                 alt="imagen de perfil"
                 className="admin-sidebar__avatar-img"
               />

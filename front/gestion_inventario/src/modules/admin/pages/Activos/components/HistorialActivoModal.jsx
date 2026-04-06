@@ -33,6 +33,14 @@ function getCategoriaYColor(tipoEvento) {
   return { categoria: "Disponible", variant: "disponible" };
 }
 
+/** Texto legado: el backend añadía auditoría en la misma cadena; ya hay columnas de estado en la bitácora. */
+function descripcionSinSufijoAuditoria(text) {
+  if (typeof text !== "string" || !text) return text;
+  const idx = text.indexOf(" (custodia=");
+  if (idx === -1) return text;
+  return text.slice(0, idx).trim();
+}
+
 export default function HistorialActivoModal({ open, onClose, asset }) {
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -135,7 +143,9 @@ export default function HistorialActivoModal({ open, onClose, asset }) {
                         <p className="historial-modal__event-date">{fecha}</p>
                         <p className="historial-modal__event-author">Por: {autor}</p>
                         {ev.descripcion && (
-                          <p className="historial-modal__event-desc">{ev.descripcion}</p>
+                          <p className="historial-modal__event-desc">
+                            {descripcionSinSufijoAuditoria(ev.descripcion)}
+                          </p>
                         )}
                       </div>
                     </div>

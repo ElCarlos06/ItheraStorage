@@ -169,8 +169,7 @@ public class MantenimientoService {
         assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_MANTENIMIENTO);
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Mantenimiento",
-                "Mantenimiento asignado a " + tecnico.get().getNombreCompleto()
-                        + " (custodia=" + cust + "; operativo Reportado→Mantenimiento)",
+                "Mantenimiento asignado a " + tecnico.get().getNombreCompleto(),
                 cust, cust, opAnt, AssetEstados.OPERATIVO_MANTENIMIENTO);
 
         return new ApiResponse("Mantenimiento asignado exitosamente", entity, HttpStatus.CREATED);
@@ -216,7 +215,7 @@ public class MantenimientoService {
                         ? "Mantenimiento cerrado como Irreparable; activo permanece en Mantenimiento hasta baja aprobada"
                         : "Mantenimiento finalizado: " + (conclusion != null ? conclusion : "Concluido");
                 bitacoraService.registrarEvento(activoId, null, "Cierre Mantenimiento",
-                        msg + " (custodia=" + cust + ")",
+                        msg,
                         cust, cust, opAnt, nuevoOp);
             }
         }
@@ -256,7 +255,7 @@ public class MantenimientoService {
         assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_REPORTADO);
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, null, "Eliminación mantenimiento",
-                "Se eliminó la asignación de técnico; el reporte vuelve a la bandeja sin asignar (custodia=" + cust + ")",
+                "Se eliminó la asignación de técnico; el reporte vuelve a la bandeja sin asignar.",
                 cust, cust, opAnt, AssetEstados.OPERATIVO_REPORTADO);
         return new ApiResponse("Mantenimiento eliminado", HttpStatus.OK);
     }

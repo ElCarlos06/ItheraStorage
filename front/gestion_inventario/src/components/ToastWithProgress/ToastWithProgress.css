@@ -61,10 +61,21 @@
   background: rgba(220, 38, 38, 0.15);
 }
 
+@keyframes toast-progress-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .toast-progress__bar {
   height: 100%;
+  width: 100%;
+  transform-origin: left center;
   background: var(--moon-piccolo);
-  transition: width 0.05s linear;
+  animation: toast-progress-shrink var(--toast-duration, 3000ms) linear forwards;
 }
 
 .toast-progress--error .toast-progress__bar {

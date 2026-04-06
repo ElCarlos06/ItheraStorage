@@ -1,3 +1,57 @@
+.requests-page--loading,
+.requests-page--empty {
+  height: calc(100vh - 64px);
+  max-height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.requests-page--loading .page-header,
+.requests-page--empty .page-header {
+  flex-shrink: 0;
+}
+
+.requests-page--loading .catalogs-card,
+.requests-page--empty .catalogs-card {
+  flex-shrink: 0;
+}
+
+.requests-page--loading .error-banner,
+.requests-page--empty .error-banner {
+  flex-shrink: 0;
+}
+
+.requests-page--loading .requests-view,
+.requests-page--empty .requests-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.requests-view__list--loading {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.requests-view__list--loading .loading-state {
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.requests-view__list:has(.empty-state) {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.requests-view__list:has(.empty-state) .empty-state {
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
 .requests-view {
   background: var(--moon-goku);
 }

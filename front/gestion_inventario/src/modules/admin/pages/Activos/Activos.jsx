@@ -129,7 +129,7 @@ export default function Activos({
 
   return (
     <div
-      className={`activos-page ${showEmptyState ? "activos-page--empty d-flex flex-column" : ""}`}
+      className={`activos-page ${showEmptyState ? "activos-page--empty d-flex flex-column" : ""} ${loading ? "activos-page--loading d-flex flex-column" : ""}`}
     >
       <PageHeader
         overline="GESTIÓN DE INVENTARIO"
@@ -190,7 +190,7 @@ export default function Activos({
         {error && <ErrorBanner message={error} />}
 
         {loading ? (
-          <div className="activos-view__loading d-flex align-items-center justify-content-center py-5 px-4">
+          <div className="activos-view__list activos-view__list--loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
             <LoadingState message="Cargando activos…" />
           </div>
         ) : (

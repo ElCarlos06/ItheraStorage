@@ -189,7 +189,7 @@ public class ReporteService {
         String desc = dto.getDescripcionFalla();
         String descCorta = desc != null && desc.length() > 100 ? desc.substring(0, 100) + "…" : (desc != null ? desc : "Daño reportado");
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioReporta(), "Reporte Daño",
-                "Reporte: " + descCorta + " (custodia=" + cust + "; operativo→Reportado)",
+                "Reporte: " + descCorta,
                 cust, cust, opAnt, AssetEstados.OPERATIVO_REPORTADO);
 
         return new ApiResponse("Reporte enviado correctamente", entity, HttpStatus.CREATED);
@@ -250,7 +250,7 @@ public class ReporteService {
         assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_OK);
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, null, "Eliminación reporte",
-                "Reporte de daño eliminado; operativo→OK (custodia=" + cust + " sin cambio)",
+                "Reporte de daño eliminado; el activo vuelve a estado operativo OK.",
                 cust, cust, opAnt, AssetEstados.OPERATIVO_OK);
         return new ApiResponse("Reporte eliminado", HttpStatus.OK);
     }

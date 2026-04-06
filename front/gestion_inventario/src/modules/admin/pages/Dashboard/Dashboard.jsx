@@ -183,9 +183,10 @@ export default function Dashboard() {
       </section>
 
       <section className="dashboard-charts">
-        <div className="row g-3">
-          <div className="col-12 col-xl-6">
+        <div className="row g-3 align-items-stretch">
+          <div className="col-12 col-xl-6 d-flex">
             <ChartCard
+              className="w-100 h-100"
               icon={GenericUsers}
               title="Mantenimientos por Técnico"
               subtitle="Carga de trabajo y desempeño"
@@ -201,14 +202,22 @@ export default function Dashboard() {
               )}
             </ChartCard>
           </div>
-          <div className="col-12 col-xl-6">
+          <div className="col-12 col-xl-6 d-flex">
             <ChartCard
+              className="w-100 h-100"
               icon={NotificationsAlert}
               title="Activos Más Reportados"
               subtitle="Equipos con más incidencias"
               iconBg="chichi"
             >
-              <ReportedAssetsList items={REPORTED_ASSETS} />
+              {(REPORTED_ASSETS?.length ?? 0) > 0 ? (
+                <ReportedAssetsList items={REPORTED_ASSETS} />
+              ) : (
+                <EmptyState
+                  message="No hay activos con reportes registrados."
+                  hasSearch={false}
+                />
+              )}
             </ChartCard>
           </div>
         </div>

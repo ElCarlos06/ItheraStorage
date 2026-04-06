@@ -43,7 +43,7 @@ export default function Settings({ profile: profileProp, onSaveProfile }) {
       { correo: profile.correo, file },
       {
         onSuccess: () => {
-          toast.success("Foto de perfil actualizada correctamente");
+          toast.success("Foto de perfil actualizada correctamente", 2200);
         },
         onError: (err) => {
           toast.error(err?.message ?? "Error al subir la foto");
@@ -138,7 +138,7 @@ export default function Settings({ profile: profileProp, onSaveProfile }) {
             <div className="settings-info">
               <div className="settings-info__avatar-container">
                 <img
-                  src={avatarUrl || "/public/default-avatar.png"}
+                  src={avatarUrl || "/default-avatar.svg"}
                   alt="Foto de perfil"
                   className="settings-info__avatar"
                 />

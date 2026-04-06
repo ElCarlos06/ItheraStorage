@@ -140,26 +140,31 @@
 .catalog-section--empty .catalog-section__list,
 .catalog-section--loading .catalog-section__list {
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .catalog-section__list-loading {
-  min-height: 200px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .catalog-section__list-loading .loading-state {
-  width: 100%;
+  align-self: stretch;
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
 }
 
 .catalog-section__list:has(.empty-state) {
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .catalog-section__list:has(.empty-state) .empty-state {
   align-self: stretch;
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
 }
 

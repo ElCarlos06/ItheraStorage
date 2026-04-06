@@ -29,7 +29,10 @@ export function useUploadProfileImage() {
       return res;
     },
     onSuccess: (_, { correo }) => {
-      queryClient.invalidateQueries({ queryKey: ["profileImage", correo] });
+      // Después del callback onSuccess de mutate (toast): evita refetch pesado mientras el toast monta.
+      queueMicrotask(() => {
+        queryClient.invalidateQueries({ queryKey: ["profileImage", correo] });
+      });
     },
   });
 }

@@ -232,14 +232,16 @@ export default function Requests() {
   };
 
   return (
-    <div className="requests-page pb-4">
+    <div
+      className={`requests-page pb-4 ${loading ? "requests-page--loading d-flex flex-column" : ""} ${!loading && showEmpty ? "requests-page--empty d-flex flex-column" : ""}`}
+    >
       <PageHeader
         overline="SOLICITUDES"
         title="Solicitudes de los usuarios"
         subtitle="Reportes: bandeja sin técnico. Mantenimiento: ya asignados. Al asignar, el ítem pasa a Mantenimiento."
       />
 
-      <section className="requests-view d-flex flex-column gap-3">
+      <section className="requests-view d-flex flex-column gap-3 min-vh-0">
         <div className="catalogs-card d-flex flex-row align-items-center gap-3 flex-wrap p-4 mb-2">
           <div className="catalogs-card__buscador flex-grow-1 min-w-0">
             <Buscador
@@ -272,13 +274,17 @@ export default function Requests() {
         )}
 
         {loading ? (
-          <LoadingState message="Cargando solicitudes…" />
+          <div className="requests-view__list requests-view__list--loading d-flex flex-column flex-grow-1 min-vh-0 overflow-hidden">
+            <LoadingState message="Cargando solicitudes…" />
+          </div>
         ) : showEmpty ? (
-          <EmptyState
-            message="No hay solicitudes para mostrar"
-            hasSearch={!!search.trim()}
-            searchMessage="No coinciden con la búsqueda."
-          />
+          <div className="requests-view__list requests-view__list--empty d-flex flex-column flex-grow-1 min-vh-0 overflow-hidden">
+            <EmptyState
+              message="No hay solicitudes para mostrar"
+              hasSearch={!!search.trim()}
+              searchMessage="No coinciden con la búsqueda."
+            />
+          </div>
         ) : (
           <div className="requests-view__list d-flex flex-column gap-3">
             {paginatedItems.map((sol, idx) => (

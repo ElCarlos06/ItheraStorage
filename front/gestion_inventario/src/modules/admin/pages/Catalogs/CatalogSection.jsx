@@ -114,7 +114,7 @@ export default function CatalogSection({
 
         <div className="catalog-section__list d-flex flex-column gap-3">
           {loading ? (
-            <div className="catalog-section__list-loading flex-grow-1 d-flex align-items-center justify-content-center min-vh-0">
+            <div className="catalog-section__list-loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
               <LoadingState
                 message={loadingMessage ?? (sectionKey === "muebles" || sectionKey === "vehiculos" ? "Cargando tipos de activos…" : "Cargando ubicaciones…")}
               />

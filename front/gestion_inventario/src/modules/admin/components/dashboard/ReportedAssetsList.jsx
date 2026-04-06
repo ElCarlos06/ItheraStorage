@@ -5,7 +5,7 @@ const RANK_COLORS = ["chichi", "krillin", "teal"];
 
 export default function ReportedAssetsList({ items = [] }) {
   return (
-    <div className="reported-assets-list d-flex flex-column gap-3">
+    <div className="reported-assets-list d-flex flex-column gap-3 flex-grow-1 min-h-0">
       {items.map((item, index) => (
         <div
           key={item.id ?? index}

@@ -190,7 +190,9 @@ export default function Catalogs() {
   }, [confirmDeleteLocation, subTab]);
 
   return (
-    <div className="catalogs-page">
+    <div
+      className={`catalogs-page ${loading ? "catalogs-page--loading d-flex flex-column" : ""}`}
+    >
       <PageHeader
         overline="GESTIÓN DE CATÁLOGOS"
         title="Catálogos del Sistema"

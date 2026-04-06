@@ -9,9 +9,10 @@ export default function ChartCard({
   iconBg = "piccolo",
   statusBadge,
   children,
+  className = "",
 }) {
   return (
-    <div className="chart-card d-flex flex-column">
+    <div className={`chart-card d-flex flex-column ${className}`.trim()}>
       <div className="chart-card__header d-flex align-items-center gap-3 mb-4">
         <div
           className={`chart-card__icon chart-card__icon--${iconBg} d-flex align-items-center justify-content-center flex-shrink-0`}
