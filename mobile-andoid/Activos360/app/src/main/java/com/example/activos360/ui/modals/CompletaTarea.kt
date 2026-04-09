@@ -89,7 +89,7 @@ fun ModalMantenimientoIncompleto(
 
             // 3. Descripción
             Text(
-                text = "Este mantenimiento esta incompleto, si te sales se guardará el progreso pero no podrás cerrar el mantenimiento hasta completarlo",
+                text = "Algunos campos estan vacios, porfavor llenar los cmapos requeridos",
                 fontSize = 15.sp,
                 color = Color(0xFF2D3436),
                 textAlign = TextAlign.Center,

@@ -1,5 +1,6 @@
 package com.example.activos360.ui.screens.tecnico
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,7 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.activos360.ui.components.Buttons
 import com.example.activos360.ui.components.CampoFormulario
+import com.example.activos360.ui.components.EvidenciasSection
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
 import com.example.activos360.ui.modals.ModalMantenimientoIncompleto
@@ -33,6 +37,7 @@ import com.example.activos360.ui.modals.ModalMantenimientoIncompleto
 @Composable
 fun AtenderMantenimientoScreen() {
     var mostrarModal by remember { mutableStateOf(false) }
+    val fotosSeleccionadas = remember { mutableStateListOf<Uri>() }
 
     if (mostrarModal) {
         ModalMantenimientoIncompleto(
@@ -53,60 +58,99 @@ fun AtenderMantenimientoScreen() {
             .verticalScroll(rememberScrollState ())
     ) {
         // 1. Header Azul con Curva (El que ya tienes de "Atender mantenimiento")
-        HeaderRegresar(titulo = "Atender \n Mantenimiento",
+        HeaderRegresar(titulo = "Atender \nMantenimiento",
             onBackClick = { mostrarModal = true })
 
-        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
 
+        MainAssetCard(id = "ACTIVO #0482", nombre = "MacBook Pro 16\"")
+
+        Column(
+            modifier = Modifier.padding(
+                horizontal = 24.dp)
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+            )
+        {
             // 2. Tarjeta del Activo (Reutilizamos la que ya tienes)
             Spacer(modifier = Modifier.height(24.dp))
-            MainAssetCard(id = "ACTIVO #0482", nombre = "MacBook Pro 16\"")
 
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. Los Campos del Formulario
-            CampoFormulario(
-                label = "Diagnóstico técnico",
-                placeholder = "Escriba el diagnóstico detallado..",
-                minLines = 4
-            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
 
-            CampoFormulario(
-                label = "Acciones realizadas",
-                placeholder = "Detalla las reparaciones efectuadas..",
-                minLines = 4
-            )
+                // 3. Los Campos del Formulario
+                CampoFormulario(
+                    label = "Diagnóstico técnico",
+                    placeholder = "Escriba el diagnóstico detallado..",
+                    minLines = 4
+                )
 
-            CampoFormulario(
-                label = "Piezas utilizadas",
-                placeholder = "Lista de repuestos..",
-                minLines = 3
-            )
+                CampoFormulario(
+                    label = "Acciones realizadas",
+                    placeholder = "Detalla las reparaciones efectuadas..",
+                    minLines = 4
+                )
 
-            // 4. Sección de Evidencias (Fotos)
-            Spacer(modifier = Modifier.height(16.dp))
-            Row (
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Evidencias", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text("Max 3 fotos", color = Color(0xFF7B88FF), fontSize = 12.sp)
+                CampoFormulario(
+                    label = "Piezas utilizadas",
+                    placeholder = "Lista de repuestos..",
+                    minLines = 3
+                )
+
+                // 4. Sección de Evidencias (Fotos)
+                Spacer(modifier = Modifier.height(16.dp))
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+
+                EvidenciasSection(
+                    fotos = fotosSeleccionadas,
+                    maxFotos = 3,
+                    onAddClick = {
+                        // Aquí dispararías el selector de fotos (File Picker)
+                        // Por ahora, para probar, podrías agregar una URI de ejemplo
+                        println("Abrir cámara o galería")
+                    },
+                    onRemove = { index ->
+                        // Quitamos la foto de la lista por su posición
+                        fotosSeleccionadas.removeAt(index)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Botón finalizar...
             }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            // Fila de fotos
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            }
+                // 5. Botón de Resultado o Finalizar (Si lo lleva abajo)
+                // ...
 
+            Buttons(
+                text = "Activo Atendido"
+            ) { }
             Spacer(modifier = Modifier.height(32.dp))
+            }
 
-            // 5. Botón de Resultado o Finalizar (Si lo lleva abajo)
-            // ...
+
+
+
         }
+
     }
-}
 
 
 

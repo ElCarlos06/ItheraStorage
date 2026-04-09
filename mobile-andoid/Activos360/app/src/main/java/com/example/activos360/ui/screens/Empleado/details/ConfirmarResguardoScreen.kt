@@ -95,16 +95,16 @@ fun ConfirmarResguardoScreen(
                 .background(Color.White)
         ) {
             HeaderRegresar(titulo = "Confirmación de resguardo", onBackClick = onBack)
+            Spacer(modifier = Modifier.height(10.dp))
 
+            MainAssetCard(id = "ACTIVO #$activoId", nombre = "Activo")
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-                Spacer(modifier = Modifier.height(10.dp))
 
-                MainAssetCard(id = "ACTIVO #$activoId", nombre = "Activo")
 
                 Spacer(modifier = Modifier.height(16.dp))
 

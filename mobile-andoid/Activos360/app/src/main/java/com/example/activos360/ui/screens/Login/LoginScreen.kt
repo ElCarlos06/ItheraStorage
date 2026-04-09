@@ -1,5 +1,6 @@
 package com.example.activos360.ui.screens.Login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,13 +13,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.activos360.R
 import com.example.activos360.ui.components.WaveHeader
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
 import com.example.activos360.ui.viewmodel.LoginViewModel
@@ -193,6 +198,97 @@ fun LoginScreen(
                 } else {
                     Text(text = "Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    // Definimos colores y estados locales para que el Preview sea funcional
+    val primaryColor = Color(0xFF7B88FF)
+    var emailPreview by remember { mutableStateOf("") }
+    var passwordPreview by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 1. Header (Aquí llamamos a tu WaveHeader real)
+        WaveHeader(color = primaryColor)
+
+
+        // --- SECCIÓN DEL LOGO (Versión Grande) ---
+        Image(
+            painter = painterResource(R.drawable.activos360_logo),
+            contentDescription = "Logo Activos 360",
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .heightIn(min = 80.dp, max = 130.dp), 
+            contentScale = ContentScale.Fit  )
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // 3. Formulario
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+        ) {
+            Text(text = "Email", fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 8.dp))
+            OutlinedTextField(
+                value = emailPreview,
+                onValueChange = { emailPreview = it },
+                placeholder = { Text("Ingresa tú email", color = Color.Gray) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryColor,
+                    unfocusedBorderColor = Color(0xFFE0E0E0)
+                ),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(text = "Contraseña", fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 8.dp))
+            OutlinedTextField(
+                value = passwordPreview,
+                onValueChange = { passwordPreview = it },
+                placeholder = { Text("Ingresa la contraseña", color = Color.Gray) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val eyeIcon = if (passwordVisible) MoonIcons.ControlsEye else MoonIcons.ControlsEyeCrossed
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        MoonIcon(icon = eyeIcon, contentDescription = null, tint = primaryColor)
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "¿Olvidaste tu contraseña?",
+                color = primaryColor,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Usamos un botón simple para el Preview
+            Button(
+                onClick = { },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+            ) {
+                Text(text = "Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

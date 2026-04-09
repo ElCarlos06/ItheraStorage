@@ -219,5 +219,6 @@ fun InfoCardPreview() {
             label = "Modelo",
             value = "Pro 16"
         )
-    }
+
+        MainAssetCard("Activo- 123","MackBook pro 14")    }
 }
