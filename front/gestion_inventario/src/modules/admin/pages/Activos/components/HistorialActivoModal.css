@@ -298,6 +298,197 @@
   margin: 8px 0 0 0;
 }
 
+/* ── Detalle de Confirmación de Resguardo (y otros eventos con detalle) ── */
+.historial-modal__resguardo-detail {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historial-modal__checklist-title {
+  font-family: var(--moon-font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--moon-content-text-secondary);
+  margin: 0 0 6px 0;
+}
+
+.historial-modal__checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  /* color por defecto — sobreescrito por variante */
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Fondo del checklist según variante del evento */
+.historial-modal__resguardo-detail--resguardado .historial-modal__checklist {
+  background: rgba(57, 73, 171, 0.10);
+}
+.historial-modal__resguardo-detail--mantenimiento .historial-modal__checklist {
+  background: rgba(230, 81, 0, 0.10);
+}
+.historial-modal__resguardo-detail--en-proceso .historial-modal__checklist {
+  background: rgba(199, 119, 0, 0.10);
+}
+.historial-modal__resguardo-detail--baja .historial-modal__checklist,
+.historial-modal__resguardo-detail--reportado .historial-modal__checklist {
+  background: rgba(198, 40, 40, 0.10);
+}
+.historial-modal__resguardo-detail--disponible .historial-modal__checklist {
+  background: rgba(64, 166, 159, 0.10);
+}
+
+.historial-modal__checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--moon-font-sans);
+  font-size: 13px;
+  color: var(--moon-content-text);
+}
+
+.historial-modal__checklist-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+/* ✓ OK → color del evento */
+.historial-modal__checklist-icon--ok {
+  background: #888; /* fallback */
+}
+.historial-modal__resguardo-detail--resguardado .historial-modal__checklist-icon--ok {
+  background: #3949ab;
+}
+.historial-modal__resguardo-detail--mantenimiento .historial-modal__checklist-icon--ok {
+  background: #e65100;
+}
+.historial-modal__resguardo-detail--en-proceso .historial-modal__checklist-icon--ok {
+  background: #c77700;
+}
+.historial-modal__resguardo-detail--baja .historial-modal__checklist-icon--ok,
+.historial-modal__resguardo-detail--reportado .historial-modal__checklist-icon--ok {
+  background: #c62828;
+}
+.historial-modal__resguardo-detail--disponible .historial-modal__checklist-icon--ok {
+  background: #40a69f;
+}
+
+/* ✗ NO → siempre rojo semántico */
+.historial-modal__checklist-icon--no {
+  background: #c62828;
+  color: #fff;
+}
+
+/* — N/A → neutro */
+.historial-modal__checklist-icon--na {
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--moon-content-text-secondary);
+}
+
+.historial-modal__checklist-label {
+  flex: 1;
+}
+
+/* Galería de fotos de evidencia */
+.historial-modal__fotos-conf {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historial-modal__fotos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.historial-modal__foto-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid var(--moon-content-border);
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.historial-modal__foto-thumb:hover {
+  transform: scale(1.04);
+}
+
+.historial-modal__foto-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.historial-modal__fotos-pendiente {
+  font-family: var(--moon-font-sans);
+  font-size: 12px;
+  color: var(--moon-content-text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Lightbox */
+.historial-modal__lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.historial-modal__lightbox-img {
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.historial-modal__lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.historial-modal__lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────── */
 .historial-modal__footer {
   display: flex;
   align-items: center;

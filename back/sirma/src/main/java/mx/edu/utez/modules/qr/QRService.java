@@ -16,6 +16,7 @@ import mx.edu.utez.modules.imagen_activo.ImagenActivo;
 import mx.edu.utez.modules.imagen_activo.ImagenActivoRepository;
 import mx.edu.utez.util.CloudinaryPaths;
 import mx.edu.utez.util.CloudinaryService;
+import mx.edu.utez.util.QrPayloadCodec;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -58,6 +59,7 @@ public class QRService {
     private final AssetsRepository assetsRepository;
     private final ImagenActivoRepository imagenActivoRepository;
     private final CloudinaryService cloudinaryService;
+    private final QrPayloadCodec qrPayloadCodec;
 
     // -------------------------------------------------------------------------
     // Generación de imagen QR
@@ -264,15 +266,7 @@ public class QRService {
         if (assetOpt.isEmpty()) return null;
 
         Assets asset = assetOpt.get();
-        String qrContent;
-
-        if (asset.getQrCodigo() != null && !asset.getQrCodigo().isBlank()) {
-            qrContent = asset.getQrCodigo();
-        } else {
-            qrContent = String.format("{\"id\":%d}", asset.getId());
-            asset.setQrCodigo(qrContent);
-            assetsRepository.save(asset);
-        }
+        String qrContent = ensureOpaqueQrPayload(asset);
 
         boolean qrImageExists = imagenActivoRepository.findByActivoId(assetId).stream()
                 .anyMatch(img -> QR_FILENAME.equals(img.getNombreArchivo()));
@@ -303,6 +297,36 @@ public class QRService {
         }
 
         return qrContent;
+    }
+
+    /**
+     * Garantiza que {@link Assets#getQrCodigo()} use el formato {@code {"v":2,"p":"..."}} cifrado.
+     * Si existía el formato legado {@code {"id":N}}, borra la imagen QR previa y persiste el nuevo payload.
+     */
+    private String ensureOpaqueQrPayload(Assets asset) {
+        String current = asset.getQrCodigo();
+        boolean blank = current == null || current.isBlank();
+        String trimmed = blank ? "" : current.trim();
+        boolean legacy = !blank && isLegacyPlainIdJson(trimmed);
+
+        if (!blank && !legacy) {
+            return trimmed;
+        }
+
+        Long assetId = asset.getId();
+        if (legacy) {
+            deleteQrByAssetId(assetId);
+        }
+
+        String token = qrPayloadCodec.encode(assetId);
+        String qrContent = String.format("{\"v\":2,\"p\":\"%s\"}", token);
+        asset.setQrCodigo(qrContent);
+        assetsRepository.save(asset);
+        return qrContent;
+    }
+
+    private static boolean isLegacyPlainIdJson(String s) {
+        return s.matches("\\{\\s*\"id\"\\s*:\\s*\\d+\\s*}");
     }
 
     /**

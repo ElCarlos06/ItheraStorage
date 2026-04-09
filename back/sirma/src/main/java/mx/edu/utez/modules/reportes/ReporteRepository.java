@@ -36,11 +36,14 @@ public interface ReporteRepository extends JpaRepository<Reporte, Long> {
      */
     boolean existsByActivoIdAndEstadoReporteNotIn(Long activoId, Collection<String> estadosTerminales);
 
-    // sin fila en MANTENIMIENTO  pendiente de asignar t├cnico
     /**
-     * Rescata bajo un requerimiento Query DQL sobre la propia base a eventos de reporte que jamás llegaron a la tabla de mantenimientos.
+     * Rescata los reportes pendientes de resolución: sin mantenimiento asignado,
+     * O con mantenimiento en estado 'Asignado' (técnico designado pero aún sin diagnóstico).
+     * Cuando el técnico inicie la atención (estado pasa a 'En Proceso'), el reporte
+     * deja de aparecer aquí y pasa a la bandeja de mantenimientos activos.
      */
-    @Query("SELECT r FROM Reporte r WHERE NOT EXISTS (SELECT 1 FROM Mantenimiento m WHERE m.reporte.id = r.id)")
+    @Query("SELECT r FROM Reporte r WHERE NOT EXISTS " +
+           "(SELECT 1 FROM Mantenimiento m WHERE m.reporte.id = r.id AND m.estadoMantenimiento <> 'Asignado')")
     Page<Reporte> findAllSinMantenimiento(Pageable pageable);
 
     /**

@@ -3,10 +3,12 @@ package mx.edu.utez.modules.assets;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
+import mx.edu.utez.util.QrPayloadCodec;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class AssetsController {
 
     private final AssetsService assetsService;
+    private final QrPayloadCodec qrPayloadCodec;
 
     /**
      * Recupera una lista paginada de activos activos.
@@ -42,6 +45,21 @@ public class AssetsController {
      * @param id Identificador del activo.
      * @return ResponseEntity con el activo encontrado o error si no existe.
      */
+    /**
+     * Resuelve el token opaco del QR (campo {@code p}) al detalle del activo. Requiere sesión (mismo alcance que GET /api/activos/{id}).
+     */
+    @GetMapping("/qr/resolver")
+    public ResponseEntity<ApiResponse> resolveQrPayload(@RequestParam("p") String p) {
+        try {
+            long id = qrPayloadCodec.decode(p);
+            ApiResponse res = assetsService.findById(id);
+            return ResponseEntity.status(res.getStatus()).body(res);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Código QR no reconocido", true, HttpStatus.BAD_REQUEST));
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> findById(@PathVariable Long id) {
         ApiResponse response = assetsService.findById(id);

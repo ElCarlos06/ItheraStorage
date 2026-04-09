@@ -48,7 +48,11 @@ fun AssetDetailModal(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "ID Escaneado: $idActivo",
+                text = if (idActivo.contains("\"p\"")) {
+                    "Código de inventario reconocido."
+                } else {
+                    "Referencia: $idActivo"
+                },
                 fontSize = 14.sp,
                 color = Color.Gray,
                 fontWeight = FontWeight.Medium

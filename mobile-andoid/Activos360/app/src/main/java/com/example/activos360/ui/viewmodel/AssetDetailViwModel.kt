@@ -187,7 +187,7 @@ class AssetDetailViewModel : ViewModel() {
                 val bytes = stream.readBytes()
                 stream.close()
                 val requestBody = bytes.toRequestBody("image/*".toMediaType())
-                val part = MultipartBody.Part.createFormData("file", "foto_${index + 1}.jpg", requestBody)
+                val part = MultipartBody.Part.createFormData("file", "RESGUARDO_CONF_${index + 1}.jpg", requestBody)
                 ApiProvider.imagenActivoApi.subirImagen(activoId, part)
             } catch (_: Exception) { }
         }

@@ -2,6 +2,8 @@ package mx.edu.utez.modules.mantenimientos;
 
 import mx.edu.utez.modules.mantenimientos.projections.MantenimientoProjection;
 import mx.edu.utez.modules.mantenimientos.projections.TiempoPromedioProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,6 +38,13 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
 
     /** Colecciona todos los mantenimientos categorizados al estado parametrizado pasado. */
     List<Mantenimiento> findByEstadoMantenimiento(String estado);
+
+    /**
+     * Lista paginada de mantenimientos excluyendo el estado indicado.
+     * Se usa para la bandeja de administrador: oculta los 'Asignado' (aún sin diagnóstico)
+     * y solo muestra los que el técnico ya inició ('En Proceso', 'Finalizado', etc.).
+     */
+    Page<Mantenimiento> findByEstadoMantenimientoNot(String estado, Pageable pageable);
 
     /**
      * Calcula a los top 4 de técnicos basados sobre el total o número descenciente de tickets que exitosamente ellos hayan logrado concluir.

@@ -10,6 +10,35 @@ const UNAUTHORIZED = 401;
 const FORBIDDEN = 403;
 
 /**
+ * Evita mostrar en UI (toasts) mensajes que parezcan técnicos o de base de datos.
+ */
+function sanitizeApiErrorMessage(message, status) {
+  if (message == null || typeof message !== "string") {
+    return "Ocurrió un error. Intenta de nuevo.";
+  }
+  const m = message.trim();
+  if (!m) return "Ocurrió un error. Intenta de nuevo.";
+  const lower = m.toLowerCase();
+  if (
+    lower.includes("sql") ||
+    lower.includes("jdbc") ||
+    lower.includes("mysql") ||
+    lower.includes("tidb") ||
+    lower.includes("hibernate") ||
+    lower.includes("constraint") ||
+    lower.includes("deadlock") ||
+    lower.includes("foreign key") ||
+    lower.includes("duplicate entry")
+  ) {
+    return status >= 500
+      ? "Error en el servidor. Intenta más tarde."
+      : "No se pudo completar la operación.";
+  }
+  if (m.length > 280) return `${m.slice(0, 277)}…`;
+  return m;
+}
+
+/**
  * Función principal para peticiones HTTP
  * @param {string} endpoint Cadena relativa, ej. '/api/users'
  * @param {RequestInit} options Opciones de fetch (method, body, headers, etc)
@@ -73,7 +102,7 @@ export async function request(endpoint, options = {}) {
       (Array.isArray(data.errors) && data.errors[0]?.defaultMessage) ||
       "Ocurrió un error. Intenta de nuevo.";
 
-    const err = new Error(msg);
+    const err = new Error(sanitizeApiErrorMessage(msg, res.status));
     err.data = data;
     err.status = res.status;
     throw err;

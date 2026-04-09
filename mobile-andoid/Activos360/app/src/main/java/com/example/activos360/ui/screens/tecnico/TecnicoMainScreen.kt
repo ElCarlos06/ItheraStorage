@@ -42,8 +42,8 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
             BottomCustomBar(
                 navController = bottomNavController,
                 onQrScanned = { codigo ->
-                    val activoId = QrParse.extractActivoId(codigo) ?: 0L
                     scope.launch {
+                        val activoId = try { QrParse.resolveActivoId(codigo) ?: 0L } catch (_: Exception) { 0L }
                         var navegoDirecto = false
                         try {
                             val userId = TokenManager.getUserIdFromToken()
@@ -54,35 +54,43 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
                                 Log.d("TECNICO_SCAN", "HTTP ${resp.code()}, bodyNull=${resp.body() == null}")
 
                                 if (resp.isSuccessful) {
-                                    // El backend puede devolver lista directa O paginado {content:[...]}
-                                    @Suppress("UNCHECKED_CAST")
                                     val rawData = resp.body()?.data
-                                    Log.d("TECNICO_SCAN", "data type=${rawData?.javaClass?.simpleName}, value=$rawData")
+                                    Log.d("TECNICO_SCAN", "data type=${rawData?.javaClass?.simpleName}")
 
-                                    val list: List<Map<String, Any?>> = when (rawData) {
-                                        is List<*> -> rawData.filterIsInstance<Map<String, Any?>>()
-                                        is Map<*, *> -> (rawData["content"] as? List<*>)
-                                            ?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
-                                        else -> emptyList()
-                                    }
+                                    val list: List<Map<String, Any?>> = try {
+                                        when (rawData) {
+                                            is List<*> -> rawData.filterIsInstance<Map<String, Any?>>()
+                                            is Map<*, *> -> (rawData["content"] as? List<*>)
+                                                ?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
+                                            else -> emptyList()
+                                        }
+                                    } catch (_: Exception) { emptyList() }
+
                                     Log.d("TECNICO_SCAN", "mantenimientos encontrados: ${list.size}")
 
                                     val miMantenimiento = list.firstOrNull { m ->
-                                        val tecnicoId = (m["usuarioTecnico"].asMap())?.long("id")
-                                            ?: m.long("idUsuarioTecnico")
-                                        val estado = m.string("estadoMantenimiento")?.lowercase() ?: ""
-                                        Log.d("TECNICO_SCAN", "  mtn id=${m.entries.find { it.key == "id" }?.value} tecnicoId=$tecnicoId estado=$estado")
-                                        // Si no tenemos userId del token, comparamos solo si encontramos exactamente 1 mtn activo
-                                        val estadoActivo = estado !in listOf("completado", "cerrado")
-                                        if (userId != null) tecnicoId == userId && estadoActivo
-                                        else estadoActivo
+                                        try {
+                                            val tecnicoId = (m["usuarioTecnico"].asMap())?.long("id")
+                                                ?: m.long("idUsuarioTecnico")
+                                            val estado = m.string("estadoMantenimiento")?.lowercase() ?: ""
+                                            // Solo mantenimientos activos (no finalizado/cancelado)
+                                            val estadoActivo = estado !in listOf("finalizado", "completado", "cerrado", "cancelado")
+                                            if (userId != null) tecnicoId == userId && estadoActivo
+                                            else estadoActivo
+                                        } catch (_: Exception) { false }
                                     }
 
                                     if (miMantenimiento != null) {
                                         val mantenimientoId = miMantenimiento.long("id") ?: 0L
-                                        Log.d("TECNICO_SCAN", "Navegando a reporte_tecnico/$activoId/$mantenimientoId")
-                                        navControllerPrincipal.navigate("reporte_tecnico/$activoId/$mantenimientoId")
-                                        navegoDirecto = true
+                                        if (mantenimientoId > 0L) {
+                                            Log.d("TECNICO_SCAN", "Navegando a reporte_tecnico/$activoId/$mantenimientoId")
+                                            try {
+                                                navControllerPrincipal.navigate("reporte_tecnico/$activoId/$mantenimientoId")
+                                                navegoDirecto = true
+                                            } catch (navEx: Exception) {
+                                                Log.e("TECNICO_SCAN", "Error navegando: ${navEx.message}", navEx)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -122,8 +130,10 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
             onDismiss = { showModal = false },
             onVerDetallesClick = {
                 showModal = false
-                val id = QrParse.extractActivoId(codigoEscaneado) ?: 0L
-                navControllerPrincipal.navigate("detalles_activo/$id")
+                scope.launch {
+                    val id = QrParse.resolveActivoId(codigoEscaneado) ?: 0L
+                    navControllerPrincipal.navigate("detalles_activo/$id")
+                }
             }
         )
     }

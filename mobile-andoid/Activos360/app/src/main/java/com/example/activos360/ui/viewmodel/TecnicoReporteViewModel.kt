@@ -37,7 +37,8 @@ data class TecnicoReporteUiState(
     val evidenciaUrls: List<String> = emptyList(),
     // Botón Atender
     val puedeAtender: Boolean = false,
-    val isAtendiendo: Boolean = false
+    val isAtendiendo: Boolean = false,
+    val atenderError: String? = null
 )
 
 class TecnicoReporteViewModel : ViewModel() {
@@ -220,7 +221,7 @@ class TecnicoReporteViewModel : ViewModel() {
     fun atender(onSuccess: () -> Unit = {}) {
         if (_mantenimientoId == 0L) return
         viewModelScope.launch {
-            uiState = uiState.copy(isAtendiendo = true)
+            uiState = uiState.copy(isAtendiendo = true, atenderError = null)
             try {
                 val dto = MantenimientoDTO(
                     idReporte = _idReporte,
@@ -229,19 +230,24 @@ class TecnicoReporteViewModel : ViewModel() {
                     idUsuarioAdmin = _idAdmin,
                     idPrioridad = _idPrioridad,
                     tipoAsignado = _tipoAsignado,
-                    estadoMantenimiento = "En proceso"
+                    estadoMantenimiento = "En Proceso"
                 )
                 val resp = ApiProvider.mantenimientoApi.update10(_mantenimientoId, dto)
                 if (resp.isSuccessful) {
                     uiState = uiState.copy(isAtendiendo = false, puedeAtender = false)
                     onSuccess()
                 } else {
-                    uiState = uiState.copy(isAtendiendo = false)
+                    val msg = resp.errorBody()?.string()?.take(120) ?: "Error ${resp.code()}"
+                    uiState = uiState.copy(isAtendiendo = false, atenderError = msg)
                 }
-            } catch (_: Exception) {
-                uiState = uiState.copy(isAtendiendo = false)
+            } catch (e: Exception) {
+                uiState = uiState.copy(isAtendiendo = false, atenderError = e.localizedMessage ?: "Error de red")
             }
         }
+    }
+
+    fun clearAtenderError() {
+        uiState = uiState.copy(atenderError = null)
     }
 
     private fun urlFromData(data: Any?): String? = when (data) {

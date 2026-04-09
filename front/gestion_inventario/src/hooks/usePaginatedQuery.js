@@ -46,7 +46,7 @@ export function usePaginatedQuery({
   const baseKey = Array.isArray(queryKey) ? queryKey : [queryKey];
   const fullQueryKey = [...baseKey, currentPage];
 
-  const { data, isLoading, isFetching, error } = useQuery({
+  const { data, isLoading, isFetching, isPlaceholderData, error } = useQuery({
     queryKey: fullQueryKey,
     queryFn: async () => {
       const res = await fetchWithErrorCheck(
@@ -73,6 +73,7 @@ export function usePaginatedQuery({
     data,
     isLoading,
     isFetching,
+    isPlaceholderData,
     error: error?.message ?? null,
     invalidate,
     currentPage,

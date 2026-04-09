@@ -56,11 +56,14 @@ public class MantenimientoService {
     /**
      * Muestra todo el catálogo o historial general por defecto paginado.
      * @param pageable Contexto.
+     * @param excluirAsignado Si true, omite los que están en estado 'Asignado' (sin diagnóstico aún).
      * @return Formato de listado genérico de respuesta.
      */
     @Transactional(readOnly = true)
-    public ApiResponse findAll(Pageable pageable) {
-        Page<Mantenimiento> page = mantenimientoRepository.findAll(pageable);
+    public ApiResponse findAll(Pageable pageable, boolean excluirAsignado) {
+        Page<Mantenimiento> page = excluirAsignado
+                ? mantenimientoRepository.findByEstadoMantenimientoNot("Asignado", pageable)
+                : mantenimientoRepository.findAll(pageable);
         return new ApiResponse("OK", page, HttpStatus.OK);
     }
 
@@ -159,18 +162,17 @@ public class MantenimientoService {
         mantenimientoRepository.save(entity);
 
         rep.setEstadoReporte("En Proceso");
-
         reporteRepository.save(rep);
 
         Long activoId = activo.get().getId();
         String opAnt = activo.get().getEstadoOperativo();
         String cust = activo.get().getEstadoCustodia();
 
-        assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_MANTENIMIENTO);
+        // El activo permanece en "Reportado"; cambia a "Mantenimiento" cuando el técnico inicie atención.
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Mantenimiento",
-                "Mantenimiento asignado a " + tecnico.get().getNombreCompleto(),
-                cust, cust, opAnt, AssetEstados.OPERATIVO_MANTENIMIENTO);
+                "Técnico asignado: " + tecnico.get().getNombreCompleto() + " (pendiente de atención)",
+                cust, cust, opAnt, opAnt);
 
         return new ApiResponse("Mantenimiento asignado exitosamente", entity, HttpStatus.CREATED);
     }
@@ -200,8 +202,18 @@ public class MantenimientoService {
 
         if (dto.getEstadoMantenimiento() != null) {
             entity.setEstadoMantenimiento(dto.getEstadoMantenimiento());
-            if ("En Proceso".equals(dto.getEstadoMantenimiento()))
+            if ("En Proceso".equals(dto.getEstadoMantenimiento())) {
                 entity.setFechaInicio(LocalDateTime.now());
+                // El técnico inicia la atención: ahora sí el activo pasa a "Mantenimiento"
+                Long activoIdEp = entity.getActivo().getId();
+                String opAntEp  = entity.getActivo().getEstadoOperativo();
+                String custEp   = entity.getActivo().getEstadoCustodia();
+                assetsRepository.updateEstadoOperativo(activoIdEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
+                assetsService.evictAssetCache(activoIdEp);
+                bitacoraService.registrarEvento(activoIdEp, null, "Inicio Mantenimiento",
+                        "El técnico " + entity.getUsuarioTecnico().getNombreCompleto() + " inició la atención",
+                        custEp, custEp, opAntEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
+            }
             if ("Finalizado".equals(dto.getEstadoMantenimiento())) {
                 entity.setFechaFin(LocalDateTime.now());
                 Long activoId = entity.getActivo().getId();
@@ -246,13 +258,19 @@ public class MantenimientoService {
         for (ImagenMantenimiento img : imagenMantenimientoRepository.findByMantenimientoId(id))
             imagenMantenimientoService.delete(img.getId());
 
+        String estadoMtn = entity.getEstadoMantenimiento();
         mantenimientoRepository.deleteById(id);
 
         reporteRepository.findById(reporteId).ifPresent(rep -> {
             rep.setEstadoReporte("Pendiente");
             reporteRepository.save(rep);
         });
-        assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_REPORTADO);
+
+        // Si el técnico ya había iniciado ("En Proceso") el activo estaba en "Mantenimiento"; hay que revertirlo.
+        // Si era "Asignado", el activo nunca cambió de "Reportado", así que solo limpiamos caché.
+        if (!"Asignado".equals(estadoMtn)) {
+            assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_REPORTADO);
+        }
         assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, null, "Eliminación mantenimiento",
                 "Se eliminó la asignación de técnico; el reporte vuelve a la bandeja sin asignar.",

@@ -28,8 +28,10 @@ public class MantenimientoController {
      * @return ResponseEntity con la lista de mantenimientos.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse> findAll(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        ApiResponse response = mantenimientoService.findAll(pageable);
+    public ResponseEntity<ApiResponse> findAll(
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(name = "excluirAsignado", defaultValue = "false") boolean excluirAsignado) {
+        ApiResponse response = mantenimientoService.findAll(pageable, excluirAsignado);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

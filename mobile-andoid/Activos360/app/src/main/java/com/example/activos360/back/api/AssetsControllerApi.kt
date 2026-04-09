@@ -34,6 +34,13 @@ interface AssetsControllerApi {
     suspend fun findAll16(): Response<ModelApiResponse>
 
     /**
+     * GET api/activos/qr/resolver?p=
+     * Resuelve el token opaco del QR al detalle del activo (misma sesión que GET por id).
+     */
+    @GET("api/activos/qr/resolver")
+    suspend fun resolveQrPayload(@Query("p") p: kotlin.String): Response<ModelApiResponse>
+
+    /**
      * GET api/activos/{id}
      * 
      * 

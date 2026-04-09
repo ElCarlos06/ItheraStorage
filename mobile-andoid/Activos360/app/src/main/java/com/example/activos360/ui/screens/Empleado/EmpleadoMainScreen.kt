@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import android.net.Uri
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import com.example.activos360.ui.screens.Login.ScreeanChangePassword
 import com.example.activos360.core.auth.TokenManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
@@ -33,6 +35,7 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
 
     var showModal by remember { mutableStateOf(false) }
     var codigoEscaneado by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     // 2. Scaffold
     Scaffold(
@@ -168,10 +171,10 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
             onDismiss = { showModal = false }, // Si el usuario cierra el modal deslizando
             onVerDetallesClick = {
                 showModal = false // Cerramos el modal
-
-                // NAVEGAMOS A LA VISTA COMPLETA PASANDO EL ID
-                val id = QrParse.extractActivoId(codigoEscaneado) ?: 0L
-                navControllerPrincipal.navigate("detalles_activo/$id")
+                scope.launch {
+                    val id = QrParse.resolveActivoId(codigoEscaneado) ?: 0L
+                    navControllerPrincipal.navigate("detalles_activo/$id")
+                }
             }
         )
     }

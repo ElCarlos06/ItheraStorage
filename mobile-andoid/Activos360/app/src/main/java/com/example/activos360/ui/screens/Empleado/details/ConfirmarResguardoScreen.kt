@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,6 +39,13 @@ import com.example.activos360.ui.components.EvidenciasSection
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
 import com.example.activos360.ui.viewmodel.AssetDetailViewModel
+
+private val CHECKLIST_ITEMS = listOf(
+    "¿Enciende correctamente?",
+    "Pantalla sin daños",
+    "Incluye cargador original",
+    "Sin daños estéticos"
+)
 
 @Composable
 fun ConfirmarResguardoScreen(
@@ -64,15 +70,10 @@ fun ConfirmarResguardoScreen(
                 Buttons(
                     text = "Confirmar Resguardo",
                     onClick = {
-                        val observaciones = buildString {
-                            append("Checklist: ")
-                            append(
-                                checks.joinToString(prefix = "[", postfix = "]") { ok ->
-                                    if (ok) "OK" else "NO"
-                                }
-                            )
-                            append(" | Evidencias: ${fotos.size} foto(s)")
-                        }
+                        val checklistStr = CHECKLIST_ITEMS.mapIndexed { i, nombre ->
+                            "$nombre=${if (checks.getOrElse(i) { false }) "OK" else "NO"}"
+                        }.joinToString("; ")
+                        val observaciones = "Checklist: $checklistStr | Fotos: ${fotos.size}"
                         viewModel.confirmarResguardo(
                             activoId = activoId,
                             observaciones = observaciones,
@@ -103,14 +104,11 @@ fun ConfirmarResguardoScreen(
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Reutilizamos la MainAssetCard que ya tienes en el otro archivo
                 MainAssetCard(id = "ACTIVO #$activoId", nombre = "Activo")
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Filas de Checkboxes
-                val opciones = listOf("¿Enciende correctamente?", "Pantalla sin daños", "Incluye cargador original", "Sin daños estéticos")
-                opciones.forEachIndexed { index, texto ->
+                CHECKLIST_ITEMS.forEachIndexed { index, texto ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -125,7 +123,7 @@ fun ConfirmarResguardoScreen(
                             colors = CheckboxDefaults.colors(checkedColor = Color(0xFF7B88FF))
                         )
                     }
-                    HorizontalDivider(Modifier, thickness = 1.dp, color = Color(0xFFF1F2F6))
+                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F2F6))
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -145,6 +143,5 @@ fun ConfirmarResguardoScreen(
 @Composable
 @Preview
 fun previewConfirmarResguardo() {
-    ConfirmarResguardoScreen(activoId = 1,onBack = {}, onConfirmed = {})
+    ConfirmarResguardoScreen(activoId = 1, onBack = {}, onConfirmed = {})
 }
-

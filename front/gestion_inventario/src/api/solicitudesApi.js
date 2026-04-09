@@ -39,13 +39,20 @@ const reportes = {
 
   /** GET /api/reportes/stats */
   getStats: () => request(`/api/reportes/stats`).then((r) => r.data),
+
+  /** GET /api/imagen-reporte/reporte/:id */
+  getImagenes: (reporteId) =>
+    request(`/api/imagen-reporte/reporte/${reporteId}`),
 };
 
 const mantenimientos = {
-  /** GET /api/reportes?page=:page&size=:size */
-  getMantenimientos: (page = 0, size = 10, direction = "DESC") =>
+  /**
+   * GET /api/mantenimientos — bandeja principal.
+   * excluirAsignado=true oculta los que solo tienen técnico asignado pero sin diagnóstico aún.
+   */
+  getMantenimientos: (page = 0, size = 10, direction = "DESC", excluirAsignado = true) =>
     request(
-      `/api/mantenimientos?page=${page}&size=${size}&direction=${direction}`,
+      `/api/mantenimientos?page=${page}&size=${size}&direction=${direction}&excluirAsignado=${excluirAsignado}`,
     ),
 
   /** GET /api/reportes/:id */
@@ -75,6 +82,10 @@ const mantenimientos = {
 
   /** GET /api/mantenimientos/stats */
   getStats: () => request(`/api/mantenimientos/stats`).then((r) => r.data),
+
+  /** GET /api/imagen-mantenimiento/mantenimiento/:id */
+  getImagenes: (mantenimientoId) =>
+    request(`/api/imagen-mantenimiento/mantenimiento/${mantenimientoId}`),
 };
 
 export const solicitudesApi = {

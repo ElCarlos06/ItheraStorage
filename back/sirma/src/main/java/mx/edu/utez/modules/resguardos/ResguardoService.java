@@ -163,9 +163,13 @@ public class ResguardoService {
                 String custAnt = entity.getActivo().getEstadoCustodia();
                 assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_RESGUARDADO);
                 assetsService.evictAssetCache(activoId);
+                String descConf = "Resguardo confirmado por " + entity.getUsuarioEmpleado().getNombreCompleto();
+                String obs = entity.getObservacionesConf();
+                if (obs != null && !obs.isBlank()) {
+                    descConf += " | " + obs;
+                }
                 bitacoraService.registrarEvento(activoId, null, "Confirmacion Resguardo",
-                        "Resguardo confirmado por " + entity.getUsuarioEmpleado().getNombreCompleto(),
-                        custAnt, AssetEstados.CUSTODIA_RESGUARDADO, null, null);
+                        descConf, custAnt, AssetEstados.CUSTODIA_RESGUARDADO, null, null);
             }
             if ("Devuelto".equals(dto.getEstadoResguardo())) {
                 entity.setFechaDevolucion(LocalDateTime.now());

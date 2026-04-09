@@ -175,6 +175,8 @@ export default function Requests() {
 
   const {
     isLoading: loading,
+    isFetching,
+    isPlaceholderData,
     error,
     currentPage,
     setCurrentPage,
@@ -184,14 +186,16 @@ export default function Requests() {
     queryFn: (page, size) =>
       activeTab === "reportes"
         ? solicitudesApi.reportes.getReportes(page, size, "DESC", true)
-        : solicitudesApi.mantenimientos.getMantenimientos(page, size),
+        : solicitudesApi.mantenimientos.getMantenimientos(page, size, "DESC", true),
     errorMessage: "Error al cargar solicitudes",
     pageSize,
   });
 
+  // Mientras los datos son del tab anterior (placeholder) no mapeamos nada;
+  // isTabLoading ya muestra el spinner en ese estado.
   const solicitudes = useMemo(
-    () => mapResponse(content, activeTab),
-    [content, activeTab],
+    () => (isPlaceholderData ? [] : mapResponse(content, activeTab)),
+    [content, activeTab, isPlaceholderData],
   );
 
   const handleTabChange = (tab) => {
@@ -219,7 +223,8 @@ export default function Requests() {
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage]);
 
-  const showEmpty = !loading && filtered.length === 0;
+  const isTabLoading = loading || isPlaceholderData;
+  const showEmpty = !isTabLoading && !isFetching && filtered.length === 0;
 
   const openDetail = (sol) => {
     if (sol.rowKind === "mantenimiento") {
@@ -233,7 +238,7 @@ export default function Requests() {
 
   return (
     <div
-      className={`requests-page pb-4 ${loading ? "requests-page--loading d-flex flex-column" : ""} ${!loading && showEmpty ? "requests-page--empty d-flex flex-column" : ""}`}
+      className={`requests-page pb-4 ${isTabLoading || isFetching ? "requests-page--loading d-flex flex-column" : ""} ${showEmpty ? "requests-page--empty d-flex flex-column" : ""}`}
     >
       <PageHeader
         overline="SOLICITUDES"
@@ -273,7 +278,7 @@ export default function Requests() {
           <ErrorBanner message={error} onDismiss={() => invalidateSolicitudes()} />
         )}
 
-        {loading ? (
+        {isTabLoading || isFetching ? (
           <div className="requests-view__list requests-view__list--loading d-flex flex-column flex-grow-1 min-vh-0 overflow-hidden">
             <LoadingState message="Cargando solicitudes…" />
           </div>
@@ -360,6 +365,12 @@ export default function Requests() {
                               {sol.prioridad ?? "—"}
                             </StatusBadge>
                           </div>
+                          {sol.tecnicoAsignado && sol.tecnicoAsignado !== "—" && (
+                            <div className="requests-view__data-col">
+                              <p className="requests-view__label">Técnico asignado</p>
+                              <p className="requests-view__value">{sol.tecnicoAsignado}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

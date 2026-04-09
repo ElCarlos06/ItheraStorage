@@ -1,127 +1,101 @@
-.modal-content.reporte-info-modal {
-  width: 700px;
-  max-width: calc(100vw - 48px);
-  border-radius: 16px;
+.modal-content.rim-modal {
+  width: 100%;
+  max-width: min(900px, calc(100vw - 48px));
+  border-radius: 32px;
+  padding: 0;
   overflow: hidden;
-  padding: 0;
-}
-
-.reporte-info-modal__inner {
-  display: flex;
-  flex-direction: column;
-}
-
-.reporte-info-modal__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px;
   background: #fff;
-  border-bottom: 1.337px solid var(--moon-content-border);
 }
 
-.reporte-info-modal__title {
-  margin: 0;
-  font-family: var(--moon-font-sans);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 24px;
-  color: var(--moon-content-text);
+.rim { max-height: calc(100vh - 48px); }
+
+/* Header */
+.rim__header { padding: 24px 32px; border-color: #e2e2e2 !important; background: #fff; }
+
+.rim__title {
+  font-family: var(--moon-font-sans); font-size: 16px; font-weight: 700;
+  line-height: 24px; color: #1e2939;
 }
 
-.reporte-info-modal__subtitle {
-  margin: 4px 0 0 0;
-  font-family: var(--moon-font-sans);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  color: var(--moon-content-text-secondary);
+.rim__close {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; padding: 0; border: none; background: transparent;
+  border-radius: 12px; cursor: pointer; color: #595d62; transition: background .2s, color .2s;
+}
+.rim__close:hover { background: rgba(15,23,42,.08); color: #1e2939; }
+
+/* Hero strip */
+.rim__hero { padding: 20px 32px; border-color: #e2e2e2 !important; background: #fff; gap: 0; }
+
+.rim__hero-col { flex: 1; min-width: 160px; padding-right: 16px; }
+
+.rim__hero-label {
+  font-family: var(--moon-font-sans); font-size: 10px; font-weight: 700;
+  letter-spacing: .5px; text-transform: uppercase; color: #595d62; line-height: 15px;
+}
+.rim__hero-value {
+  font-family: var(--moon-font-sans); font-size: 16px; font-weight: 500;
+  line-height: 24px; color: #1e2939;
+}
+.rim__hero-sub {
+  font-family: var(--moon-font-sans); font-size: 16px; line-height: 24px; color: #595d62;
 }
 
-.reporte-info-modal__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  border-radius: 10px;
-  cursor: pointer;
-  color: var(--moon-content-text-secondary);
-  flex-shrink: 0;
-  transition: background 0.2s, color 0.2s;
+/* Scrollable body */
+.rim__body { overflow-y: auto; flex: 1; min-height: 0; padding: 24px 32px 28px; }
+
+/* Info cards */
+.rim__info-card {
+  background: #fff; border: .8px solid #e2e2e2; border-radius: 16px;
+  padding: 20px 21px; min-height: 112px;
 }
 
-.reporte-info-modal__close:hover {
-  background: rgba(15, 23, 42, 0.08);
-  color: var(--moon-content-text);
+/* Section labels */
+.rim__section-title {
+  font-family: var(--moon-font-sans); font-size: 10px; font-weight: 700;
+  letter-spacing: .5px; text-transform: uppercase; color: #595d62; line-height: 15px;
+  display: flex; align-items: center; gap: 6px;
+}
+.rim__count { font-size: 13px; font-weight: 400; color: #8d9298; letter-spacing: 0; text-transform: none; }
+
+.rim__card-value {
+  font-family: var(--moon-font-sans); font-size: 16px; font-weight: 500;
+  line-height: 24px; color: #1e2939;
 }
 
-.reporte-info-modal__body {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 24px 24px;
-  background: var(--moon-goku);
+.rim__prioridad-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 6px 14px; border-radius: 8px; align-self: flex-start;
+  font-family: var(--moon-font-sans); font-size: 16px; font-weight: 600; line-height: 24px;
 }
 
-.reporte-info-modal__row {
-  display: grid;
-  grid-template-columns: minmax(140px, 180px) 1fr;
-  align-items: baseline;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(226, 226, 226, 0.6);
+/* Descripción */
+.rim__desc-box {
+  background: #fff; border: .8px solid #e2e2e2; border-radius: 16px;
+  padding: 20px 21px; min-height: 80px;
+}
+.rim__desc-text {
+  font-family: var(--moon-font-sans); font-size: 16px; font-weight: 500;
+  line-height: 24px; color: #595d62; white-space: pre-wrap;
 }
 
-.reporte-info-modal__row:last-child {
-  border-bottom: none;
+/* Imagen tiles */
+.rim__foto-tile {
+  all: unset; cursor: pointer; display: block; border-radius: 16px; overflow: hidden;
+  height: 220px; border: .8px solid #e2e2e2; transition: transform .15s, box-shadow .15s;
 }
+.rim__foto-tile:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(0,0,0,.14); }
+.rim__foto-tile img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 
-.reporte-info-modal__row--badge {
-  align-items: center;
+/* Lightbox */
+.rim__lightbox {
+  position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,.82);
+  display: flex; align-items: center; justify-content: center; cursor: zoom-out;
 }
-
-.reporte-info-modal__row--desc {
-  align-items: start;
+.rim__lightbox-img { max-width: 92vw; max-height: 88vh; border-radius: 12px; box-shadow: 0 8px 48px rgba(0,0,0,.5); cursor: default; }
+.rim__lightbox-close {
+  position: fixed; top: 20px; right: 24px; background: rgba(255,255,255,.18); border: none;
+  border-radius: 50%; width: 40px; height: 40px; color: #fff; font-size: 18px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s;
 }
-
-.reporte-info-modal__label {
-  font-family: var(--moon-font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: var(--moon-content-text-secondary);
-}
-
-.reporte-info-modal__value {
-  font-family: var(--moon-font-sans);
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--moon-content-text);
-  word-break: break-word;
-}
-
-.reporte-info-modal__value--inline {
-  display: inline-flex;
-  align-items: center;
-}
-
-.reporte-info-modal__desc {
-  margin: 0;
-  padding: 14px 16px;
-  font-family: var(--moon-font-sans);
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--moon-content-text);
-  background: #fff;
-  border: 1.337px solid var(--moon-content-border);
-  border-radius: 12px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  min-width: 0;
-}
+.rim__lightbox-close:hover { background: rgba(255,255,255,.32); }
