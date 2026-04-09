@@ -3,12 +3,20 @@ import NewAssetModal from "./NewAssetModal";
 import AssignResguardoModal from "./components/AssignResguardoModal";
 import ReleaseResguardoModal from "./components/ReleaseResguardoModal";
 import HistorialActivoModal from "./components/HistorialActivoModal";
+import ImportResultModal from "./components/ImportResultModal";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import Button from "../../../../components/Button/Button";
+import { toast } from "../../../../utils/toast.jsx";
+import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
+import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
+import "./Activos.css";
+import Pagination from "../../components/layout/Pagination.jsx";
+import ActivosCard from "./components/ActivosCard.jsx";
+import { importApi } from "../../../../api/importApi.js";
 import {
   ShopBag,
   GenericUser,
@@ -17,13 +25,6 @@ import {
   GenericPlus,
   FilesImport,
 } from "@heathmont/moon-icons";
-import { toast } from "../../../../utils/toast.jsx";
-import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
-import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
-import "./Activos.css";
-import Pagination from "../../components/layout/Pagination.jsx";
-import ActivosCard from "./components/ActivosCard.jsx";
-import { importApi } from "../../../../api/importApi.js";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
 
@@ -55,6 +56,7 @@ export default function Activos({
   const [modalAssignAsset, setModalAssignAsset] = useState(null);
   const [modalReleaseAsset, setModalReleaseAsset] = useState(null);
   const [modalHistorialAsset, setModalHistorialAsset] = useState(null);
+  const [importResult, setImportResult] = useState(null);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
@@ -105,21 +107,24 @@ export default function Activos({
         const result = await importApi.upload(file);
 
         if (result?.error) {
-          // Hubo rechazos, mostramos toast de error con el detalle por más tiempo
-          toast.error(
-            result.message || "Importación terminada con errores.",
-            8000,
-          );
+          // Hubo rechazos, mostramos modal de error con el detalle
+          setImportResult({
+            type: "error",
+            message: result.message || "Importación terminada con errores.",
+          });
         } else {
           // Todo perfecto
-          toast.success(
-            result?.message || "Activos importados correctamente",
-            5000,
-          );
+          setImportResult({
+            type: "success",
+            message: result?.message || "Activos importados correctamente",
+          });
         }
         await onRefresh?.();
       } catch (error) {
-        toast.error(error.message || "Error al importar el archivo");
+        setImportResult({
+          type: "error",
+          message: error.message || "Error al importar el archivo",
+        });
       } finally {
         e.target.value = null;
       }
@@ -305,6 +310,12 @@ export default function Activos({
         open={!!modalHistorialAsset}
         onClose={() => setModalHistorialAsset(null)}
         asset={modalHistorialAsset}
+      />
+      <ImportResultModal
+        open={!!importResult}
+        onClose={() => setImportResult(null)}
+        type={importResult?.type}
+        message={importResult?.message}
       />
     </div>
   );

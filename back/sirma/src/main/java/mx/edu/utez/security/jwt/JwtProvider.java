@@ -3,11 +3,10 @@ package mx.edu.utez.security.jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import mx.edu.utez.modules.auth.user_details.UserDetailsImp;
+import mx.edu.utez.modules.security.auth.user_details.UserDetailsImp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import jakarta.servlet.http.HttpServletRequest;
 
