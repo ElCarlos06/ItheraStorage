@@ -33,6 +33,7 @@ import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.components.PerfilHeader
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
 
+/*
 @Composable
 fun UserProfile(
     viewModel: EmpleadoViewModel = viewModel()
@@ -133,3 +134,4 @@ fun UserProfilePreview() {
     UserProfile(
     )
 }
+*/

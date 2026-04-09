@@ -25,6 +25,7 @@ import com.example.activos360.core.util.string
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.modals.AssetDetailModal
 import com.example.activos360.ui.screens.Empleado.TecnicoHome
+import com.example.activos360.ui.screens.Empleado.UserProfile
 import kotlinx.coroutines.launch
 
 @Composable
