@@ -73,7 +73,7 @@ class LoginViewModel : ViewModel() {
                         loggedRole = rolDelBackend
                         when (rolDelBackend.uppercase()) {
                             "EMPLEADO" -> _navegacionDestino.value = "home_empleado"
-                            "TECNICO" -> _navegacionDestino.value = "home_admin"
+                            "TECNICO" -> _navegacionDestino.value = "home_tecnico"
                             else -> errorMessage = "Rol desconocido: $rolDelBackend"
                         }
                     } else {

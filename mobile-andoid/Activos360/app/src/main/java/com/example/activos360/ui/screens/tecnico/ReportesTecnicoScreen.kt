@@ -55,25 +55,85 @@ fun ReportesTecnicoScreen(
     activoId: Long,
     mantenimientoId: Long,
     onBack: () -> Unit,
+    onNavigateToGenerarReporte: (Long, Long) -> Unit = { _, _ -> },
     viewModel: TecnicoReporteViewModel = viewModel()
 ) {
     var tabSeleccionada by remember { mutableStateOf(0) }
+    var showModalAtender by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState
 
     LaunchedEffect(activoId, mantenimientoId) {
         viewModel.load(activoId, mantenimientoId)
     }
 
+    // Modal de confirmación para "Atender"
+    if (showModalAtender) {
+        AlertDialog(
+            onDismissRequest = { showModalAtender = false },
+            title = {
+                Text(
+                    text = "Aceptar reporte",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "Al aceptar, la fecha de hoy quedará registrada como inicio del mantenimiento. El mantenimiento permanecerá abierto hasta que realices el cierre correspondiente.",
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showModalAtender = false
+                    viewModel.atender()
+                }) {
+                    Text("Aceptar", color = Color(0xFF7B88FF), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showModalAtender = false }) {
+                    Text("Cancelar", color = Color.Gray)
+                }
+            }
+        )
+    }
+
+    // Dialog de error al presionar "Atender"
+    uiState.atenderError?.let { errMsg ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearAtenderError() },
+            title = { Text("No se pudo atender") },
+            text = { Text(errMsg) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearAtenderError() }) {
+                    Text("OK", color = Color(0xFF7B88FF))
+                }
+            }
+        )
+    }
+
     Scaffold(
         bottomBar = {
-            // "Atender" solo aparece en la pestaña Reporte cuando el técnico puede atender
-            if (tabSeleccionada == 1 && uiState.puedeAtender) {
-                Box(modifier = Modifier.padding(24.dp)) {
-                    Buttons(
-                        text = if (uiState.isAtendiendo) "Procesando..." else "Atender",
-                        enabled = !uiState.isAtendiendo,
-                        onClick = { viewModel.atender() }
-                    )
+            when {
+                tabSeleccionada == 1 && uiState.puedeAtender -> {
+                    Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+                        Buttons(
+                            text = if (uiState.isAtendiendo) "Procesando..." else "Atender",
+                            enabled = !uiState.isAtendiendo,
+                            onClick = { showModalAtender = true }
+                        )
+                    }
+                }
+                tabSeleccionada == 1 && uiState.enProceso -> {
+                    Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+                        Buttons(
+                            text = "Cerrar mantenimiento",
+                            containerColor = Color(0xFF2ECC71),
+                            onClick = { onNavigateToGenerarReporte(activoId, mantenimientoId) }
+                        )
+                    }
                 }
             }
         }
@@ -111,7 +171,14 @@ fun ReportesTecnicoScreen(
                     modifier = Modifier.padding(24.dp)
                 )
             } else if (tabSeleccionada == 0) {
-                TabInformacion(uiState.activoEtiqueta, uiState.activoNombre, uiState.activoNumeroSerie, uiState.activoEstadoOperativo, uiState.activoEstadoCustodia, activoId)
+                TabInformacion(
+                    uiState.activoEtiqueta,
+                    uiState.activoNombre,
+                    uiState.activoNumeroSerie,
+                    uiState.activoEstadoOperativo,
+                    uiState.activoEstadoCustodia,
+                    activoId
+                )
             } else {
                 TabReporte(
                     etiqueta = uiState.activoEtiqueta,
@@ -126,18 +193,6 @@ fun ReportesTecnicoScreen(
                 )
             }
         }
-    }
-
-    // Dialog de error al presionar "Atender"
-    uiState.atenderError?.let { errMsg ->
-        AlertDialog(
-            onDismissRequest = { viewModel.clearAtenderError() },
-            title = { Text("No se pudo atender") },
-            text  = { Text(errMsg) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.clearAtenderError() }) { Text("OK") }
-            }
-        )
     }
 }
 

@@ -12,17 +12,26 @@ import com.example.activos360.back.api.ResguardoControllerApi
 import com.example.activos360.back.api.TipoFallaControllerApi
 import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.back.model.ModelApiResponse
+import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.ToJson
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Interceptor
+import java.math.BigDecimal
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
+/** Moshi no tiene adaptador nativo para BigDecimal (usado en MantenimientoDTO y AssetsDTO). */
+private class BigDecimalAdapter {
+    @ToJson fun toJson(value: BigDecimal): Double = value.toDouble()
+    @FromJson fun fromJson(value: Double): BigDecimal = value.toBigDecimal()
+}
+
 object ApiProvider {
     //private const val BASE_URL = "http://10.0.2.2:8080/"
     //private const val BASE_URL = "http://192.168.1.108:8080/"
-    private const val BASE_URL = "http://172.20.10.4:8080/"
+    private const val BASE_URL = "http://192.168.0.82:8080/"
     //private const val BASE_URL = "http://192.168.0.36:8080/"
     //private const val BASE_URL -= "http://10.77.175.46:8080/" //mena
     //private const val BASE_URL = "http://172.20.10.10:8080/"
@@ -32,7 +41,8 @@ object ApiProvider {
 
     private val moshi: Moshi by lazy {
         Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
+            .add(BigDecimalAdapter())       // soporte para java.math.BigDecimal
+            .add(KotlinJsonAdapterFactory()) // debe ir al final
             .build()
     }
 

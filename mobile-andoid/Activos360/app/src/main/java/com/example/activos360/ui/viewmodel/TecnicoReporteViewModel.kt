@@ -35,8 +35,9 @@ data class TecnicoReporteUiState(
     val fechaDisplay: String = "",
     val descripcion: String = "",
     val evidenciaUrls: List<String> = emptyList(),
-    // Botón Atender
+    // Botón Atender / Cerrar
     val puedeAtender: Boolean = false,
+    val enProceso: Boolean = false,
     val isAtendiendo: Boolean = false,
     val atenderError: String? = null
 )
@@ -90,6 +91,7 @@ class TecnicoReporteViewModel : ViewModel() {
 
                 val estadoMtn = mtnData?.string("estadoMantenimiento")?.lowercase() ?: ""
                 val puedeAtender = estadoMtn !in listOf("en proceso", "completado", "cerrado")
+                val enProceso = estadoMtn == "en proceso"
 
                 // ── Reporte completo (llamada separada para obtener usuarioReporta) ──
                 var tipoFalla = ""
@@ -207,7 +209,8 @@ class TecnicoReporteViewModel : ViewModel() {
                     fechaDisplay = formatearFecha(fechaRaw),
                     descripcion = descripcion,
                     evidenciaUrls = evidenciaUrls,
-                    puedeAtender = puedeAtender
+                    puedeAtender = puedeAtender,
+                    enProceso = enProceso
                 )
             } catch (e: Exception) {
                 uiState = uiState.copy(
@@ -234,7 +237,7 @@ class TecnicoReporteViewModel : ViewModel() {
                 )
                 val resp = ApiProvider.mantenimientoApi.update10(_mantenimientoId, dto)
                 if (resp.isSuccessful) {
-                    uiState = uiState.copy(isAtendiendo = false, puedeAtender = false)
+                    uiState = uiState.copy(isAtendiendo = false, puedeAtender = false, enProceso = true)
                     onSuccess()
                 } else {
                     val msg = resp.errorBody()?.string()?.take(120) ?: "Error ${resp.code()}"

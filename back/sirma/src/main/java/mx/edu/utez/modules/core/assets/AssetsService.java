@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -302,6 +303,21 @@ public class AssetsService {
     })
     public void evictAssetCache(Long id) {
         // La anotación realiza la evicción
+    }
+
+    /**
+     * Actualiza el estado operativo del activo en una transacción propia e independiente
+     * (REQUIRES_NEW) para evitar conflictos de lock con la transacción padre.
+     * Al confirmar inmediatamente el commit, el lock de fila se libera de forma temprana
+     * y se evitan timeouts de tipo "Lock wait timeout exceeded" en TiDB/MySQL.
+     *
+     * @param id     Identificador del activo.
+     * @param estado Nuevo valor de estadoOperativo.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void cambiarEstadoOperativoIndependiente(Long id, String estado) {
+        assetsRepository.updateEstadoOperativo(id, estado);
+        evictAssetCache(id);
     }
 
 }

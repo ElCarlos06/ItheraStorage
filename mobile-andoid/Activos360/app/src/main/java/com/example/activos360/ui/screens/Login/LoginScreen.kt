@@ -36,8 +36,8 @@ fun LoginScreen(
     onNavigateToForgotPassword: () -> Unit = {}
 ) {
     // Estados para los textos
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("20243ds085@utez.edu.mx") }
+    var password by remember { mutableStateOf("Carlos1!") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     // 1. OBSERVAMOS EL ESTADO DE NAVEGACIÓN DEL VIEWMODEL

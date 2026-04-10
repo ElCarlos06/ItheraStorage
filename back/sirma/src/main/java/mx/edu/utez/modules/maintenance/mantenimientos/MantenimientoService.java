@@ -1,6 +1,7 @@
 package mx.edu.utez.modules.maintenance.mantenimientos;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.core.assets.utils.AssetEstadoHelper;
 import mx.edu.utez.modules.core.assets.utils.AssetEstados;
@@ -39,6 +40,7 @@ import java.util.Optional;
  *
  * @author Ithera Team
  */
+@Log4j2
 @AllArgsConstructor
 @Service
 public class MantenimientoService {
@@ -192,6 +194,7 @@ public class MantenimientoService {
             return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
         Mantenimiento entity = found.get();
 
+        // Aplicar campos de texto en memoria (para el objeto de retorno)
         if (dto.getTipoEjecutado() != null) entity.setTipoEjecutado(dto.getTipoEjecutado());
         if (dto.getDiagnostico() != null) entity.setDiagnostico(dto.getDiagnostico());
         if (dto.getAccionesRealizadas() != null) entity.setAccionesRealizadas(dto.getAccionesRealizadas());
@@ -200,39 +203,74 @@ public class MantenimientoService {
         if (dto.getObservaciones() != null) entity.setObservaciones(dto.getObservaciones());
         if (dto.getCosto() != null) entity.setCosto(dto.getCosto());
 
-        if (dto.getEstadoMantenimiento() != null) {
-            entity.setEstadoMantenimiento(dto.getEstadoMantenimiento());
-            if ("En Proceso".equals(dto.getEstadoMantenimiento())) {
-                entity.setFechaInicio(LocalDateTime.now());
-                // El técnico inicia la atención: ahora sí el activo pasa a "Mantenimiento"
-                Long activoIdEp = entity.getActivo().getId();
-                String opAntEp  = entity.getActivo().getEstadoOperativo();
-                String custEp   = entity.getActivo().getEstadoCustodia();
-                assetsRepository.updateEstadoOperativo(activoIdEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
-                assetsService.evictAssetCache(activoIdEp);
+        if ("En Proceso".equals(dto.getEstadoMantenimiento())) {
+            // ── INICIO DE MANTENIMIENTO ──────────────────────────────────────────────
+            LocalDateTime ahora = LocalDateTime.now();
+            entity.setEstadoMantenimiento("En Proceso");
+            entity.setFechaInicio(ahora);
+
+            Long activoIdEp = entity.getActivo().getId();
+            String opAntEp  = entity.getActivo().getEstadoOperativo();
+            String custEp   = entity.getActivo().getEstadoCustodia();
+            // REQUIRES_NEW: commit propio e inmediato → libera el lock de fila en TiDB/MySQL
+            // sin esperar que la transacción padre termine, evitando "Lock wait timeout".
+            assetsService.cambiarEstadoOperativoIndependiente(activoIdEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
+            try {
                 bitacoraService.registrarEvento(activoIdEp, null, "Inicio Mantenimiento",
                         "El técnico " + entity.getUsuarioTecnico().getNombreCompleto() + " inició la atención",
                         custEp, custEp, opAntEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
+            } catch (Exception e) {
+                log.warn("Bitácora: no se pudo registrar 'Inicio Mantenimiento' para activo {}: {}", activoIdEp, e.getMessage());
             }
-            if ("Finalizado".equals(dto.getEstadoMantenimiento())) {
-                entity.setFechaFin(LocalDateTime.now());
-                Long activoId = entity.getActivo().getId();
-                String opAnt = entity.getActivo().getEstadoOperativo();
-                String cust = entity.getActivo().getEstadoCustodia();
-                String conclusion = dto.getConclusion() != null ? dto.getConclusion() : entity.getConclusion();
-                String nuevoOp = AssetEstadoHelper.operativoTrasCierreMantenimiento(conclusion);
-                assetsRepository.updateEstadoOperativo(activoId, nuevoOp);
-                assetsService.evictAssetCache(activoId);
-                String msg = AssetEstadoHelper.esConclusionIrreparable(conclusion)
-                        ? "Mantenimiento cerrado como Irreparable; activo permanece en Mantenimiento hasta baja aprobada"
-                        : "Mantenimiento finalizado: " + (conclusion != null ? conclusion : "Concluido");
+
+            // Actualización dirigida: solo toca estado_mantenimiento y fecha_inicio,
+            // evitando que Hibernate emita un UPDATE completo que podría chocar con
+            // restricciones ENUM de otras columnas en TiDB/MySQL.
+            mantenimientoRepository.updateEstadoInicio(id, "En Proceso", ahora);
+
+        } else if ("Finalizado".equals(dto.getEstadoMantenimiento())) {
+            // ── CIERRE DE MANTENIMIENTO ─────────────────────────────────────────────
+            LocalDateTime ahora = LocalDateTime.now();
+            entity.setEstadoMantenimiento("Finalizado");
+            entity.setFechaFin(ahora);
+
+            Long activoId = entity.getActivo().getId();
+            String opAnt  = entity.getActivo().getEstadoOperativo();
+            String cust   = entity.getActivo().getEstadoCustodia();
+            String conclusion = entity.getConclusion(); // ya actualizado en memoria arriba si dto lo trajo
+            String nuevoOp = AssetEstadoHelper.operativoTrasCierreMantenimiento(conclusion);
+            // REQUIRES_NEW: mismo patrón que "En Proceso" para evitar lock timeout.
+            assetsService.cambiarEstadoOperativoIndependiente(activoId, nuevoOp);
+            String msg = AssetEstadoHelper.esConclusionIrreparable(conclusion)
+                    ? "Mantenimiento cerrado como Irreparable; activo permanece en Mantenimiento hasta baja aprobada"
+                    : "Mantenimiento finalizado: " + (conclusion != null ? conclusion : "Concluido");
+            try {
                 bitacoraService.registrarEvento(activoId, null, "Cierre Mantenimiento",
-                        msg,
-                        cust, cust, opAnt, nuevoOp);
+                        msg, cust, cust, opAnt, nuevoOp);
+            } catch (Exception e) {
+                log.warn("Bitácora: no se pudo registrar 'Cierre Mantenimiento' para activo {}: {}", activoId, e.getMessage());
             }
+
+            // Actualización dirigida: solo los campos que cambian en el cierre.
+            mantenimientoRepository.updateCierre(
+                    id, "Finalizado", ahora,
+                    entity.getDiagnostico(),
+                    entity.getAccionesRealizadas(),
+                    entity.getPiezasUtilizadas(),
+                    conclusion,
+                    entity.getObservaciones(),
+                    entity.getTipoEjecutado(),
+                    entity.getCosto()
+            );
+
+        } else {
+            // ── ACTUALIZACIÓN GENERAL (sin cambio de estado crítico) ─────────────────
+            if (dto.getEstadoMantenimiento() != null) {
+                entity.setEstadoMantenimiento(dto.getEstadoMantenimiento());
+            }
+            mantenimientoRepository.save(entity);
         }
 
-        mantenimientoRepository.save(entity);
         return new ApiResponse("Mantenimiento actualizado", entity, HttpStatus.OK);
     }
 
@@ -269,9 +307,10 @@ public class MantenimientoService {
         // Si el técnico ya había iniciado ("En Proceso") el activo estaba en "Mantenimiento"; hay que revertirlo.
         // Si era "Asignado", el activo nunca cambió de "Reportado", así que solo limpiamos caché.
         if (!"Asignado".equals(estadoMtn)) {
-            assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_REPORTADO);
+            assetsService.cambiarEstadoOperativoIndependiente(activoId, AssetEstados.OPERATIVO_REPORTADO);
+        } else {
+            assetsService.evictAssetCache(activoId);
         }
-        assetsService.evictAssetCache(activoId);
         bitacoraService.registrarEvento(activoId, null, "Eliminación mantenimiento",
                 "Se eliminó la asignación de técnico; el reporte vuelve a la bandeja sin asignar.",
                 cust, cust, opAnt, AssetEstados.OPERATIVO_REPORTADO);

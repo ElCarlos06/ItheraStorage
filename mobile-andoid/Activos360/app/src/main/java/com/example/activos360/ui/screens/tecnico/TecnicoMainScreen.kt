@@ -119,7 +119,17 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
                 TecnicoHome()
             }
             composable("perfil") {
-                UserProfile()
+                UserProfile(
+                    onNavigateToChangePassword = {
+                        bottomNavController.navigate("change_password")
+                    },
+                    onLogout = {
+                        TokenManager.clear()
+                        navControllerPrincipal.navigate("login") {
+                            popUpTo(0)
+                        }
+                    }
+                )
             }
         }
     }

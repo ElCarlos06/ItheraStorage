@@ -12,6 +12,7 @@ import mx.edu.utez.security.jwt.JwtProvider;
 import mx.edu.utez.util.CustomException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -125,7 +126,7 @@ public class BitacoraService {
      * @param estadoOperativoAnterior Lo análogo del estado custodia, pero a nivel operativo.
      * @param estadoOperativoNuevo Última situación operativa resultante para guardar.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void registrarEvento(
             Long activoId,
             Long usuarioId,

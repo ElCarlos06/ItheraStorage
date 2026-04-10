@@ -17,6 +17,7 @@ import com.example.activos360.ui.screens.Empleado.details.DevolverActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import androidx.compose.runtime.remember
 import com.example.activos360.core.auth.TokenManager
+import com.example.activos360.ui.screens.tecnico.GenerarReporteScreen
 import com.example.activos360.ui.screens.tecnico.ReportesTecnicoScreen
 import com.example.activos360.ui.screens.tecnico.TecnicoMainScreen
 
@@ -160,7 +161,32 @@ fun Navigation() {
             ReportesTecnicoScreen(
                 activoId = activoId,
                 mantenimientoId = mantenimientoId,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToGenerarReporte = { aId, mId ->
+                    navController.navigate("generar_reporte/$aId/$mId")
+                }
+            )
+        }
+
+        composable(
+            route = "generar_reporte/{activoId}/{mantenimientoId}",
+            arguments = listOf(
+                navArgument("activoId") { type = NavType.LongType },
+                navArgument("mantenimientoId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val activoId = backStackEntry.arguments?.getLong("activoId") ?: 0L
+            val mantenimientoId = backStackEntry.arguments?.getLong("mantenimientoId") ?: 0L
+            GenerarReporteScreen(
+                activoId = activoId,
+                mantenimientoId = mantenimientoId,
+                onBack = { navController.popBackStack() },
+                onSuccess = {
+                    // Al finalizar, volvemos al home del técnico limpiando el stack
+                    navController.navigate("home_tecnico") {
+                        popUpTo("home_tecnico") { inclusive = false }
+                    }
+                }
             )
         }
 

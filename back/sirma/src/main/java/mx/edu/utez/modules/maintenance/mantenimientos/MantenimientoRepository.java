@@ -2,12 +2,17 @@ package mx.edu.utez.modules.maintenance.mantenimientos;
 
 import mx.edu.utez.modules.maintenance.mantenimientos.projections.MantenimientoProjection;
 import mx.edu.utez.modules.maintenance.mantenimientos.projections.TiempoPromedioProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +48,49 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
      * y solo muestra los que el técnico ya inició ('En Proceso', 'Finalizado', etc.).
      */
     Page<Mantenimiento> findByEstadoMantenimientoNot(String estado, Pageable pageable);
+
+    /**
+     * Actualización dirigida: solo modifica <code>estado_mantenimiento</code> y <code>fecha_inicio</code>.
+     * Evita tocar otras columnas que puedan tener restricciones de ENUM y previene errores de truncado.
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Mantenimiento m SET m.estadoMantenimiento = :estado, m.fechaInicio = :fechaInicio WHERE m.id = :id")
+    void updateEstadoInicio(
+            @Param("id") Long id,
+            @Param("estado") String estado,
+            @Param("fechaInicio") LocalDateTime fechaInicio
+    );
+
+    /**
+     * Actualización dirigida para el cierre del mantenimiento: modifica los campos diagnósticos,
+     * el estado final y la fecha de cierre sin tocar columnas con posibles restricciones.
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE Mantenimiento m
+        SET m.estadoMantenimiento = :estado,
+            m.fechaFin            = :fechaFin,
+            m.diagnostico         = :diagnostico,
+            m.accionesRealizadas  = :acciones,
+            m.piezasUtilizadas    = :piezas,
+            m.conclusion          = :conclusion,
+            m.observaciones       = :observaciones,
+            m.tipoEjecutado       = :tipoEjecutado,
+            m.costo               = :costo
+        WHERE m.id = :id
+    """)
+    void updateCierre(
+            @Param("id") Long id,
+            @Param("estado") String estado,
+            @Param("fechaFin") LocalDateTime fechaFin,
+            @Param("diagnostico") String diagnostico,
+            @Param("acciones") String acciones,
+            @Param("piezas") String piezas,
+            @Param("conclusion") String conclusion,
+            @Param("observaciones") String observaciones,
+            @Param("tipoEjecutado") String tipoEjecutado,
+            @Param("costo") BigDecimal costo
+    );
 
     /**
      * Calcula a los top 4 de técnicos basados sobre el total o número descenciente de tickets que exitosamente ellos hayan logrado concluir.

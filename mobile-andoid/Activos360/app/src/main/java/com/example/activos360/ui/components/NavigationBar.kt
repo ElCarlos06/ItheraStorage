@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import android.widget.Toast
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
@@ -38,11 +39,14 @@ fun BottomCustomBar(
     val colorInactivo = Color.Gray
 
     val context = LocalContext.current
-    val scannerOptions = GmsBarcodeScannerOptions.Builder()
-        .setBarcodeFormats(Barcode.FORMAT_QR_CODE) // Solo buscar QRs para que sea más rápido
-        .enableAutoZoom() // Hace zoom automático si el QR está lejos
-        .build()
-    val scanner = GmsBarcodeScanning.getClient(context, scannerOptions)
+    // remember evita que GmsBarcodeScanning.getClient() se llame en cada recomposición
+    val scanner = remember(context) {
+        val scannerOptions = GmsBarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+            .enableAutoZoom()
+            .build()
+        GmsBarcodeScanning.getClient(context, scannerOptions)
+    }
 
     Box(
         modifier = Modifier
