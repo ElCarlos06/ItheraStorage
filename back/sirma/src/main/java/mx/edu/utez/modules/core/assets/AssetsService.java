@@ -51,6 +51,7 @@ public class AssetsService {
     private final QRService qrService;
 
     private static final String QR_FILENAME = "QR_CODE";
+    private static final List<String> ESTADOS_RESGUARDO_ACTIVO = List.of("Pendiente", "Confirmado");
 
     /**
      * Obtiene una lista paginada de todos los activos que tienen estatus 'activo' (true).
@@ -67,22 +68,7 @@ public class AssetsService {
         // Mapear cada activo a DTO con su resguardo activo
         Page<AssetsDTO> dtoPage = page.map(asset -> {
             AssetsDTO dto = toDTO(asset);
-
-            // Buscar resguardo activo (Pendiente o Confirmado)
-            resguardosRepository
-                    .findFirstByActivoIdAndEstadoResguardoIn(
-                            asset.getId(),
-                            estados
-                    )
-                    .ifPresent(r -> {
-                        String nombre = null;
-                        if (r.getUsuarioEmpleado() != null)
-                            nombre = r.getUsuarioEmpleado().getNombreCompleto();
-
-                        dto.setAsignadoA(nombre);
-                        dto.setIdResguardo(r.getId());
-                    });
-
+            enrichWithResguardo(dto);
             return dto;
         });
 
@@ -90,10 +76,11 @@ public class AssetsService {
     }
 
     /**
-     * Busca un activo por ID y enriquece la respuesta con las URLs de sus imágenes asociadas.
+     * Busca un activo por ID y enriquece la respuesta con las URLs de sus imágenes
+     * y el resguardo activo asociado.
      *
      * @param id Identificador del activo.
-     * @return ApiResponse con el DTO del activo (incluyendo imágenes) o mensaje de error.
+     * @return ApiResponse con el DTO del activo o mensaje de error.
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "assets", key = "#id", unless = "#result.error")
@@ -105,8 +92,9 @@ public class AssetsService {
         Assets asset = found.get();
         AssetsDTO dto = toDTO(asset);
 
-        // Enriquecer DTO con imágenes
+        // FIX: ahora findById también enriquece con imágenes Y resguardo
         enrichWithImages(dto);
+        enrichWithResguardo(dto);
 
         return new ApiResponse("OK", dto, HttpStatus.OK);
     }
@@ -126,6 +114,25 @@ public class AssetsService {
                 .map(ImagenActivo::getUrlCloudinary)
                 .toList();
         dto.setImagenesPerfil(perfilImgs);
+    }
+
+    /**
+     * Enriquece el DTO del activo con el nombre del empleado resguardante activo
+     * y el ID del resguardo correspondiente.
+     * Un resguardo activo es aquel con estado "Pendiente" o "Confirmado".
+     *
+     * @param dto DTO del activo a enriquecer.
+     */
+    private void enrichWithResguardo(AssetsDTO dto) {
+        if (dto.getId() == null) return;
+
+        resguardosRepository
+                .findFirstByActivoIdAndEstadoResguardoIn(dto.getId(), ESTADOS_RESGUARDO_ACTIVO)
+                .ifPresent(r -> {
+                    if (r.getUsuarioEmpleado() != null)
+                        dto.setAsignadoA(r.getUsuarioEmpleado().getNombreCompleto());
+                    dto.setIdResguardo(r.getId());
+                });
     }
 
     /**
@@ -266,27 +273,19 @@ public class AssetsService {
     }
 
     /**
-     * Se encarga de juntar las estadisticas de los activos de esta semana vs la semana pasada, para luego calcular el porcentaje de cambio semanal.
-     * @return <code>ApiResponse</code> con las estadisticas mapeadas
+     * Se encarga de juntar las estadisticas de los activos de esta semana vs la semana pasada,
+     * para luego calcular el porcentaje de cambio semanal.
+     *
+     * @return ApiResponse con las estadisticas mapeadas
      */
     @Transactional(readOnly = true)
     public ApiResponse getAssetsStats() {
-        // Semana actual
-        // LocalDate hoy = LocalDate.now();
-        // LocalDate inicioEstaSemana = hoy.with(DayOfWeek.MONDAY);
-        // Obtiene la semana pasada a la actual xd
-        LocalDate week =  LocalDate.now().minusWeeks(1);
-        // Semana anterior del lunes a domingo del pasao
-        // LocalDate inicioSemanaAnterior = inicioEstaSemana.minusWeeks(1);
-        // LocalDate finSemanaAnterior = inicioEstaSemana.minusDays(1);
+        LocalDate week = LocalDate.now().minusWeeks(1);
 
-        // Proyecciones de la bd XD
-        AssetsProjection global = assetsRepository.findAssetsStatsGlobal(); // Totales globales sin filtro de fecha
-        AssetsProjection lastWeek = assetsRepository.findAssetsStatsOfLastWeek(week); // Totales de la semana anterior
-        // AssetsProjection estaSemana = assetsRepository.findAssetsStatsByWeek(inicioEstaSemana, hoy);
-        // AssetsProjection semanaAnterior = assetsRepository.findAssetsStatsByWeek(inicioSemanaAnterior, finSemanaAnterior);
+        AssetsProjection global = assetsRepository.findAssetsStatsGlobal();
+        AssetsProjection lastWeek = assetsRepository.findAssetsStatsOfLastWeek(week);
 
-        Map<String, Long> json = getJson(global, lastWeek); // La global y la semana anetrior
+        Map<String, Long> json = getJson(global, lastWeek);
 
         return new ApiResponse("Estadísticas de Activos", json, HttpStatus.OK);
     }

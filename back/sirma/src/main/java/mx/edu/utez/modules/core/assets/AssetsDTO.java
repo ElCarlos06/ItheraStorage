@@ -26,6 +26,11 @@ public class AssetsDTO {
     /** Identificador único del activo (nulo al crear). */
     private Long id;
 
+    /** Etiqueta generada automáticamente. */
+    @NotBlank
+    @Size(max = 100)
+    private String etiqueta;
+
     /** Número de serie proveniente del fabricante. */
     @NotBlank
     @Size(max = 100)
