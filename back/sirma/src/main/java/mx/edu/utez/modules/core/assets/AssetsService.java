@@ -144,6 +144,7 @@ public class AssetsService {
     private AssetsDTO toDTO(Assets entity) {
         AssetsDTO dto = new AssetsDTO();
         dto.setId(entity.getId());
+        dto.setEtiqueta(entity.getEtiqueta());
         dto.setNumeroSerie(entity.getNumeroSerie());
         dto.setIdTipoActivo(entity.getTipoActivo().getId());
         dto.setIdEspacio(entity.getEspacio().getId());
@@ -184,11 +185,17 @@ public class AssetsService {
         if (espacio.isEmpty())
             return new ApiResponse("Espacio no encontrado", true, HttpStatus.NOT_FOUND);
 
+        TipoActivo tipoActivoActual = tipoActivo.get();
+        Espacio espacioActual = espacio.get();
+
+        dto.setTipoActivo(tipoActivoActual);
+        dto.setEspacio(espacioActual);
+
         Assets entity = new Assets();
         entity.setEtiqueta(generateProductTag(dto));
         entity.setNumeroSerie(truncate(dto.getNumeroSerie(), 100));
-        entity.setTipoActivo(tipoActivo.get());
-        entity.setEspacio(espacio.get());
+        entity.setTipoActivo(tipoActivoActual);
+        entity.setEspacio(espacioActual);
         entity.setEstadoCustodia(normalizeEstadoCustodia(dto.getEstadoCustodia() != null ? dto.getEstadoCustodia() : "Disponible"));
         entity.setEstadoOperativo(truncate(dto.getEstadoOperativo() != null ? dto.getEstadoOperativo() : "OK", 10));
         entity.setDescripcion(truncate(dto.getDescripcion(), 255));

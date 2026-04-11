@@ -1,6 +1,7 @@
 package mx.edu.utez.modules.core.resguardos;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.core.assets.utils.AssetEstados;
 import mx.edu.utez.modules.core.assets.Assets;
@@ -24,6 +25,7 @@ import java.util.Optional;
  *
  * @author Ithera Team
  */
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ResguardoService {
@@ -98,9 +100,12 @@ public class ResguardoService {
         if (activo.isEmpty())
             return new ApiResponse("Activo no encontrado", true, HttpStatus.NOT_FOUND);
 
+        log.info("saving resguardo {}", dto);
+
         Optional<Resguardo> resguardoExistente = resguardoRepository
                 .findByActivoAndEstadoResguardo(activo.get(), "Pendiente");
 
+        log.info("resguardo existente {}", resguardoExistente);
         // Evita reasignar el activo a un empleado distinto mientras exista un resguardo pendiente.
         if (resguardoExistente.isPresent()) {
             User empleadoActual = resguardoExistente.get().getUsuarioEmpleado();
@@ -108,15 +113,21 @@ public class ResguardoService {
                 return new ApiResponse(
                         "El activo ya está asignado a otro empleado", true, HttpStatus.CONFLICT
                 );
+
+            log.info("Resguardo asignado a otro w {}", dto);
         }
 
+        log.info("Buscando empleado {}", dto.getIdUsuarioEmpleado());
         Optional<User> empleado = userRepository.findById(dto.getIdUsuarioEmpleado());
         if (empleado.isEmpty())
             return new ApiResponse("Empleado no encontrado", true, HttpStatus.NOT_FOUND);
+
+        log.info("Buscando admin {}", dto.getIdUsuarioAdmin());
         Optional<User> admin = userRepository.findById(dto.getIdUsuarioAdmin());
         if (admin.isEmpty())
             return new ApiResponse("Administrador no encontrado", true, HttpStatus.NOT_FOUND);
 
+        log.info("Creando entidad");
         Resguardo entity = new Resguardo();
         entity.setActivo(activo.get());
         entity.setUsuarioEmpleado(empleado.get());
@@ -124,16 +135,19 @@ public class ResguardoService {
         entity.setFechaAsignacion(LocalDateTime.now());
         entity.setObservacionesAsig(dto.getObservacionesAsig());
         entity.setEstadoResguardo("Pendiente");
+
+        log.info("Resguardo guardao {}", entity);
         resguardoRepository.save(entity);
 
         // Flujo de estatus: al asignar a empleado -> En Proceso (valor exacto del ENUM)
         Long activoId = activo.get().getId();
         String custAnt = activo.get().getEstadoCustodia();
-        assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_EN_PROCESO);
-        assetsService.evictAssetCache(activoId);
+        log.info("Registrando evento en bitácora para activo {}: {} -> En Proceso", activoId, custAnt);
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Asignacion Resguardo",
                 "Asignado a " + empleado.get().getNombreCompleto(),
                 custAnt, AssetEstados.CUSTODIA_EN_PROCESO, null, null);
+        assetsRepository.updateEstadoCustodia(activoId, AssetEstados.CUSTODIA_EN_PROCESO);
+        assetsService.evictAssetCache(activoId);
 
         return new ApiResponse("Resguardo registrado", entity, HttpStatus.CREATED);
     }

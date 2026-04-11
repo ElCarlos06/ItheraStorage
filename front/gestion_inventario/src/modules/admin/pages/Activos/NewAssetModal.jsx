@@ -29,7 +29,6 @@ export default function NewAssetModal({
 }) {
   const isEdit = !!initialData;
   const [form, setForm] = useState({
-    etiqueta: "",
     numeroSerie: "",
     idTipoActivo: "",
     costo: "",
@@ -139,7 +138,6 @@ export default function NewAssetModal({
       const tipoActivo = initialData.tipoActivo;
 
       setForm({
-        etiqueta: initialData.etiqueta ?? initialData.codigo ?? "",
         numeroSerie: initialData.numeroSerie ?? "",
         idTipoActivo: String(initialData.idTipoActivo ?? tipoActivo?.id ?? ""),
         costo: initialData.costo ?? "",
@@ -151,7 +149,6 @@ export default function NewAssetModal({
       });
     } else if (open) {
       setForm({
-        etiqueta: "",
         numeroSerie: "",
         idTipoActivo: "",
         costo: "",
@@ -167,9 +164,6 @@ export default function NewAssetModal({
   const validateField = (field, value) => {
     let errorMsg = null;
     switch (field) {
-      case "etiqueta":
-        if (!value?.trim()) errorMsg = "La etiqueta es obligatoria";
-        break;
       case "numeroSerie":
         if (!value?.trim()) errorMsg = "El número de serie es obligatorio";
         break;
@@ -220,7 +214,6 @@ export default function NewAssetModal({
   };
 
   const validarCampos = () => {
-    const isEtiquetaValid = validateField("etiqueta", form.etiqueta);
     const isNumeroSerieValid = validateField("numeroSerie", form.numeroSerie);
     const isTipoActivoValid = validateField("idTipoActivo", form.idTipoActivo);
     const isCampusValid = validateField("idCampus", form.idCampus);
@@ -228,7 +221,6 @@ export default function NewAssetModal({
     const isEspacioValid = validateField("idEspacio", form.idEspacio);
 
     const isValid =
-      isEtiquetaValid &&
       isNumeroSerieValid &&
       isTipoActivoValid &&
       isCampusValid &&
@@ -245,7 +237,6 @@ export default function NewAssetModal({
     e.preventDefault();
     if (!validarCampos()) return;
     const payload = {
-      etiqueta: form.etiqueta.trim(),
       numeroSerie: form.numeroSerie.trim(),
       idTipoActivo: form.idTipoActivo ? Number(form.idTipoActivo) : null,
       idEspacio: form.idEspacio ? Number(form.idEspacio) : null,
@@ -254,7 +245,6 @@ export default function NewAssetModal({
     };
     onGuardar?.(payload);
     setForm({
-      etiqueta: "",
       numeroSerie: "",
       idTipoActivo: "",
       costo: "",
@@ -268,7 +258,6 @@ export default function NewAssetModal({
 
   const handleClose = () => {
     setForm({
-      etiqueta: "",
       numeroSerie: "",
       idTipoActivo: "",
       costo: "",
@@ -313,17 +302,6 @@ export default function NewAssetModal({
       onSubmit={handleSubmit}
     >
       <div className="form-modal__row">
-        <div className="form-modal__field form-modal__field--flex">
-          <Input
-            label="Etiqueta*"
-            labelClassName="form-modal__label"
-            placeholder="ACT-001"
-            value={form.etiqueta}
-            onChange={handleChange("etiqueta")}
-            error={errors.etiqueta}
-            className="form-modal__input"
-          />
-        </div>
         <div className="form-modal__field form-modal__field--flex">
           <Input
             label="Número de Serie*"

@@ -1,4 +1,6 @@
-import StatusBadge, { normalizeStatus } from "../../../../../components/StatusBadge/StatusBadge";
+import StatusBadge, {
+  normalizeStatus,
+} from "../../../../../components/StatusBadge/StatusBadge";
 
 const LABELS_OPERATIVO = {
   disponible: "Disponible",
@@ -23,20 +25,22 @@ function badgeLabel(estado, labelMap) {
 }
 
 export default function AssetInfo({ item }) {
-  const normOp  = normalizeStatus(item.estadoOperativo);
+  const normOp = normalizeStatus(item.estadoOperativo);
   const normCus = normalizeStatus(item.estadoCustodia);
 
   // Mostramos "operativo" solo cuando añade información adicional a la custodia
   const showOperativo = normOp !== "disponible" && normOp !== normCus;
   // Siempre mostramos custodia
-  const showCustodia  = true;
+  const showCustodia = true;
 
   return (
     <div className="activos-view__asset-content">
       <div className="activos-view__asset-row activos-view__asset-row--1">
         <div className="activos-view__asset-col">
-          <p className="activos-view__asset-code">{item.codigo ?? "—"}</p>
-          <p className="activos-view__asset-desc">{item.descripcionCorta ?? "—"}</p>
+          <p className="activos-view__asset-code">{item.etiqueta ?? "—"}</p>
+          <p className="activos-view__asset-desc">
+            {item.descripcionCorta ?? "—"}
+          </p>
         </div>
         <div className="activos-view__asset-col">
           <p className="activos-view__asset-label">Activo</p>

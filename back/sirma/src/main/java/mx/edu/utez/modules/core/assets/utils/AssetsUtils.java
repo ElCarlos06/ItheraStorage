@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class AssetsUtils {
 
@@ -82,8 +83,11 @@ public class AssetsUtils {
         char tagEdificio   = getFirstChar(edificioStr);
         char tagCampus     = getFirstChar(campusStr);
 
-        // Separé todo en partes pq estaba hecho una cochinada gigante XD
-        return tagSerie + tagMarca + tagEspacio + tagEdificio + tagCampus;
+        // Opción más segura: UUID corto
+        String base = tagSerie + tagMarca + tagEspacio + tagEdificio + tagCampus;
+        String uid = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+
+        return base + "-" + uid;
     }
 
     /**

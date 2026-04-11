@@ -12,7 +12,6 @@ import mx.edu.utez.security.jwt.JwtProvider;
 import mx.edu.utez.util.CustomException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -126,7 +125,7 @@ public class BitacoraService {
      * @param estadoOperativoAnterior Lo análogo del estado custodia, pero a nivel operativo.
      * @param estadoOperativoNuevo Última situación operativa resultante para guardar.
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void registrarEvento(
             Long activoId,
             Long usuarioId,
@@ -145,21 +144,19 @@ public class BitacoraService {
             return;
         }
 
-        Optional<Assets> activo = assetsRepository.findById(activoId);
-        if (activo.isEmpty()) return;
-
-        Optional<User> usuario = userRepository.findById(uid);
-        if (usuario.isEmpty()) return;
+        Assets activo = assetsRepository.getReferenceById(activoId);
+        User usuario = userRepository.getReferenceById(uid);
 
         Bitacora b = new Bitacora();
-        b.setActivo(activo.get());
-        b.setUsuario(usuario.get());
+        b.setActivo(activo);
+        b.setUsuario(usuario);
         b.setTipoEvento(tipoEvento);
         b.setDescripcion(descripcion);
         b.setEstadoCustodiaAnterior(estadoCustodiaAnterior);
         b.setEstadoCustodiaNuevo(estadoCustodiaNuevo);
         b.setEstadoOperativoAnterior(estadoOperativoAnterior);
         b.setEstadoOperativoNuevo(estadoOperativoNuevo);
+
         bitacoraRepository.save(b);
     }
 

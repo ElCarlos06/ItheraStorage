@@ -27,7 +27,6 @@ public class AssetsDTO {
     private Long id;
 
     /** Etiqueta generada automáticamente. */
-    @NotBlank
     @Size(max = 100)
     private String etiqueta;
 
