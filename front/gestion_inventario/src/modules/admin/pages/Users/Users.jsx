@@ -61,7 +61,7 @@ export default function Users({
   const [modalEditUser, setModalEditUser] = useState(null);
   const [modalUser, setModalUser] = useState(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
-
+  const [errors, setErrors] = useState(null);
   const pageSize = 10;
   const stats = Array.isArray(statsProp) ? statsProp : [];
   const currentUserCorreo = getCurrentUserCorreo();
@@ -83,12 +83,16 @@ export default function Users({
   });
 
   const users = useMemo(() => {
-    if (usersProp !== undefined) return Array.isArray(usersProp) ? usersProp : [];
-    const list = Array.isArray(content) ? content : content?.content ?? content?.data?.content ?? [];
+    if (usersProp !== undefined)
+      return Array.isArray(usersProp) ? usersProp : [];
+    const list = Array.isArray(content)
+      ? content
+      : (content?.content ?? content?.data?.content ?? []);
     return list.map(mapUser).filter(Boolean);
   }, [usersProp, content]);
 
-  const loading = usersProp !== undefined ? (loadingProp ?? false) : queryLoading;
+  const loading =
+    usersProp !== undefined ? (loadingProp ?? false) : queryLoading;
   const error = usersProp !== undefined ? errorProp : queryError;
 
   const refreshUsers = () => {
@@ -143,7 +147,10 @@ export default function Users({
         subtitle="Administra cuentas y permisos del sistema"
       />
 
-      <section className="users-view d-flex flex-column min-vh-0" aria-label="Gestión de usuarios">
+      <section
+        className="users-view d-flex flex-column min-vh-0"
+        aria-label="Gestión de usuarios"
+      >
         <div className="users-view__stats row g-3 mb-4">
           {stats.map((stat, i) => (
             <div key={i} className="col-12 col-sm-6 col-xl-3">
@@ -197,82 +204,82 @@ export default function Users({
                   className="users-view__card-wrap"
                 >
                   <div className="users-view__card">
+                    <div
+                      className="users-view__card-inner d-flex align-items-center gap-4"
+                      title="Abre el panel con información completa del usuario"
+                    >
                       <div
-                        className="users-view__card-inner d-flex align-items-center gap-4"
-                        title="Abre el panel con información completa del usuario"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setModalUser(user)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && setModalUser(user)
+                        }
+                        aria-label="Ver información completa del usuario"
+                        className="users-view__card-body users-view__card-body--clickable"
                       >
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setModalUser(user)}
-                          onKeyDown={(e) =>
-                            e.key === "Enter" && setModalUser(user)
-                          }
-                          aria-label="Ver información completa del usuario"
-                          className="users-view__card-body users-view__card-body--clickable"
-                        >
-                          <div className="users-view__card-body-inner">
-                            <p className="users-view__numero">
-                              {user.numeroEmpleado}
-                            </p>
-                            <div className="users-view__data-row d-flex flex-wrap align-items-center">
-                              <div className="users-view__data-col">
-                                <p className="users-view__label">Rol</p>
-                                <p className="users-view__value">
-                                  {user.rol ?? "—"}
-                                </p>
-                              </div>
-                              <div className="users-view__data-col">
-                                <p className="users-view__label">
-                                  Nombre Completo
-                                </p>
-                                <p className="users-view__value">
-                                  {user.nombre ?? "—"}
-                                </p>
-                              </div>
-                              <div className="users-view__data-col">
-                                <p className="users-view__label">Curp</p>
-                                <p className="users-view__value">
-                                  {user.curp ?? "—"}
-                                </p>
-                              </div>
-                              <div className="users-view__data-col">
-                                <p className="users-view__label">Correo</p>
-                                <p className="users-view__value">
-                                  {user.correo ?? "—"}
-                                </p>
-                              </div>
-                              <div className="users-view__data-col">
-                                <p className="users-view__label">Área</p>
-                                <p className="users-view__value">
-                                  {user.area ?? "—"}
-                                </p>
-                              </div>
+                        <div className="users-view__card-body-inner">
+                          <p className="users-view__numero">
+                            {user.numeroEmpleado}
+                          </p>
+                          <div className="users-view__data-row d-flex flex-wrap align-items-center">
+                            <div className="users-view__data-col">
+                              <p className="users-view__label">Rol</p>
+                              <p className="users-view__value">
+                                {user.rol ?? "—"}
+                              </p>
+                            </div>
+                            <div className="users-view__data-col">
+                              <p className="users-view__label">
+                                Nombre Completo
+                              </p>
+                              <p className="users-view__value">
+                                {user.nombre ?? "—"}
+                              </p>
+                            </div>
+                            <div className="users-view__data-col">
+                              <p className="users-view__label">Curp</p>
+                              <p className="users-view__value">
+                                {user.curp ?? "—"}
+                              </p>
+                            </div>
+                            <div className="users-view__data-col">
+                              <p className="users-view__label">Correo</p>
+                              <p className="users-view__value">
+                                {user.correo ?? "—"}
+                              </p>
+                            </div>
+                            <div className="users-view__data-col">
+                              <p className="users-view__label">Área</p>
+                              <p className="users-view__value">
+                                {user.area ?? "—"}
+                              </p>
                             </div>
                           </div>
                         </div>
-                        <div className="users-view__card-actions d-flex align-items-center flex-shrink-0">
-                          <button
-                            type="button"
-                            className="users-view__action-btn users-view__action-btn--delete"
-                            title="Eliminar"
-                            onClick={() => setConfirmDeleteUser(user)}
-                          >
-                            <Icon icon={GenericDelete} size={30} />
-                          </button>
-                          <button
-                            type="button"
-                            className="users-view__action-btn"
-                            title="Editar"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setModalEditUser(user);
-                            }}
-                          >
-                            <Icon icon={GenericEdit} size={30} />
-                          </button>
-                        </div>
                       </div>
+                      <div className="users-view__card-actions d-flex align-items-center flex-shrink-0">
+                        <button
+                          type="button"
+                          className="users-view__action-btn users-view__action-btn--delete"
+                          title="Eliminar"
+                          onClick={() => setConfirmDeleteUser(user)}
+                        >
+                          <Icon icon={GenericDelete} size={30} />
+                        </button>
+                        <button
+                          type="button"
+                          className="users-view__action-btn"
+                          title="Editar"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalEditUser(user);
+                          }}
+                        >
+                          <Icon icon={GenericEdit} size={30} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))
@@ -320,7 +327,7 @@ export default function Users({
           if (!confirmDeleteUser?.id) return;
           try {
             await usersApi.toggleStatusUser(confirmDeleteUser.id);
-            setError(null);
+            setErrors(null);
             setConfirmDeleteUser(null);
             onEliminar?.(confirmDeleteUser);
             const deletedCorreo = (
@@ -337,7 +344,7 @@ export default function Users({
               toast.success("Usuario eliminado correctamente");
             }
           } catch (err) {
-            setError(err.message);
+            setErrors(err.message);
             toast.error(err.message);
           }
         }}
