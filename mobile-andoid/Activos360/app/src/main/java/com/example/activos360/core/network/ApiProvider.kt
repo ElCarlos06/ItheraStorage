@@ -30,8 +30,8 @@ private class BigDecimalAdapter {
 
 object ApiProvider {
     //private const val BASE_URL = "http://10.0.2.2:8080/"
-    //private const val BASE_URL = "http://192.168.1.108:8080/"
-    private const val BASE_URL = "http://192.168.0.82:8080/"
+    private const val BASE_URL = "http://192.168.1.108:8080/"
+    //private const val BASE_URL = "http://192.168.0.82:8080/"
     //private const val BASE_URL = "http://192.168.0.36:8080/"
     //private const val BASE_URL -= "http://10.77.175.46:8080/" //mena
     //private const val BASE_URL = "http://172.20.10.10:8080/"

@@ -251,17 +251,19 @@ private fun TabReporte(
     fechaDisplay: String,
     descripcion: String,
     evidenciaUrls: List<String>
+
 ) {
+    MainAssetCard(
+        id = etiqueta.ifBlank { "Activo" },
+        nombre = nombre.ifBlank { etiqueta }
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 8.dp)
     ) {
-        MainAssetCard(
-            id = etiqueta.ifBlank { "Activo" },
-            nombre = nombre.ifBlank { etiqueta }
-        )
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

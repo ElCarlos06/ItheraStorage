@@ -13,10 +13,10 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="AtenderMantenimientoPreview">
+      <SelectionState runConfigName="previewConfirmarResguardo">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="previewConfirmarResguardo">
+      <SelectionState runConfigName="Vista Detalle Técnico - Pestañas - DetalleReporteTecnicoPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
