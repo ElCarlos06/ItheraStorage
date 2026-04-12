@@ -3,8 +3,8 @@ package com.example.activos360.ui.screens.Empleado.details
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,14 +13,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +46,9 @@ import com.example.activos360.ui.components.EvidenciasSection
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
 import com.example.activos360.ui.viewmodel.AssetDetailViewModel
+
+// Tres estados posibles por cada ítem del checklist
+private enum class CheckState { OK, FALLA, NO_APLICA }
 
 private val CHECKLIST_ITEMS = listOf(
     "¿Enciende correctamente?",
@@ -52,11 +62,34 @@ fun ConfirmarResguardoScreen(
     activoId: Long,
     onBack: () -> Unit,
     onConfirmed: () -> Unit,
+    onReportarDano: () -> Unit = {},
     viewModel: AssetDetailViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val checks = remember { mutableStateListOf(false, false, false, false) }
+    val vmState = viewModel.uiState   // Observamos el estado del ViewModel
+
+    // Estado inicial: FALLA para que el empleado confirme activamente cada punto
+    val checks = remember { mutableStateListOf(*Array(CHECKLIST_ITEMS.size) { CheckState.FALLA }) }
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var showModalFallas by remember { mutableStateOf(false) }
+
+    // Flag que indica si después de confirmar hay que ir al reporte de daño
+    var irAReporteAlConfirmar by remember { mutableStateOf(false) }
+    // Centinela: se pone a true cuando el ViewModel reporta éxito en el onSuccess callback
+    var confirmacionExitosa by remember { mutableStateOf(false) }
+
+    // LaunchedEffect reacciona al éxito del ViewModel en el hilo principal de Compose,
+    // lo cual garantiza que NavController está listo para navegar.
+    LaunchedEffect(confirmacionExitosa) {
+        if (confirmacionExitosa) {
+            confirmacionExitosa = false
+            if (irAReporteAlConfirmar) {
+                onReportarDano()
+            } else {
+                onConfirmed()
+            }
+        }
+    }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -64,25 +97,107 @@ fun ConfirmarResguardoScreen(
         uri?.let { if (fotos.size < 3) fotos = fotos + it }
     }
 
+    // Construye el checklist y llama al ViewModel.
+    // paraReporte = true  → después de confirmar navega al reporte de daño
+    // paraReporte = false → después de confirmar vuelve al home normal
+    fun doConfirmar(paraReporte: Boolean = false) {
+        irAReporteAlConfirmar = paraReporte
+        val checklistStr = CHECKLIST_ITEMS.mapIndexed { i, nombre ->
+            val estado = when (checks.getOrElse(i) { CheckState.FALLA }) {
+                CheckState.OK        -> "OK"
+                CheckState.NO_APLICA -> "N/A"
+                CheckState.FALLA     -> "NO"
+            }
+            "$nombre=$estado"
+        }.joinToString("; ")
+        val observaciones = "Checklist: $checklistStr | Fotos: ${fotos.size}"
+        viewModel.confirmarResguardo(
+            activoId = activoId,
+            observaciones = observaciones,
+            fotos = fotos,
+            context = context,
+            onSuccess = { confirmacionExitosa = true }   // activa el LaunchedEffect
+        )
+    }
+
+    // ── Diálogo de error del ViewModel ──────────────────────────────────────────
+    vmState.errorMessage?.let { err ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearError() },
+            title = {
+                Text(
+                    text = "No se pudo confirmar",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp
+                )
+            },
+            text = { Text(text = err, fontSize = 14.sp, lineHeight = 20.sp) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearError() }) {
+                    Text("Entendido", color = Color(0xFF7B88FF))
+                }
+            }
+        )
+    }
+
+    // ── Modal: ítems con posible falla ──────────────────────────────────────────
+    if (showModalFallas) {
+        AlertDialog(
+            onDismissRequest = { showModalFallas = false },
+            title = {
+                Text(
+                    text = "Posibles daños detectados",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "Uno o más puntos del checklist no fueron marcados como OK. " +
+                            "Se confirmará el resguardo y a continuación podrás generar " +
+                            "un reporte de daño. ¿Deseas continuar?",
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showModalFallas = false
+                    doConfirmar(paraReporte = true)   // confirma resguardo → luego abre reporte
+                }) {
+                    Text(
+                        text = "Sí, reportar daño",
+                        color = Color(0xFFE53E3E),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showModalFallas = false
+                    doConfirmar(paraReporte = false)  // confirma resguardo → vuelve al home
+                }) {
+                    Text(text = "No, cancelar", color = Color(0xFF7B88FF))
+                }
+            }
+        )
+    }
+
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             Box(modifier = Modifier.padding(24.dp)) {
                 Buttons(
-                    text = "Confirmar Resguardo",
+                    text = if (vmState.isLoading) "Confirmando..." else "Confirmar Resguardo",
+                    enabled = !vmState.isLoading,
                     onClick = {
-                        val checklistStr = CHECKLIST_ITEMS.mapIndexed { i, nombre ->
-                            "$nombre=${if (checks.getOrElse(i) { false }) "OK" else "NO"}"
-                        }.joinToString("; ")
-                        val observaciones = "Checklist: $checklistStr | Fotos: ${fotos.size}"
-                        viewModel.confirmarResguardo(
-                            activoId = activoId,
-                            observaciones = observaciones,
-                            fotos = fotos,
-                            context = context,
-                            onSuccess = {
-                                onConfirmed()
-                            }
-                        )
+                        // Si algún ítem sigue en FALLA (no confirmado OK ni marcado N/A) → modal
+                        val tieneFallas = checks.any { it == CheckState.FALLA }
+                        if (tieneFallas) {
+                            showModalFallas = true
+                        } else {
+                            doConfirmar()
+                        }
                     }
                 )
             }
@@ -98,29 +213,70 @@ fun ConfirmarResguardoScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             MainAssetCard(id = "ACTIVO #$activoId", nombre = "Activo")
+
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 CHECKLIST_ITEMS.forEachIndexed { index, texto ->
+                    val estado = checks[index]
+                    val esNA = estado == CheckState.NO_APLICA
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = texto, color = Color(0xFF2D3436), fontSize = 15.sp)
+                        // Texto del ítem — atenuado si N/A
+                        Text(
+                            text = texto,
+                            color = if (esNA) Color(0xFFB2BEC3) else Color(0xFF2D3436),
+                            fontSize = 15.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // Chip "N/A" — alterna entre NO_APLICA y FALLA
+                        Surface(
+                            onClick = {
+                                checks[index] =
+                                    if (esNA) CheckState.FALLA else CheckState.NO_APLICA
+                            },
+                            shape = RoundedCornerShape(6.dp),
+                            color = if (esNA) Color(0xFFEEEFF8) else Color.Transparent,
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = if (esNA) Color(0xFF7B88FF) else Color(0xFFDFE3E8)
+                            )
+                        ) {
+                            Text(
+                                text = "N/A",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontSize = 12.sp,
+                                fontWeight = if (esNA) FontWeight.Bold else FontWeight.Normal,
+                                color = if (esNA) Color(0xFF7B88FF) else Color(0xFFB2BEC3)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // Checkbox OK — deshabilitado si N/A está activo
                         Checkbox(
-                            checked = checks[index],
-                            onCheckedChange = { checks[index] = it },
-                            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF7B88FF))
+                            checked = estado == CheckState.OK,
+                            onCheckedChange = { checked ->
+                                if (!esNA) {
+                                    checks[index] = if (checked) CheckState.OK else CheckState.FALLA
+                                }
+                            },
+                            enabled = !esNA,
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color(0xFF7B88FF),
+                                disabledUncheckedColor = Color(0xFFDFE3E8)
+                            )
                         )
                     }
                     HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F2F6))

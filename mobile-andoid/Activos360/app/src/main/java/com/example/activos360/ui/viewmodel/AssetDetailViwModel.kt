@@ -27,6 +27,8 @@ data class AssetDetailUiState(
     val resguardos: List<Map<String, Any?>> = emptyList(),
     val canResguardar: Boolean = false,
     val resguardoPendienteId: Long? = null,
+    // true si el usuario actual tiene un resguardo CONFIRMADO de este activo
+    val esResguardadoPorMiUsuario: Boolean = false,
 
     // --- LO QUE INVENTÓ CURSOR Y AHORA HACEMOS REALIDAD ---
     val isVisible: Boolean = false,
@@ -64,13 +66,15 @@ class AssetDetailViewModel : ViewModel() {
                 } else emptyList()
 
                 val (canResguardar, resguardoPendienteId) = computeResguardar(activoData, resguardosList)
+                val esResguardadoPorMiUsuario = computeEsResguardadoPorMiUsuario(resguardosList)
 
                 uiState = uiState.copy(
                     isLoading = false,
                     activo = activoData,
                     resguardos = resguardosList,
                     canResguardar = canResguardar,
-                    resguardoPendienteId = resguardoPendienteId
+                    resguardoPendienteId = resguardoPendienteId,
+                    esResguardadoPorMiUsuario = esResguardadoPorMiUsuario
                 )
             } catch (e: Exception) {
                 uiState = uiState.copy(
@@ -118,6 +122,19 @@ class AssetDetailViewModel : ViewModel() {
         }
         val can = enProceso && pendiente != null
         return can to pendiente?.first
+    }
+
+    /**
+     * Devuelve true si el usuario en sesión tiene un resguardo CONFIRMADO sobre este activo.
+     * Solo los empleados con resguardo confirmado pueden ver "Reportar daño" y "Devolver Activo".
+     */
+    private fun computeEsResguardadoPorMiUsuario(resguardos: List<Map<String, Any?>>): Boolean {
+        val userId = TokenManager.getUserIdFromToken() ?: return false
+        return resguardos.any { r ->
+            val estado = r.string("estadoResguardo")?.trim()?.lowercase()
+            val empleadoId = (r["usuarioEmpleado"].asMap())?.long("id")
+            (estado == "confirmado" || estado == "resguardado") && empleadoId == userId
+        }
     }
 
     fun confirmarResguardo(
@@ -178,6 +195,10 @@ class AssetDetailViewModel : ViewModel() {
                 )
             }
         }
+    }
+
+    fun clearError() {
+        uiState = uiState.copy(errorMessage = null)
     }
 
     private suspend fun subirFotosActivo(activoId: Long, fotos: List<Uri>, context: Context) {

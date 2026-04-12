@@ -72,6 +72,7 @@ fun ReportarDanoScreen(
     }
 
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             Column(
                 modifier = Modifier

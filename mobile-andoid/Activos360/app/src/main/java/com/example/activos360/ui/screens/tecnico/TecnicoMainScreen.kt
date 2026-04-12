@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -16,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.core.network.ApiProvider
 import com.example.activos360.core.util.QrParse
@@ -33,16 +36,24 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
     Log.d("TECNICO_SCAN", "=== TecnicoMainScreen COMPUESTO ===")
     val bottomNavController = rememberNavController()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var showModal by remember { mutableStateOf(false) }
     var codigoEscaneado by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             BottomCustomBar(
                 navController = bottomNavController,
                 onQrScanned = { codigo ->
                     scope.launch {
+                        // Validar estructura del QR antes de resolver — sin llamadas de red
+                        if (!QrParse.isActivoQrFormat(codigo)) {
+                            Toast.makeText(context, "Este QR no es de un activo", Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+
                         val activoId = try { QrParse.resolveActivoId(codigo) ?: 0L } catch (_: Exception) { 0L }
                         var navegoDirecto = false
                         try {

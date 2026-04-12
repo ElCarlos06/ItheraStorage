@@ -27,9 +27,9 @@ private val ColorMedia = Color(0xFFFFB319)
 private val ColorAlta = Color(0xFFD3304A)
 
 private fun chipColor(option: String): Color = when (option.lowercase()) {
-    "baja" -> ColorBaja
+    "baja", "reparado" -> ColorBaja
     "media" -> ColorMedia
-    "alta" -> ColorAlta
+    "alta", "irreparable" -> ColorAlta
     else -> ColorMedia
 }
 

@@ -66,6 +66,7 @@ fun DevolverActivoScreen(
     }
 
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             Column(
                 modifier = Modifier

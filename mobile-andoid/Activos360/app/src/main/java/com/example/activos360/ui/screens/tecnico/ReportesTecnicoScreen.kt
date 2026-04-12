@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.BusinessCenter
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -115,6 +117,7 @@ fun ReportesTecnicoScreen(
     }
 
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             when {
                 tabSeleccionada == 1 && uiState.puedeAtender -> {
@@ -130,7 +133,6 @@ fun ReportesTecnicoScreen(
                     Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
                         Buttons(
                             text = "Cerrar mantenimiento",
-                            containerColor = Color(0xFF2ECC71),
                             onClick = { onNavigateToGenerarReporte(activoId, mantenimientoId) }
                         )
                     }
@@ -172,12 +174,17 @@ fun ReportesTecnicoScreen(
                 )
             } else if (tabSeleccionada == 0) {
                 TabInformacion(
-                    uiState.activoEtiqueta,
-                    uiState.activoNombre,
-                    uiState.activoNumeroSerie,
-                    uiState.activoEstadoOperativo,
-                    uiState.activoEstadoCustodia,
-                    activoId
+                    etiqueta            = uiState.activoEtiqueta,
+                    tipoActivoNombre    = uiState.tipoActivoNombre,
+                    tipoActivoMarca     = uiState.tipoActivoMarca,
+                    tipoActivoModelo    = uiState.tipoActivoModelo,
+                    numeroSerie         = uiState.activoNumeroSerie,
+                    estadoOperativo     = uiState.activoEstadoOperativo,
+                    estadoCustodia      = uiState.activoEstadoCustodia,
+                    costo               = uiState.activoCosto,
+                    descripcion         = uiState.activoDescripcion,
+                    empleadoResguardante = uiState.empleadoResguardante,
+                    activoId            = activoId
                 )
             } else {
                 TabReporte(
@@ -199,10 +206,15 @@ fun ReportesTecnicoScreen(
 @Composable
 private fun TabInformacion(
     etiqueta: String,
-    nombre: String,
+    tipoActivoNombre: String,
+    tipoActivoMarca: String,
+    tipoActivoModelo: String,
     numeroSerie: String,
     estadoOperativo: String,
     estadoCustodia: String,
+    costo: String?,
+    descripcion: String,
+    empleadoResguardante: String,
     activoId: Long
 ) {
     Column(
@@ -212,27 +224,39 @@ private fun TabInformacion(
             .padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Card 1: Tipo de activo (pequeño) + Etiqueta (grande)
         MainAssetCard(
-            id = etiqueta.ifBlank { "ACTIVO #$activoId" },
-            nombre = nombre.ifBlank { "Activo #$activoId" }
+            id     = tipoActivoNombre.ifBlank { "Activo" },
+            nombre = etiqueta.ifBlank { "ACTIVO #$activoId" }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
+        // Card 2: Marca
         InfoCard(
-            imageVector = Icons.Outlined.BookmarkBorder,
-            label = "Etiqueta",
-            value = etiqueta.ifBlank { "-" }
-        )
-        InfoCard(
-            imageVector = Icons.Outlined.GridView,
-            label = "Estado custodia",
-            value = estadoCustodia.ifBlank { "-" }
+            imageVector = Icons.Outlined.BusinessCenter,
+            label = "Marca",
+            value = tipoActivoMarca.ifBlank { "-" }
         )
 
+        // Card 3: Modelo
+        InfoCard(
+            imageVector = Icons.Outlined.Build,
+            label = "Modelo",
+            value = tipoActivoModelo.ifBlank { "-" }
+        )
+
+        // Card 4: Características
         CaracteristicasSeccion(
             lista = listOfNotNull(
-                "Número de serie: ${numeroSerie.ifBlank { "-" }}",
-                "Estado operativo: ${estadoOperativo.ifBlank { "-" }}"
+                tipoActivoNombre.takeIf { it.isNotBlank() }
+                    ?.let { "Tipo de activo: $it" },
+                numeroSerie.takeIf { it.isNotBlank() }
+                    ?.let { "Número de serie: $it" },
+                costo?.let { "Costo: $it" },
+                descripcion.takeIf { it.isNotBlank() }
+                    ?.let { "Descripción: $it" },
+                empleadoResguardante.takeIf { it.isNotBlank() }
+                    ?.let { "Resguardado por: $it" }
             )
         )
 
@@ -255,7 +279,7 @@ private fun TabReporte(
 ) {
     MainAssetCard(
         id = etiqueta.ifBlank { "Activo" },
-        nombre = nombre.ifBlank { etiqueta }
+        nombre = etiqueta.ifBlank { etiqueta }
     )
     Column(
         modifier = Modifier

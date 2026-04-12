@@ -4,6 +4,31 @@ import com.example.activos360.core.network.ApiProvider
 import org.json.JSONObject
 
 object QrParse {
+
+    /**
+     * Comprueba si el texto escaneado tiene la estructura reconocida de un QR de activo
+     * sin hacer ninguna llamada de red.
+     *
+     * Formatos válidos:
+     *  - `{"v":2,"p":"<token>"}` — formato actual (v2 opaco)
+     *  - `{"id": N}`             — formato legado
+     *  - número puro             — formato legado simplificado
+     *
+     * Cualquier otro texto (URL, texto libre, QR de otro sistema) devuelve false.
+     */
+    fun isActivoQrFormat(raw: String): Boolean {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return false
+        if (trimmed.toLongOrNull() != null) return true      // número puro
+        return try {
+            val json = JSONObject(trimmed)
+            (json.optInt("v", 0) == 2 && json.has("p"))     // v2: {"v":2,"p":"..."}
+                    || json.has("id")                         // legado: {"id": N}
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     /**
      * Formato legado: JSON con [id], número solo, o texto con dígitos.
      * Formato seguro v2 (`{"v":2,"p":"..."}`) no devuelve id aquí; usa [resolveActivoId].

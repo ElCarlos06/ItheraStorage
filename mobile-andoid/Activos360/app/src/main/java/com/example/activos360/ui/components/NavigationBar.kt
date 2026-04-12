@@ -153,7 +153,7 @@ fun BottomCustomBar(
                             // Cuando escanea con éxito, sacamos el texto del QR
                             val qrResult = barcode.rawValue ?: ""
                             onQrScanned(qrResult)
-                            Toast.makeText(context, "QR Escaneado: $qrResult", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Obteniendo información", Toast.LENGTH_LONG).show()
 
                             // OPCIONAL: Aquí podrías navegar a otra pantalla pasando el QR
                             // navController.navigate("detalle_activo/$qrResult")

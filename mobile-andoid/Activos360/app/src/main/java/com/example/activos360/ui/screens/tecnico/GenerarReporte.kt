@@ -4,11 +4,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,8 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Buttons
+import com.example.activos360.ui.components.ChipSelector
 import com.example.activos360.ui.components.EvidenciasSection
 import com.example.activos360.ui.components.HeaderRegresar
 import com.example.activos360.ui.components.MainAssetCard
@@ -62,8 +58,8 @@ fun GenerarReporteScreen(
     var accionesRealizadas by remember { mutableStateOf("") }
     var piezasUtilizadas by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
-    // null = sin selección, "Reparado" o "Irreparable"
-    var resultado by remember { mutableStateOf<String?>(null) }
+    // "" = sin selección, "Reparado" o "Irreparable"
+    var resultado by remember { mutableStateOf("") }
     val fotos = remember { mutableStateListOf<Uri>() }
 
     var showModalIrreparable by remember { mutableStateOf(false) }
@@ -151,6 +147,7 @@ fun GenerarReporteScreen(
     }
 
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             if (!uiState.isLoading) {
                 Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
@@ -158,7 +155,7 @@ fun GenerarReporteScreen(
                         text = if (uiState.isGuardando) "Guardando..." else "Finalizar mantenimiento",
                         enabled = !uiState.isGuardando,
                         onClick = {
-                            if (diagnostico.isBlank() || resultado == null) {
+                            if (diagnostico.isBlank() || resultado.isBlank()) {
                                 showModalIncompleto = true
                                 return@Buttons
                             }
@@ -262,33 +259,12 @@ fun GenerarReporteScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Sección resultado
-                Text(
-                    text = "Resultado del mantenimiento *",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = Color(0xFF2D3436)
+                ChipSelector(
+                    label = "Resultado del mantenimiento *",
+                    options = listOf("Reparado", "Irreparable"),
+                    selected = resultado,
+                    onSelect = { resultado = it }
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    BotonResultado(
-                        text = "Equipo Reparado",
-                        seleccionado = resultado == "Reparado",
-                        colorActivo = Color(0xFF2ECC71),
-                        modifier = Modifier.weight(1f),
-                        onClick = { resultado = "Reparado" }
-                    )
-                    BotonResultado(
-                        text = "Equipo Irreparable",
-                        seleccionado = resultado == "Irreparable",
-                        colorActivo = Color(0xFFE53E3E),
-                        modifier = Modifier.weight(1f),
-                        onClick = { resultado = "Irreparable" }
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(40.dp))
             }
@@ -335,35 +311,3 @@ private fun CampoTexto(
     }
 }
 
-@Composable
-private fun BotonResultado(
-    text: String,
-    seleccionado: Boolean,
-    colorActivo: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier
-            .height(52.dp)
-            .then(
-                if (!seleccionado) Modifier.border(1.5.dp, Color(0xFFE0E0E0), RoundedCornerShape(14.dp))
-                else Modifier
-            ),
-        shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (seleccionado) colorActivo else Color(0xFFF8F9FE),
-            contentColor = if (seleccionado) Color.White else Color(0xFF636E72)
-        ),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = if (seleccionado) 3.dp else 0.dp
-        )
-    ) {
-        Text(
-            text = text,
-            fontSize = 13.sp,
-            fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
-        )
-    }
-}

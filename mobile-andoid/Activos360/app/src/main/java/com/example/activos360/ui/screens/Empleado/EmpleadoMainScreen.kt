@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import android.net.Uri
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -26,12 +27,15 @@ import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import com.example.activos360.ui.screens.Login.ScreeanChangePassword
 import com.example.activos360.core.auth.TokenManager
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 
 @Composable
 fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
     // 1. Creamos un controlador para nav entre Scanner y Perfil
     val bottomNavController = rememberNavController()
+    val context = LocalContext.current
 
     var showModal by remember { mutableStateOf(false) }
     var codigoEscaneado by remember { mutableStateOf("") }
@@ -39,14 +43,18 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
 
     // 2. Scaffold
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             // Le pasamos el controlador para que los botones sepan a dónde ir
             BottomCustomBar(
                 navController = bottomNavController,
                 onQrScanned = { codigo ->
-                    // Cuando la barra escanea, guardamos el código y mostramos el modal
-                    codigoEscaneado = codigo
-                    showModal = true
+                    if (!QrParse.isActivoQrFormat(codigo)) {
+                        Toast.makeText(context, "Este QR no es de un activo", Toast.LENGTH_SHORT).show()
+                    } else {
+                        codigoEscaneado = codigo
+                        showModal = true
+                    }
                 }
             )
         }
@@ -107,7 +115,6 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
                 val idStr = backStackEntry.arguments?.getString("id") ?: "0"
 
                 ConfirmarResguardoScreen(
-
                     activoId = idStr.toLong(),
                     onBack = { navControllerPrincipal.popBackStack() },
                     onConfirmed = {
@@ -116,6 +123,12 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
                         navControllerPrincipal.navigate("scanner") {
                             popUpTo(navControllerPrincipal.graph.startDestinationId) { inclusive = true }
                         }
+                    },
+                    onReportarDano = {
+                        // Navegar al formulario de reporte de daño sin confirmar el resguardo
+                        navControllerPrincipal.navigate(
+                            "reportar_dano/$idStr/${Uri.encode("Activo")}/${Uri.encode("Activo #$idStr")}"
+                        )
                     }
                 )
             }

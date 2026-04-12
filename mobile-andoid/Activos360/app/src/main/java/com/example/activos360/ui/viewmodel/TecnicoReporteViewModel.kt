@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activos360.back.model.MantenimientoDTO
+import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.core.network.ApiProvider
 import com.example.activos360.core.util.asMap
 import com.example.activos360.core.util.long
@@ -16,6 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 data class TecnicoReporteUiState(
@@ -27,6 +29,14 @@ data class TecnicoReporteUiState(
     val activoNumeroSerie: String = "",
     val activoEstadoOperativo: String = "",
     val activoEstadoCustodia: String = "",
+    // Campos de TipoActivo (marca y modelo están aquí en el back)
+    val tipoActivoNombre: String = "",
+    val tipoActivoMarca: String = "",
+    val tipoActivoModelo: String = "",
+    // Más campos del activo
+    val activoCosto: String? = null,
+    val activoDescripcion: String = "",
+    val empleadoResguardante: String = "",
     // Reporte (tab Reporte)
     val tipoFalla: String = "",
     val prioridad: String = "",
@@ -61,21 +71,61 @@ class TecnicoReporteViewModel : ViewModel() {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             try {
-                val activoDeferred = async { ApiProvider.assetsApi.findById15(activoId) }
+                val activoDeferred       = async { ApiProvider.assetsApi.findById15(activoId) }
                 val mantenimientoDeferred = async { ApiProvider.mantenimientoApi.findById10(mantenimientoId) }
+                val resguardoDeferred    = async { ApiProvider.resguardoApi.findByActivo(activoId) }
 
-                val activoResp = activoDeferred.await()
+                val activoResp        = activoDeferred.await()
                 val mantenimientoResp = mantenimientoDeferred.await()
+                val resguardoResp     = resguardoDeferred.await()
 
                 val activoData = activoResp.body()?.data.asMap()
-                val mtnData = mantenimientoResp.body()?.data.asMap()
+                val mtnData    = mantenimientoResp.body()?.data.asMap()
 
-                // ── Activo ──
-                val etiqueta = activoData?.string("etiqueta") ?: "Activo #$activoId"
-                val nombre = activoData?.string("nombre") ?: etiqueta
-                val numeroSerie = activoData?.string("numeroSerie") ?: ""
-                val estadoOp = activoData?.string("estadoOperativo") ?: ""
-                val estadoCus = activoData?.string("estadoCustodia") ?: ""
+                // ── Activo — campos básicos ────────────────────────────────────
+                val etiqueta    = activoData?.string("etiqueta")        ?: "Activo #$activoId"
+                val nombre      = activoData?.string("nombre")          ?: etiqueta
+                val numeroSerie = activoData?.string("numeroSerie")     ?: ""
+                val estadoOp    = activoData?.string("estadoOperativo") ?: ""
+                val estadoCus   = activoData?.string("estadoCustodia")  ?: ""
+                val activoDescripcion = activoData?.string("descripcion") ?: ""
+
+                // ── TipoActivo (marca y modelo viven aquí en el back) ─────────
+                @Suppress("UNCHECKED_CAST")
+                val tipoActivoMap    = activoData?.get("tipoActivo") as? Map<String, Any?>
+                val tipoActivoNombre = tipoActivoMap?.string("nombre") ?: ""
+                val tipoActivoMarca  = tipoActivoMap?.string("marca")  ?: ""
+                val tipoActivoModelo = tipoActivoMap?.string("modelo") ?: ""
+
+                // ── Costo ─────────────────────────────────────────────────────
+                val costoDisplay = when (val c = activoData?.get("costo")) {
+                    is Number -> "$%.2f".format(c.toDouble())
+                    is String -> c.toDoubleOrNull()?.let { "$%.2f".format(it) }
+                    else      -> null
+                }
+
+                // ── Empleado resguardante (primer resguardo confirmado) ────────
+                val resguardoList: List<Map<String, Any?>> = if (resguardoResp.isSuccessful) {
+                    val raw = resguardoResp.body()?.data
+                    when (raw) {
+                        is List<*> -> raw.filterIsInstance<Map<String, Any?>>()
+                        is Map<*, *> -> (raw["content"] as? List<*>)
+                            ?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
+                        else -> emptyList()
+                    }
+                } else emptyList()
+
+                @Suppress("UNCHECKED_CAST")
+                val empleadoResguardante = resguardoList
+                    .firstOrNull { r ->
+                        val est = (r["estadoResguardo"] as? String)?.trim()?.lowercase()
+                        est == "confirmado" || est == "resguardado"
+                    }
+                    ?.let { r ->
+                        val emp = r["usuarioEmpleado"] as? Map<String, Any?>
+                        (emp?.get("nombreCompleto") as? String)
+                            ?: (emp?.get("nombre") as? String)
+                    } ?: ""
 
                 // ── ReporteId desde el mantenimiento ──
                 val reporteMap = mtnData?.get("reporte").asMap()
@@ -90,8 +140,17 @@ class TecnicoReporteViewModel : ViewModel() {
                 _tipoAsignado = mtnData?.string("tipoAsignado") ?: "Correctivo"
 
                 val estadoMtn = mtnData?.string("estadoMantenimiento")?.lowercase() ?: ""
-                val puedeAtender = estadoMtn !in listOf("en proceso", "completado", "cerrado")
-                val enProceso = estadoMtn == "en proceso"
+
+                // Verificar que el técnico logueado es el asignado a este mantenimiento.
+                // Solo él puede ver "Atender" o "Cerrar mantenimiento"; cualquier otro técnico
+                // que llegue a esta pantalla queda en modo solo-lectura.
+                val tecnicoAsignadoId = (mtnData?.get("usuarioTecnico").asMap())?.long("id")
+                    ?: mtnData?.long("idUsuarioTecnico")
+                val currentUserId = TokenManager.getUserIdFromToken()
+                val esElTecnicoAsignado = currentUserId != null && tecnicoAsignadoId == currentUserId
+
+                val puedeAtender = estadoMtn !in listOf("en proceso", "completado", "cerrado", "finalizado") && esElTecnicoAsignado
+                val enProceso = estadoMtn == "en proceso" && esElTecnicoAsignado
 
                 // ── Reporte completo (llamada separada para obtener usuarioReporta) ──
                 var tipoFalla = ""
@@ -114,7 +173,9 @@ class TecnicoReporteViewModel : ViewModel() {
                             // La fecha viene como array [year, month, day, h, m, s] desde Spring Boot
                             fechaRaw = rd?.get("fechaReporte")
                             val usuarioMap = rd?.get("usuarioReporta").asMap()
-                            reporterNombre = usuarioMap?.string("nombre")
+                            // El back serializa el campo como "nombreCompleto", no "nombre"
+                            reporterNombre = (usuarioMap?.string("nombreCompleto")
+                                ?: usuarioMap?.string("nombre"))
                                 ?.split(" ")?.firstOrNull() ?: ""
                             reporterCorreo = usuarioMap?.string("correo") ?: ""
                         }
@@ -135,7 +196,8 @@ class TecnicoReporteViewModel : ViewModel() {
                     }
                     if (reporterNombre.isEmpty()) {
                         val usuarioMap = reporteMap?.get("usuarioReporta").asMap()
-                        reporterNombre = usuarioMap?.string("nombre")
+                        reporterNombre = (usuarioMap?.string("nombreCompleto")
+                            ?: usuarioMap?.string("nombre"))
                             ?.split(" ")?.firstOrNull() ?: ""
                         reporterCorreo = usuarioMap?.string("correo") ?: ""
                     }
@@ -202,6 +264,12 @@ class TecnicoReporteViewModel : ViewModel() {
                     activoNumeroSerie = numeroSerie,
                     activoEstadoOperativo = estadoOp,
                     activoEstadoCustodia = estadoCus,
+                    tipoActivoNombre = tipoActivoNombre,
+                    tipoActivoMarca = tipoActivoMarca,
+                    tipoActivoModelo = tipoActivoModelo,
+                    activoCosto = costoDisplay,
+                    activoDescripcion = activoDescripcion,
+                    empleadoResguardante = empleadoResguardante,
                     tipoFalla = tipoFalla,
                     prioridad = prioridad,
                     reporterNombre = reporterNombre,
@@ -291,7 +359,10 @@ class TecnicoReporteViewModel : ViewModel() {
             val nums = raw.filterIsInstance<Number>()
             if (nums.size >= 3) {
                 try {
-                    val cal = Calendar.getInstance()
+                    // UTC porque Spring Boot serializa LocalDateTime en UTC.
+                    // Al construir el Date en UTC, SimpleDateFormat convierte
+                    // correctamente a la zona horaria local del dispositivo.
+                    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                     cal.set(Calendar.YEAR, nums[0].toInt())
                     cal.set(Calendar.MONTH, nums[1].toInt() - 1) // Calendar.MONTH es 0-indexed
                     cal.set(Calendar.DAY_OF_MONTH, nums[2].toInt())
@@ -303,7 +374,7 @@ class TecnicoReporteViewModel : ViewModel() {
                 } catch (_: Exception) { null }
             } else null
         }
-        // String ISO
+        // String ISO (Spring Boot puede enviar "2026-04-12T18:04:00" en UTC)
         is String -> {
             if (raw.isBlank()) null else {
                 val formats = listOf(
@@ -312,10 +383,13 @@ class TecnicoReporteViewModel : ViewModel() {
                     "yyyy-MM-dd HH:mm:ss",
                     "yyyy-MM-dd"
                 )
+                val utc = TimeZone.getTimeZone("UTC")
                 var date: Date? = null
                 for (fmt in formats) {
                     try {
-                        date = SimpleDateFormat(fmt, Locale.getDefault()).parse(raw)
+                        date = SimpleDateFormat(fmt, Locale.getDefault())
+                            .apply { timeZone = utc }
+                            .parse(raw)
                         if (date != null) break
                     } catch (_: Exception) { }
                 }
