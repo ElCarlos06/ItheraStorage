@@ -245,7 +245,7 @@ public class MantenimientoService {
                     ? "Mantenimiento cerrado como Irreparable; activo permanece en Mantenimiento hasta baja aprobada"
                     : "Mantenimiento finalizado: " + (conclusion != null ? conclusion : "Concluido");
             try {
-                bitacoraService.registrarEvento(activoId, null, "Cierre Mantenimiento",
+                bitacoraService.registrarEvento(activoId, dto.getIdUsuarioTecnico(), "Cierre Mantenimiento",
                         msg, cust, cust, opAnt, nuevoOp);
             } catch (Exception e) {
                 log.warn("Bitácora: no se pudo registrar 'Cierre Mantenimiento' para activo {}: {}", activoId, e.getMessage());

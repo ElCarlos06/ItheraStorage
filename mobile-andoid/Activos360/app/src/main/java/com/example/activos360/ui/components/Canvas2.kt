@@ -53,27 +53,5 @@ fun Canvas2(viewModel: EmpleadoViewModel = viewModel())  {
             )
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 60.dp, end = 24.dp)
-                .size(40.dp)
-                .background(Color.White.copy(alpha = 0.3f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-
-            if (fotoUsuario != null) {
-
-                // Cuando haya foto de BD
-                Image(
-                    painter = painterResource(R.drawable.targeta),
-                    contentDescription = "Foto usuario",
-                    modifier = Modifier.fillMaxSize()
-                )
-
-            }
-
-            // Si es null, solo se verá el círculo vacío
-        }
     }
 }

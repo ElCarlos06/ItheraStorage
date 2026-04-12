@@ -75,17 +75,16 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 2. Sección del Logo y Título
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "Activos 360",
-                color = primaryColor,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-        }
-
+        // --- SECCIÓN DEL LOGO (Versión Grande) ---
+        Image(
+            painter = painterResource(R.drawable.activos360_logo),
+            contentDescription = "Logo Activos 360",
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .heightIn(min = 80.dp, max = 130.dp),
+            contentScale = ContentScale.Fit  )
         Spacer(modifier = Modifier.height(48.dp))
+
 
         // 3. Formulario
         Column(

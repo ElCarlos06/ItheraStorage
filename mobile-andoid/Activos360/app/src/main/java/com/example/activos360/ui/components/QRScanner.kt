@@ -112,42 +112,7 @@ fun QRScanner(modifier: Modifier = Modifier) {
         }
 
         // --- Capa 4: Botones ---
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .padding(horizontal = 20.dp, vertical = 15.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = innerBorderColor.copy(alpha = 0.85f),
-                modifier = Modifier.size(48.dp)
-            ) {
-                IconButton(onClick = { }) {
-                    MoonIcon(
-                        icon = MoonIcons.GenericIdea,
-                        contentDescription = "Flash",
-                        tint = Color.White,
-                        size = 24.dp
-                    )
-                }
-            }
-            Surface(
-                shape = CircleShape,
-                color = innerBorderColor.copy(alpha = 0.85f),
-                modifier = Modifier.size(48.dp)
-            ) {
-                IconButton(onClick = { }) {
-                    MoonIcon(
-                        icon = MoonIcons.DevicesKeyboard,
-                        contentDescription = "Manual",
-                        tint = Color.White,
-                        size = 24.dp
-                    )
-                }
-            }
-        }
+
     }
 }
 

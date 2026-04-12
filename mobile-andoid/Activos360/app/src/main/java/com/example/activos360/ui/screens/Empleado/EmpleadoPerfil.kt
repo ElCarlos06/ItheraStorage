@@ -124,7 +124,7 @@ fun UserProfile(
                         color = Color(0xFFFFE5E5),
                         modifier = Modifier.size(45.dp)
                     ) {
-                        MoonIcon(icon = MoonIcons.SoftwareLogOut, contentDescription = null, tint = Color(0xFFE74C3C), size = 24.dp, modifier = Modifier.padding(10.dp))
+                        MoonIcon(icon = MoonIcons.SoftwareLogout, contentDescription = null, tint = Color(0xFFE74C3C), size = 24.dp, modifier = Modifier.padding(10.dp))
                     }
                     Text(
                         text = "Cerrar sesión",

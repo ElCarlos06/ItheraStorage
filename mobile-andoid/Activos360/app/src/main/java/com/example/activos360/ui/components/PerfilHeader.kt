@@ -118,7 +118,7 @@ fun PerfilHeader(
             Text(
                 text = nombre,
                 color = Color.White,
-                fontSize = 24.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
 

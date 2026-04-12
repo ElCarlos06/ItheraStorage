@@ -128,7 +128,8 @@ fun DetallesActivoScreen(
                         value = idModelo?.toString() ?: "-"
                     )
 
-                    CaracteristicasSeccion(
+
+                        CaracteristicasSeccion(
                         lista = listOfNotNull(
                             "Número de serie: ${numeroSerie.ifBlank { "-" }}",
                             "Estado operativo: ${estadoOperativo.ifBlank { "-" }}",
@@ -172,17 +173,25 @@ fun DetallesActivoScreen(
                                     modifier = Modifier.padding(16.dp)
                                 )
                                 else -> {
-                                    Buttons(
-                                        text = "Reportar daño",
-                                        onClick = { onReportarDanoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
-                                    )
 
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(24.dp)
+                                    ) {
+                                        Buttons(
+                                            text = "Reportar daño",
+                                            onClick = { onReportarDanoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
+                                        )
 
-                                    Buttons(
-                                        text = "Devolver Activo",
-                                        onClick = { onDevolverActivoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
-                                    )
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        Buttons(
+                                            text = "Devolver Activo",
+                                            onClick = { onDevolverActivoClick(activoId, etiqueta.ifBlank { "ACTIVO #$activoId" }, nombreMostrado) }
+                                        )
+                                    }
+
                                 }
                             }
                         }
@@ -197,7 +206,6 @@ fun DetallesActivoScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
                     }
                 }
             }
