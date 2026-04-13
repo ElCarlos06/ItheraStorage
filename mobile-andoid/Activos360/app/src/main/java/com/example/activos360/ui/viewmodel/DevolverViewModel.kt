@@ -6,18 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activos360.back.model.ResguardoDTO
 import com.example.activos360.core.auth.TokenManager
-import com.example.activos360.core.network.ApiProvider
-import com.example.activos360.core.util.asListOfMaps
+import com.example.activos360.core.repository.ActivoRepository
+import com.example.activos360.core.repository.ResguardoRepository
 import com.example.activos360.core.util.asMap
 import com.example.activos360.core.util.long
-import com.example.activos360.core.util.string
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
 
 data class DevolverUiState(
     val isLoading: Boolean = false,
@@ -25,6 +21,7 @@ data class DevolverUiState(
 )
 
 class DevolverViewModel : ViewModel() {
+
     private val _uiState = MutableStateFlow(DevolverUiState())
     val uiState: StateFlow<DevolverUiState> = _uiState.asStateFlow()
 
@@ -41,38 +38,28 @@ class DevolverViewModel : ViewModel() {
                 val userId = TokenManager.getUserIdFromToken()
                     ?: throw IllegalStateException("Sesión inválida")
 
-                val resguardoResp = ApiProvider.resguardoApi.findByActivo(activoId)
-                val resguardosList = if (resguardoResp.isSuccessful) {
-                    resguardoResp.body()?.data.asListOfMaps() ?: emptyList()
-                } else emptyList()
-
-                val confirmado = resguardosList.firstOrNull { r ->
-                    val estado = r.string("estadoResguardo")?.trim()?.lowercase()
-                    val empleadoId = (r["usuarioEmpleado"].asMap())?.long("id")
-                    estado == "confirmado" && empleadoId == userId
-                } ?: throw IllegalStateException("No existe un resguardo confirmado para este activo")
+                val confirmado = ResguardoRepository.findConfirmadoParaUsuario(activoId, userId)
+                    ?: throw IllegalStateException("No existe un resguardo confirmado para este activo")
 
                 val resguardoId = confirmado.long("id")
                     ?: throw IllegalStateException("Resguardo sin id")
-                val activoMap = confirmado["activo"].asMap()
+
+                val activoMap   = confirmado["activo"].asMap()
                 val empleadoMap = confirmado["usuarioEmpleado"].asMap()
-                val adminMap = confirmado["usuarioAdmin"].asMap()
+                val adminMap    = confirmado["usuarioAdmin"].asMap()
 
                 val dto = ResguardoDTO(
-                    idActivo = activoMap?.long("id") ?: activoId,
+                    idActivo          = activoMap?.long("id") ?: activoId,
                     idUsuarioEmpleado = empleadoMap?.long("id") ?: userId,
-                    idUsuarioAdmin = adminMap?.long("id") ?: error("Resguardo sin usuarioAdmin"),
-                    estadoResguardo = "Devuelto",
-                    observacionesDev = observaciones?.takeIf { it.isNotBlank() }
+                    idUsuarioAdmin    = adminMap?.long("id") ?: error("Resguardo sin usuarioAdmin"),
+                    estadoResguardo   = "Devuelto",
+                    observacionesDev  = observaciones?.takeIf { it.isNotBlank() }
                 )
 
-                val updateResp = ApiProvider.resguardoApi.update5(resguardoId, dto)
-                if (!updateResp.isSuccessful) {
-                    throw IllegalStateException("No se pudo procesar la devolución (${updateResp.code()})")
-                }
+                ResguardoRepository.devolver(resguardoId, dto)
 
                 if (fotos.isNotEmpty() && context != null) {
-                    subirFotosActivo(activoId, fotos, context)
+                    ActivoRepository.subirImagenes(activoId, fotos, context)
                 }
 
                 _uiState.value = _uiState.value.copy(isLoading = false)
@@ -83,19 +70,6 @@ class DevolverViewModel : ViewModel() {
                     errorMessage = e.localizedMessage ?: "Error al devolver activo"
                 )
             }
-        }
-    }
-
-    private suspend fun subirFotosActivo(activoId: Long, fotos: List<Uri>, context: Context) {
-        fotos.forEachIndexed { index, uri ->
-            try {
-                val stream = context.contentResolver.openInputStream(uri) ?: return@forEachIndexed
-                val bytes = stream.readBytes()
-                stream.close()
-                val requestBody = bytes.toRequestBody("image/*".toMediaType())
-                val part = MultipartBody.Part.createFormData("file", "foto_${index + 1}.jpg", requestBody)
-                ApiProvider.imagenActivoApi.subirImagen(activoId, part)
-            } catch (_: Exception) { }
         }
     }
 }

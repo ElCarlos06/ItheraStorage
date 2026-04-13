@@ -1,6 +1,6 @@
 package com.example.activos360.core.util
 
-import com.example.activos360.core.network.ApiProvider
+import com.example.activos360.core.repository.ActivoRepository
 import org.json.JSONObject
 
 object QrParse {
@@ -13,46 +13,37 @@ object QrParse {
      *  - `{"v":2,"p":"<token>"}` — formato actual (v2 opaco)
      *  - `{"id": N}`             — formato legado
      *  - número puro             — formato legado simplificado
-     *
-     * Cualquier otro texto (URL, texto libre, QR de otro sistema) devuelve false.
      */
     fun isActivoQrFormat(raw: String): Boolean {
         val trimmed = raw.trim()
         if (trimmed.isEmpty()) return false
-        if (trimmed.toLongOrNull() != null) return true      // número puro
+        if (trimmed.toLongOrNull() != null) return true
         return try {
             val json = JSONObject(trimmed)
-            (json.optInt("v", 0) == 2 && json.has("p"))     // v2: {"v":2,"p":"..."}
-                    || json.has("id")                         // legado: {"id": N}
-        } catch (_: Exception) {
-            false
-        }
+            (json.optInt("v", 0) == 2 && json.has("p")) || json.has("id")
+        } catch (_: Exception) { false }
     }
 
     /**
-     * Formato legado: JSON con [id], número solo, o texto con dígitos.
-     * Formato seguro v2 (`{"v":2,"p":"..."}`) no devuelve id aquí; usa [resolveActivoId].
+     * Extrae el id del activo de forma local (sin red) para formatos legados.
+     * Devuelve null para el formato v2 opaco.
      */
     fun extractActivoId(raw: String): Long? {
         val trimmed = raw.trim()
         if (trimmed.isEmpty()) return null
-
         try {
             val json = JSONObject(trimmed)
             if (json.optInt("v", 0) == 2 && json.has("p")) return null
             val id = json.optString("id", "").trim()
             if (id.isNotEmpty()) return id.toLongOrNull()
-        } catch (_: Exception) {
-        }
-
+        } catch (_: Exception) { }
         trimmed.toLongOrNull()?.let { return it }
-
-        val digits = trimmed.filter { it.isDigit() }
-        return digits.toLongOrNull()
+        return trimmed.filter { it.isDigit() }.toLongOrNull()
     }
 
     /**
-     * Resuelve el id del activo: legado en cliente o llamando a [GET /api/activos/qr/resolver] para el token opaco.
+     * Resuelve el id del activo: legado en cliente o llamando a ActivoRepository
+     * para el token opaco v2.
      */
     suspend fun resolveActivoId(raw: String): Long? {
         extractActivoId(raw)?.let { return it }
@@ -63,12 +54,7 @@ object QrParse {
             if (json.optInt("v", 0) != 2) return null
             val p = json.optString("p", "").trim()
             if (p.isEmpty()) return null
-            val resp = ApiProvider.assetsApi.resolveQrPayload(p)
-            if (!resp.isSuccessful) return null
-            val data = resp.body()?.`data` ?: return null
-            data.asMap()?.long("id")
-        } catch (_: Exception) {
-            null
-        }
+            ActivoRepository.resolveQrPayload(p)
+        } catch (_: Exception) { null }
     }
 }
