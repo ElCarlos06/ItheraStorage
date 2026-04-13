@@ -26,19 +26,28 @@ public class AssetsUtils {
         Map<String, Long> json = new HashMap<>();
 
         // Valores actuales globales
-        json.put("total", global.getTotal());
-        json.put("disponibles", global.getDisponibles());
-        json.put("resguardados", global.getResguardados());
-        json.put("enMantenimiento", global.getEnMantenimiento());
-        json.put("reportados", global.getReportados());
+        json.put("total", safeLong(global.getTotal()));
+        json.put("disponibles", safeLong(global.getDisponibles()));
+        json.put("resguardados", safeLong(global.getResguardados()));
+        json.put("enMantenimiento", safeLong(global.getEnMantenimiento()));
+        json.put("reportados", safeLong(global.getReportados()));
 
         // % cambio semanal por categoría
-        json.put("pctTotal",        calcPct(global.getTotal(), lastWeek.getTotal()));
-        json.put("pctResguardados", calcPct(global.getResguardados(), lastWeek.getResguardados()));
-        json.put("pctMantenimiento",calcPct(global.getEnMantenimiento(), lastWeek.getEnMantenimiento()));
-        json.put("pctReportados",   calcPct(global.getReportados(), lastWeek.getReportados()));
+        json.put("pctTotal",        calcPct(safeLong(global.getTotal()), safeLong(lastWeek.getTotal())));
+        json.put("pctResguardados", calcPct(safeLong(global.getResguardados()), safeLong(lastWeek.getResguardados())));
+        json.put("pctMantenimiento",calcPct(safeLong(global.getEnMantenimiento()), safeLong(lastWeek.getEnMantenimiento())));
+        json.put("pctReportados",   calcPct(safeLong(global.getReportados()), safeLong(lastWeek.getReportados())));
 
         return json;
+    }
+
+    /**
+     * pa q no se quejé sprin
+     * @param value El valor xd
+     * @return un lon
+     */
+    private static long safeLong(Long value) {
+        return value == null ? 0L : value;
     }
 
     /**
