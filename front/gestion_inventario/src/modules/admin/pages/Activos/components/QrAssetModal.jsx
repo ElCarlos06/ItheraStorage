@@ -88,7 +88,7 @@ export default function QrAssetModal({ open, onClose, item }) {
   };
 
   return (
-    <Modal open={open} onClose={handleClose} className="qr-asset-modal">
+    <Modal open={open} className="qr-asset-modal">
       <div className="qr-asset-modal__inner">
 
         <header className="qr-asset-modal__header">

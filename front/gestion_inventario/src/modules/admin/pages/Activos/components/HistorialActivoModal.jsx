@@ -106,8 +106,12 @@ function EvidenciasMantenimiento({ imagenes, variant }) {
       </div>
       {preview && (
         <div className="historial-modal__lightbox" onClick={() => setPreview(null)} role="dialog" aria-modal="true">
-          <button type="button" className="historial-modal__lightbox-close" onClick={() => setPreview(null)}>✕</button>
-          <img src={preview} alt="Evidencia" className="historial-modal__lightbox-img" onClick={(e) => e.stopPropagation()} />
+          <div className="historial-modal__lightbox-frame" onClick={(e) => e.stopPropagation()}>
+            <img src={preview} alt="Evidencia" className="historial-modal__lightbox-img" />
+            <button type="button" className="historial-modal__lightbox-close" onClick={() => setPreview(null)}>
+              Cerrar
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -173,17 +177,16 @@ function ChecklistResguardo({ desc, fotosConf, variant }) {
           role="dialog"
           aria-modal="true"
         >
-          <button
-            type="button"
-            className="historial-modal__lightbox-close"
-            onClick={() => setPreview(null)}
-          >✕</button>
-          <img
-            src={preview}
-            alt="Evidencia"
-            className="historial-modal__lightbox-img"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="historial-modal__lightbox-frame" onClick={(e) => e.stopPropagation()}>
+            <img src={preview} alt="Evidencia" className="historial-modal__lightbox-img" />
+            <button
+              type="button"
+              className="historial-modal__lightbox-close"
+              onClick={() => setPreview(null)}
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -269,7 +272,7 @@ export default function HistorialActivoModal({ open, onClose, asset }) {
     : "—";
 
   return (
-    <Modal open={open} onClose={onClose} className="historial-modal">
+    <Modal open={open} className="historial-modal">
       <div className="historial-modal__inner">
         <header className="historial-modal__header">
           <div className="historial-modal__header-left">

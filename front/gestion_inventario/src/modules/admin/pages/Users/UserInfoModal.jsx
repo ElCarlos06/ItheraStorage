@@ -7,7 +7,7 @@ export default function UserInfoModal({ open, onClose, user }) {
   if (!user) return null;
 
   return (
-    <Modal open={open} onClose={onClose} className="user-info-modal">
+    <Modal open={open} className="user-info-modal">
       <div className="user-info-modal__inner">
         <header className="user-info-modal__header">
           <h2 className="user-info-modal__title">Información del usuario</h2>

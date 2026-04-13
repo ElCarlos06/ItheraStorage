@@ -110,20 +110,25 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      <Modal
-        open={showAvatarPreview}
-        onClose={() => setShowAvatarPreview(false)}
-        className="avatar-preview-modal"
-      >
+      <Modal open={showAvatarPreview} className="avatar-preview-modal">
         <div
           className="avatar-preview-card"
           onClick={(e) => e.stopPropagation()}
         >
-          <img
-            src={imgSrc}
-            alt="Foto de perfil"
-            className="avatar-preview-card__img"
-          />
+          <div className="avatar-preview-card__figure">
+            <img
+              src={imgSrc}
+              alt="Foto de perfil"
+              className="avatar-preview-card__img"
+            />
+            <button
+              type="button"
+              className="avatar-preview-card__close"
+              onClick={() => setShowAvatarPreview(false)}
+            >
+              Cerrar
+            </button>
+          </div>
           <div className="avatar-preview-card__info">
             <span className="avatar-preview-card__name">
               {profile?.nombreCompleto ?? "—"}

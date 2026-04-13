@@ -160,7 +160,7 @@ export default function NewUserModal({
   };
 
   return (
-    <Modal open={open} onClose={handleClose} className="nuevo-usuario-modal">
+    <Modal open={open} className="nuevo-usuario-modal">
       <div className="nuevo-usuario-modal__inner">
         <header className="nuevo-usuario-modal__header">
           <div>

@@ -24,7 +24,7 @@ export default function FormModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} className={`form-modal ${className}`.trim()}>
+    <Modal open={open} className={`form-modal ${className}`.trim()}>
       <div className="form-modal__inner d-flex flex-column w-100 min-w-0">
         <header className="form-modal__header d-flex align-items-center justify-content-between">
           <div className="form-modal__header-text flex-grow-1 min-w-0">

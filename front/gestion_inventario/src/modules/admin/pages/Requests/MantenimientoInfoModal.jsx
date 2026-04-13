@@ -65,8 +65,12 @@ function EvidenciasGrid({ imagenes }) {
 
       {preview && (
         <div className="mim__lightbox" role="dialog" aria-modal="true" onClick={() => setPreview(null)}>
-          <button type="button" className="mim__lightbox-close" onClick={() => setPreview(null)} aria-label="Cerrar imagen">✕</button>
-          <img src={preview} alt="Vista completa" className="mim__lightbox-img" onClick={(e) => e.stopPropagation()} />
+          <div className="mim__lightbox-frame" onClick={(e) => e.stopPropagation()}>
+            <img src={preview} alt="Vista completa" className="mim__lightbox-img" />
+            <button type="button" className="mim__lightbox-close" onClick={() => setPreview(null)}>
+              Cerrar
+            </button>
+          </div>
         </div>
       )}
     </>
@@ -120,7 +124,7 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
   console.log("[DEBUG BAJA] conclusion:", m?.conclusion, "| esIrreparable:", esIrreparable, "| activo.id:", activo?.id, "| m.id:", m?.id);
 
   return (
-    <Modal open={open} onClose={onClose} className="modal-content--mantenimiento">
+    <Modal open={open} className="modal-content--mantenimiento">
       <div className="mim d-flex flex-column">
 
         {/* Header */}

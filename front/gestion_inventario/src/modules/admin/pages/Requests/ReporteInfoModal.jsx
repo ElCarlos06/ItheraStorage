@@ -46,8 +46,12 @@ function EvidenciasReporte({ imagenes }) {
 
       {preview && (
         <div className="rim__lightbox" role="dialog" aria-modal="true" onClick={() => setPreview(null)}>
-          <button type="button" className="rim__lightbox-close" onClick={() => setPreview(null)} aria-label="Cerrar">✕</button>
-          <img src={preview} alt="Vista completa" className="rim__lightbox-img" onClick={(e) => e.stopPropagation()} />
+          <div className="rim__lightbox-frame" onClick={(e) => e.stopPropagation()}>
+            <img src={preview} alt="Vista completa" className="rim__lightbox-img" />
+            <button type="button" className="rim__lightbox-close" onClick={() => setPreview(null)}>
+              Cerrar
+            </button>
+          </div>
         </div>
       )}
     </>
@@ -75,7 +79,7 @@ export default function ReporteInfoModal({ open, onClose, reporte }) {
   const tecnico = reporte.tecnicoAsignado ?? reporte.nombreTecnicoAsignado;
 
   return (
-    <Modal open={open} onClose={onClose} className="rim-modal">
+    <Modal open={open} className="rim-modal">
       <div className="rim d-flex flex-column">
 
         {/* Header */}
