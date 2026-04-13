@@ -102,9 +102,11 @@ fun Navigation() {
             ConfirmarResguardoScreen(
                 activoId = activoId,
                 onBack = { navController.popBackStack() },
-                onConfirmed = {
-                    // regresamos a detalles y refrescamos
-                    navController.popBackStack()
+                onConfirmed = { navController.popBackStack() },
+                onReportarDano = {
+                    navController.navigate(
+                        "reportar_dano/$activoId/${Uri.encode("Activo")}/${Uri.encode("Activo #$activoId")}"
+                    )
                 }
             )
         }
@@ -125,7 +127,12 @@ fun Navigation() {
                 activoEtiqueta = etiqueta,
                 activoNombre = nombre,
                 onBack = { navController.popBackStack() },
-                onReportarSuccess = { navController.popBackStack() }
+                onReportarSuccess = {
+                    // Navegar a detalles limpiando confirmar_resguardo y reportar_dano del stack
+                    navController.navigate("detalles_activo/$activoId") {
+                        popUpTo("detalles_activo/{activoId}") { inclusive = true }
+                    }
+                }
             )
         }
 

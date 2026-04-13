@@ -26,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -73,24 +72,6 @@ fun ConfirmarResguardoScreen(
     var fotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var showModalFallas by remember { mutableStateOf(false) }
 
-    // Flag que indica si después de confirmar hay que ir al reporte de daño
-    var irAReporteAlConfirmar by remember { mutableStateOf(false) }
-    // Centinela: se pone a true cuando el ViewModel reporta éxito en el onSuccess callback
-    var confirmacionExitosa by remember { mutableStateOf(false) }
-
-    // LaunchedEffect reacciona al éxito del ViewModel en el hilo principal de Compose,
-    // lo cual garantiza que NavController está listo para navegar.
-    LaunchedEffect(confirmacionExitosa) {
-        if (confirmacionExitosa) {
-            confirmacionExitosa = false
-            if (irAReporteAlConfirmar) {
-                onReportarDano()
-            } else {
-                onConfirmed()
-            }
-        }
-    }
-
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -98,10 +79,10 @@ fun ConfirmarResguardoScreen(
     }
 
     // Construye el checklist y llama al ViewModel.
-    // paraReporte = true  → después de confirmar navega al reporte de daño
-    // paraReporte = false → después de confirmar vuelve al home normal
-    fun doConfirmar(paraReporte: Boolean = false) {
-        irAReporteAlConfirmar = paraReporte
+    // afterConfirm determina a dónde navegar cuando el backend responde OK:
+    //   onConfirmed    → flujo normal (volver al home)
+    //   onReportarDano → confirmar resguardo y abrir reporte de daño
+    fun doConfirmar(afterConfirm: () -> Unit = onConfirmed) {
         val checklistStr = CHECKLIST_ITEMS.mapIndexed { i, nombre ->
             val estado = when (checks.getOrElse(i) { CheckState.FALLA }) {
                 CheckState.OK        -> "OK"
@@ -116,7 +97,7 @@ fun ConfirmarResguardoScreen(
             observaciones = observaciones,
             fotos = fotos,
             context = context,
-            onSuccess = { confirmacionExitosa = true }   // activa el LaunchedEffect
+            onSuccess = afterConfirm   // el ViewModel llama esto en Dispatchers.Main al éxito
         )
     }
 
@@ -163,7 +144,7 @@ fun ConfirmarResguardoScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showModalFallas = false
-                    doConfirmar(paraReporte = true)   // confirma resguardo → luego abre reporte
+                    doConfirmar(afterConfirm = onReportarDano)   // confirma → reporte de daño
                 }) {
                     Text(
                         text = "Sí, reportar daño",
@@ -175,7 +156,7 @@ fun ConfirmarResguardoScreen(
             dismissButton = {
                 TextButton(onClick = {
                     showModalFallas = false
-                    doConfirmar(paraReporte = false)  // confirma resguardo → vuelve al home
+                    doConfirmar(afterConfirm = onConfirmed)      // confirma → home normal
                 }) {
                     Text(text = "No, cancelar", color = Color(0xFF7B88FF))
                 }
@@ -196,7 +177,7 @@ fun ConfirmarResguardoScreen(
                         if (tieneFallas) {
                             showModalFallas = true
                         } else {
-                            doConfirmar()
+                            doConfirmar(afterConfirm = onConfirmed)
                         }
                     }
                 )

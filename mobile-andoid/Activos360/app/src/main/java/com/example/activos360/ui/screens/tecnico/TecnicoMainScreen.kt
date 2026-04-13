@@ -55,6 +55,28 @@ fun TecnicoMainScreen(navControllerPrincipal: NavController) {
                         }
 
                         val activoId = try { QrParse.resolveActivoId(codigo) ?: 0L } catch (_: Exception) { 0L }
+
+                        // Verificar ESTADO_CUSTODIA — activos de baja no tienen funciones
+                        if (activoId > 0L) {
+                            val activoResp = try {
+                                ApiProvider.assetsApi.findById15(activoId)
+                            } catch (_: Exception) { null }
+
+                            if (activoResp != null && activoResp.isSuccessful) {
+                                val estadoCustodia = activoResp.body()?.data.asMap()
+                                    ?.string("estadoCustodia")
+                                android.util.Log.d("BAJA_CHECK", "Tecnico baja check: activoId=$activoId estadoCustodia='$estadoCustodia'")
+                                if (estadoCustodia?.trim()?.contains("baja", ignoreCase = true) == true) {
+                                    Toast.makeText(
+                                        context,
+                                        "Este activo está dado de baja",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    return@launch
+                                }
+                            }
+                        }
+
                         var navegoDirecto = false
                         try {
                             val userId = TokenManager.getUserIdFromToken()

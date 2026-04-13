@@ -27,6 +27,9 @@ import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
 import com.example.activos360.ui.screens.Login.ScreeanChangePassword
 import com.example.activos360.core.auth.TokenManager
+import com.example.activos360.core.network.ApiProvider
+import com.example.activos360.core.util.asMap
+import com.example.activos360.core.util.string
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
@@ -49,9 +52,36 @@ fun EmpleadoMainScreen(navControllerPrincipal: NavController) {
             BottomCustomBar(
                 navController = bottomNavController,
                 onQrScanned = { codigo ->
-                    if (!QrParse.isActivoQrFormat(codigo)) {
-                        Toast.makeText(context, "Este QR no es de un activo", Toast.LENGTH_SHORT).show()
-                    } else {
+                    scope.launch {
+                        if (!QrParse.isActivoQrFormat(codigo)) {
+                            Toast.makeText(context, "Este QR no es de un activo", Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+                        // Verificar ESTADO_CUSTODIA — bloquear activos dados de baja
+                        val activoId = try {
+                            QrParse.resolveActivoId(codigo) ?: 0L
+                        } catch (_: Exception) { 0L }
+
+                        if (activoId > 0L) {
+                            val resp = try {
+                                ApiProvider.assetsApi.findById15(activoId)
+                            } catch (_: Exception) { null }
+
+                            if (resp != null && resp.isSuccessful) {
+                                val estadoCustodia = resp.body()?.data.asMap()
+                                    ?.string("estadoCustodia")
+                                android.util.Log.d("BAJA_CHECK", "Empleado baja check: activoId=$activoId estadoCustodia='$estadoCustodia'")
+                                if (estadoCustodia?.trim()?.contains("baja", ignoreCase = true) == true) {
+                                    Toast.makeText(
+                                        context,
+                                        "Este activo está dado de baja",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    return@launch
+                                }
+                            }
+                        }
+
                         codigoEscaneado = codigo
                         showModal = true
                     }

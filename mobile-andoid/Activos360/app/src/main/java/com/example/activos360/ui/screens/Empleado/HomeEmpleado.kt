@@ -1,11 +1,20 @@
 package com.example.activos360.ui.screens.Empleado
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,30 +22,38 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activos360.ui.components.Canvas2
 import com.example.activos360.ui.components.QRScanner
-import com.example.activos360.ui.modals.AssetDetailModal
-import com.example.activos360.ui.viewmodel.AssetDetailViewModel
+import com.example.activos360.ui.components.ResguardosBanner
+import com.example.activos360.ui.modals.ResguardosModal
 import com.example.activos360.ui.viewmodel.EmpleadoViewModel
+import com.example.activos360.ui.viewmodel.ResguardosBannerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeEmpleado(
-    EmpleadoViewModel: EmpleadoViewModel = viewModel(),
-    assetViewModel: AssetDetailViewModel = viewModel()
+    empleadoViewModel: EmpleadoViewModel = viewModel(),
+    bannerViewModel: ResguardosBannerViewModel = viewModel()
 ) {
-    // Obtenemos el estado actual del modal
-    val assetState = assetViewModel.uiState
+    val bannerState = bannerViewModel.state
+    var showResguardosModal by remember { mutableStateOf(false) }
 
-    // 1. QUITAMOS EL SCAFFOLD y usamos un Box como contenedor principal
+    LaunchedEffect(Unit) {
+        bannerViewModel.cargar()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // 2. Tu diseño original del escáner intacto
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(Color.White).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Canvas2()
+
+            ResguardosBanner(
+                cantidad = bannerState.count,
+                onClick = { showResguardosModal = true }
+            )
 
             Box(
                 modifier = Modifier.weight(1f),
@@ -44,19 +61,15 @@ fun HomeEmpleado(
             ) {
                 QRScanner()
             }
-        }
 
-        // 3. La lógica de tu modal por encima de todo
-        if (assetState.isVisible) {
-            AssetDetailModal(
-                idActivo = assetState.idEtiqueta,
-                onDismiss = { assetViewModel.dismissModal() },
-                onVerDetallesClick = {
-                    // Por ahora solo cerramos el modal, luego aquí pones la navegación
-                    assetViewModel.dismissModal()
-                }
-            )
         }
+    }
+
+    if (showResguardosModal) {
+        ResguardosModal(
+            items = bannerState.items,
+            onDismiss = { showResguardosModal = false }
+        )
     }
 }
 
