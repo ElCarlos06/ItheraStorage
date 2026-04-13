@@ -130,7 +130,7 @@ public class JwtProvider {
 
 
             String type = claims.get("type", String.class);
-            if (!"auth".equals(type)) return false;
+            if (!"auth".equals(type) && !"reset".equals(type)) return false;
 
             // Verificar IP (ignorar si es un token que no fue generado con IP, ej. reset token)
             if (claims.containsKey("ip")) {

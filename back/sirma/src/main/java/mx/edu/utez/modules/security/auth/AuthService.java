@@ -92,19 +92,21 @@ public class AuthService {
      */
     @Transactional
     public ApiResponse changePassword(ChangePasswordDTO dto) {
+
         User user;
         boolean requierePasswordActual = false;
 
         if (dto.getToken() != null && !dto.getToken().isBlank()) {
             // Flujo: enlace del correo (olvidé mi contraseña)
-            if (!jwtProvider.validateToken(dto.getToken().trim())) {
+            if (!jwtProvider.validateToken(dto.getToken().trim()))
                 return new ApiResponse("El enlace ha expirado o no es válido. Solicita uno nuevo.", true, HttpStatus.BAD_REQUEST);
-            }
+
             String correo = jwtProvider.getUsernameFromToken(dto.getToken().trim());
             user = userRepository.findByCorreoIgnoreCase(correo).orElse(null);
-            if (user == null) {
+
+            if (user == null)
                 return new ApiResponse("Usuario no encontrado.", true, HttpStatus.NOT_FOUND);
-            }
+
         } else if (dto.getCorreo() != null && !dto.getCorreo().isBlank()) {
             // Flujo: primer acceso (contraseña temporal)
             requierePasswordActual = true;
