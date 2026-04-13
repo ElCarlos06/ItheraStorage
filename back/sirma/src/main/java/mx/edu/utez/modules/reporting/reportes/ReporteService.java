@@ -242,9 +242,10 @@ public class ReporteService {
 
         mantenimientoRepository.findByReporteId(id)
                 .ifPresent(m -> mantenimientoService.deleteForCascadeEliminarReporte(m.getId()));
-        for (ImagenReporte img : imagenReporteRepository.findByReporteId(id)) {
+
+        for (ImagenReporte img : imagenReporteRepository.findByReporteId(id))
             imagenReporteService.delete(img.getId());
-        }
+
         reporteRepository.deleteById(id);
 
         assetsRepository.updateEstadoOperativo(activoId, AssetEstados.OPERATIVO_OK);

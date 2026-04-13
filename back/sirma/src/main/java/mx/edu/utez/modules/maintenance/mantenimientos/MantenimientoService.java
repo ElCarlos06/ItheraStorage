@@ -216,7 +216,7 @@ public class MantenimientoService {
             // sin esperar que la transacción padre termine, evitando "Lock wait timeout".
             assetsService.cambiarEstadoOperativoIndependiente(activoIdEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
             try {
-                bitacoraService.registrarEvento(activoIdEp, null, "Inicio Mantenimiento",
+                bitacoraService.registrarEvento(activoIdEp, dto.getIdUsuarioTecnico(), "Inicio Mantenimiento",
                         "El técnico " + entity.getUsuarioTecnico().getNombreCompleto() + " inició la atención",
                         custEp, custEp, opAntEp, AssetEstados.OPERATIVO_MANTENIMIENTO);
             } catch (Exception e) {
@@ -229,7 +229,7 @@ public class MantenimientoService {
             mantenimientoRepository.updateEstadoInicio(id, "En Proceso", ahora);
 
         } else if ("Finalizado".equals(dto.getEstadoMantenimiento())) {
-            // ── CIERRE DE MANTENIMIENTO ─────────────────────────────────────────────
+            // CIERRE DE MANTENIMIENTO
             LocalDateTime ahora = LocalDateTime.now();
             entity.setEstadoMantenimiento("Finalizado");
             entity.setFechaFin(ahora);

@@ -4,4 +4,5 @@ public interface TiempoPromedioProjection {
     String getMes();
     String getTipoMantenimiento();
     Double getPromedioHoras();
+    Long getNumMantenimientos();
 }

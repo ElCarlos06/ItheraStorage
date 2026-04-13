@@ -78,9 +78,12 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
   const [imagenes, setImagenes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showBajaForm, setShowBajaForm] = useState(false);
+  const [justificacion, setJustificacion] = useState("");
+  const [bajaLoading, setBajaLoading] = useState(false);
 
   useEffect(() => {
-    if (!open || !mantenimientoId) { setData(null); setImagenes([]); setError(null); return; }
+    if (!open || !mantenimientoId) { setData(null); setImagenes([]); setError(null); setShowBajaForm(false); setJustificacion(""); return; }
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -114,6 +117,7 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
   const tecnico = m?.usuarioTecnico ?? {};
   const tipoAsignado = m?.tipoEjecutado ?? m?.tipoAsignado ?? "—";
   const esIrreparable = m?.conclusion?.toLowerCase().includes("irreparable");
+  console.log("[DEBUG BAJA] conclusion:", m?.conclusion, "| esIrreparable:", esIrreparable, "| activo.id:", activo?.id, "| m.id:", m?.id);
 
   return (
     <Modal open={open} onClose={onClose} className="modal-content--mantenimiento">
@@ -191,11 +195,63 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
         </div>
 
         {/* Footer */}
-        <footer className="d-flex align-items-center justify-content-end mim__footer border-top flex-shrink-0">
-          {esIrreparable && (
-            <button type="button" className="mim__baja-btn" onClick={() => onBaja?.(m)}>
-              Dar de baja
-            </button>
+        <footer className="mim__footer border-top flex-shrink-0">
+          {esIrreparable && !showBajaForm && (
+            <div className="d-flex align-items-center justify-content-end w-100">
+              <button type="button" className="mim__baja-btn" onClick={() => setShowBajaForm(true)}>
+                Dar de baja
+              </button>
+            </div>
+          )}
+
+          {esIrreparable && showBajaForm && (
+            <div className="mim__baja-form d-flex flex-column gap-3 w-100">
+              <label className="mim__label m-0" htmlFor="justificacion-baja">
+                Justificación de baja <span className="mim__required">*</span>
+              </label>
+              <textarea
+                id="justificacion-baja"
+                className="mim__baja-textarea"
+                placeholder="Describe la razón por la cual se da de baja este activo…"
+                rows={3}
+                value={justificacion}
+                onChange={(e) => setJustificacion(e.target.value)}
+                disabled={bajaLoading}
+              />
+              <div className="d-flex align-items-center justify-content-end gap-2">
+                <button
+                  type="button"
+                  className="mim__baja-cancel"
+                  onClick={() => { setShowBajaForm(false); setJustificacion(""); }}
+                  disabled={bajaLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="mim__baja-btn"
+                  disabled={!justificacion.trim() || bajaLoading}
+                  onClick={async () => {
+                    const payload = {
+                      idActivo: m.activo?.id,
+                      idMantenimiento: m.id,
+                      justificacion: justificacion.trim(),
+                    };
+                    console.log("[DEBUG BAJA] payload a enviar:", JSON.stringify(payload));
+                    setBajaLoading(true);
+                    try {
+                      await onBaja?.(payload);
+                      setShowBajaForm(false);
+                      setJustificacion("");
+                    } finally {
+                      setBajaLoading(false);
+                    }
+                  }}
+                >
+                  {bajaLoading ? "Procesando…" : "Confirmar baja"}
+                </button>
+              </div>
+            </div>
           )}
         </footer>
       </div>

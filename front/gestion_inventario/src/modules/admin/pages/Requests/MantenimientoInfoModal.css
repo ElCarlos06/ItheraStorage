@@ -105,3 +105,24 @@
   cursor: pointer; transition: background .2s;
 }
 .mim__baja-btn:hover { background: rgba(52,72,240,.8); }
+.mim__baja-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Baja form */
+.mim__baja-form { padding: 4px 0; }
+.mim__required { color: #d33030; }
+
+.mim__baja-textarea {
+  width: 100%; resize: vertical; border: .8px solid #e2e2e2; border-radius: 12px;
+  padding: 14px 16px; font-family: var(--moon-font-sans); font-size: 15px; line-height: 22px;
+  color: #1e2939; background: #fff; transition: border-color .2s;
+}
+.mim__baja-textarea:focus { outline: none; border-color: #3448f0; }
+.mim__baja-textarea:disabled { opacity: .5; cursor: not-allowed; }
+
+.mim__baja-cancel {
+  background: transparent; color: #595d62; border: .8px solid #e2e2e2; border-radius: 12px;
+  padding: 14px 28px; font-family: var(--moon-font-sans); font-size: 16px; font-weight: 600; line-height: 24px;
+  cursor: pointer; transition: background .2s, border-color .2s;
+}
+.mim__baja-cancel:hover { background: rgba(0,0,0,.04); border-color: #c5c5c5; }
+.mim__baja-cancel:disabled { opacity: .45; cursor: not-allowed; }

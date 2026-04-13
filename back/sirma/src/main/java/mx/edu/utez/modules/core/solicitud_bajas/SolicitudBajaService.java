@@ -95,9 +95,10 @@ public class SolicitudBajaService {
         entity.setMantenimiento(mant.get());
         entity.setJustificacion(dto.getJustificacion());
         entity.setEstado("Pendiente");
+        entity.setFechaResolucion(LocalDateTime.now());
         solicitudBajaRepository.save(entity);
         Long activoId = activo.get().getId();
-        bitacoraService.registrarEvento(activoId, null, "Solicitud Baja",
+        bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Solicitud Baja",
                 "Solicitud de baja por mantenimiento irreparable",
                 null, null, null, null);
         return new ApiResponse("Solicitud de baja registrada", entity, HttpStatus.CREATED);

@@ -55,7 +55,6 @@ export default function Dashboard() {
     queryFn: () => solicitudesApi.reportes.getStats(),
   });
 
-
   const { promedioAtencion = [], tecnicoMantenimiento = [] } =
     mantenimientosStats ?? {};
 
@@ -114,15 +113,21 @@ export default function Dashboard() {
     month: m,
     correctivo: 0,
     preventivo: 0,
+    numCorrectivo: 0,
+    numPreventivo: 0,
   }));
 
   promedioAtencion.forEach((curr) => {
-    const target = LINE_DATA.find((item) => item.month === MESES[curr.mes]);
+    const monthName = MESES[curr.mes] || (curr.mes.charAt(0).toUpperCase() + curr.mes.slice(1).toLowerCase());
+    const target = LINE_DATA.find((item) => item.month === monthName);
+    
     if (target) {
-      if (curr.tipoMantenimiento === "CORRECTIVO") {
+      if (curr.tipoMantenimiento.toUpperCase() === "CORRECTIVO") {
         target.correctivo = curr.promedioHoras;
+        target.numCorrectivo = curr.numMantenimientos;
       } else {
         target.preventivo = curr.promedioHoras;
+        target.numPreventivo = curr.numMantenimientos;
       }
     }
   });
@@ -138,6 +143,8 @@ export default function Dashboard() {
     type: r.tipoActivo,
     reports: r.numReportes,
   }));
+
+  console.log(mantenimientosStats);
 
   return (
     <>

@@ -14,6 +14,7 @@ import StatusBadge from "../../../../components/StatusBadge/StatusBadge";
 import Icon from "../../../../components/Icon/Icon";
 import { GenericUser, GenericDelete } from "@heathmont/moon-icons";
 import { solicitudesApi } from "../../../../api/solicitudesApi";
+import { bajas } from "../../../../api/bajasApi";
 import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
 import { toast } from "../../../../utils/toast.jsx";
 import "./Requests.css";
@@ -34,8 +35,7 @@ function activoLabelDesdeApi(activo) {
   if (tipo) return String(tipo);
   if (serie) return serie;
   if (etq) return etq;
-  if (desc)
-    return desc.length > 72 ? `${desc.slice(0, 69)}…` : desc;
+  if (desc) return desc.length > 72 ? `${desc.slice(0, 69)}…` : desc;
   return "—";
 }
 
@@ -108,8 +108,7 @@ function mapMantenimientoRow(m) {
   const tipoFalla = reporte.tipoFalla?.nombre ?? reporte.tipoFalla ?? "-";
   const prioridad = prioridadObj.nombre ?? "Media";
   const ut = m.usuarioTecnico ?? {};
-  const tecnicoAsignado =
-    ut.nombreCompleto ?? ut.nombre ?? ut.correo ?? "—";
+  const tecnicoAsignado = ut.nombreCompleto ?? ut.nombre ?? ut.correo ?? "—";
 
   return {
     rowKind: "mantenimiento",
@@ -118,14 +117,9 @@ function mapMantenimientoRow(m) {
     idReporte: reporte.id ?? reporte.id_reporte,
     idActivo: activo.id ?? activo.id_activo,
     idPrioridad: prioridadObj.id,
-    codigo:
-      activo.etiqueta ??
-      activo.codigoActivo ??
-      activo.codigo ??
-      "-",
+    codigo: activo.etiqueta ?? activo.codigoActivo ?? activo.codigo ?? "-",
     activoNombre: activoLabelDesdeApi(activo),
-    nombreUsuario:
-      usuario.nombreCompleto ?? usuario.nombre ?? "-",
+    nombreUsuario: usuario.nombreCompleto ?? usuario.nombre ?? "-",
     tipoFalla,
     descripcion: reporte.descripcionFalla ?? "-",
     accionesRealizadas: m.accionesRealizadas ?? "—",
@@ -186,7 +180,12 @@ export default function Requests() {
     queryFn: (page, size) =>
       activeTab === "reportes"
         ? solicitudesApi.reportes.getReportes(page, size, "DESC", true)
-        : solicitudesApi.mantenimientos.getMantenimientos(page, size, "DESC", true),
+        : solicitudesApi.mantenimientos.getMantenimientos(
+            page,
+            size,
+            "DESC",
+            true,
+          ),
     errorMessage: "Error al cargar solicitudes",
     pageSize,
   });
@@ -275,7 +274,10 @@ export default function Requests() {
         </div>
 
         {error && (
-          <ErrorBanner message={error} onDismiss={() => invalidateSolicitudes()} />
+          <ErrorBanner
+            message={error}
+            onDismiss={() => invalidateSolicitudes()}
+          />
         )}
 
         {isTabLoading || isFetching ? (
@@ -318,19 +320,28 @@ export default function Requests() {
                     >
                       <div className="requests-view__card-body-inner">
                         <p className="requests-view__numero">{sol.codigo}</p>
-                        <p className="requests-view__activo-nombre" title={sol.activoNombre}>
+                        <p
+                          className="requests-view__activo-nombre"
+                          title={sol.activoNombre}
+                        >
                           {sol.activoNombre}
                         </p>
                         <div className="requests-view__data-row d-flex flex-wrap align-items-center">
                           <div className="requests-view__data-col">
-                            <p className="requests-view__label">Reportado por</p>
+                            <p className="requests-view__label">
+                              Reportado por
+                            </p>
                             <p className="requests-view__value">
                               {sol.nombreUsuario}
                             </p>
                           </div>
                           <div className="requests-view__data-col">
-                            <p className="requests-view__label">Tipo de falla</p>
-                            <p className="requests-view__value">{sol.tipoFalla}</p>
+                            <p className="requests-view__label">
+                              Tipo de falla
+                            </p>
+                            <p className="requests-view__value">
+                              {sol.tipoFalla}
+                            </p>
                           </div>
                           <div className="requests-view__data-col requests-view__data-col--desc">
                             <p className="requests-view__label">
@@ -350,7 +361,9 @@ export default function Requests() {
                           </div>
                           <div className="requests-view__data-col">
                             <p className="requests-view__label">Edificio</p>
-                            <p className="requests-view__value">{sol.edificio}</p>
+                            <p className="requests-view__value">
+                              {sol.edificio}
+                            </p>
                           </div>
                           <div className="requests-view__data-col">
                             <p className="requests-view__label">Aula</p>
@@ -365,12 +378,17 @@ export default function Requests() {
                               {sol.prioridad ?? "—"}
                             </StatusBadge>
                           </div>
-                          {sol.tecnicoAsignado && sol.tecnicoAsignado !== "—" && (
-                            <div className="requests-view__data-col">
-                              <p className="requests-view__label">Técnico asignado</p>
-                              <p className="requests-view__value">{sol.tecnicoAsignado}</p>
-                            </div>
-                          )}
+                          {sol.tecnicoAsignado &&
+                            sol.tecnicoAsignado !== "—" && (
+                              <div className="requests-view__data-col">
+                                <p className="requests-view__label">
+                                  Técnico asignado
+                                </p>
+                                <p className="requests-view__value">
+                                  {sol.tecnicoAsignado}
+                                </p>
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -428,6 +446,19 @@ export default function Requests() {
         open={!!modalMantenimientoId}
         onClose={() => setModalMantenimientoId(null)}
         mantenimientoId={modalMantenimientoId}
+        onBaja={async (data) => {
+          console.log("[DEBUG BAJA Requests] onBaja llamado con:", JSON.stringify(data));
+          try {
+            const result = await bajas.darDeBaja(data);
+            console.log("[DEBUG BAJA Requests] respuesta:", result);
+            toast.success("Solicitud de baja creada correctamente");
+            invalidateSolicitudes();
+            setModalMantenimientoId(null);
+          } catch (err) {
+            toast.error(err.message || "Error al solicitar la baja");
+            throw err;
+          }
+        }}
       />
 
       <AssignTechnicianModal

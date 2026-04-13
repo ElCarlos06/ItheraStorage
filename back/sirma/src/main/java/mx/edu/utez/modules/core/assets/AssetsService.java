@@ -136,37 +136,6 @@ public class AssetsService {
     }
 
     /**
-     * Convierte una entidad Assets a su DTO correspondiente.
-     *
-     * @param entity Entidad Assets.
-     * @return AssetsDTO con los datos de la entidad.
-     */
-    private AssetsDTO toDTO(Assets entity) {
-        AssetsDTO dto = new AssetsDTO();
-        dto.setId(entity.getId());
-        dto.setEtiqueta(entity.getEtiqueta());
-        dto.setNumeroSerie(entity.getNumeroSerie());
-        dto.setIdTipoActivo(entity.getTipoActivo().getId());
-        dto.setIdEspacio(entity.getEspacio().getId());
-        dto.setEstadoCustodia(entity.getEstadoCustodia());
-        dto.setEstadoOperativo(entity.getEstadoOperativo());
-        dto.setDescripcion(entity.getDescripcion());
-        dto.setCosto(entity.getCosto());
-        dto.setQrCodigo(entity.getQrCodigo());
-        dto.setFechaAlta(entity.getFechaAlta().toString());
-        dto.setEsActivo(entity.getEsActivo());
-
-        dto.setTipoActivo(entity.getTipoActivo());   // nombre, marca, modelo, tipoBien
-        dto.setEspacio(entity.getEspacio());         // nombreEspacio, edificio, campus
-
-        // IDs para forms de edición
-        dto.setIdTipoActivo(entity.getTipoActivo().getId());
-        dto.setIdEspacio(entity.getEspacio().getId());
-
-        return dto;
-    }
-
-    /**
      * Registra un nuevo activo en el sistema.
      * Valida unicidad de número de serie y existencia de catálogos (tipo, modelo, espacio).
      *

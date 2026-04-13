@@ -113,7 +113,8 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
         SELECT 
             MONTHNAME(m.fecha_inicio) AS mes,
             m.tipo_asignado AS tipoMantenimiento,
-            AVG(TIMESTAMPDIFF(HOUR, m.fecha_inicio, m.fecha_fin)) AS promedioHoras
+            (AVG(TIMESTAMPDIFF(SECOND, m.fecha_inicio, m.fecha_fin)) / 3600.0) AS promedioHoras,
+            COUNT(*) AS numMantenimientos
         FROM mantenimiento m
         WHERE m.fecha_fin IS NOT NULL
             AND m.fecha_inicio BETWEEN :start AND :end
