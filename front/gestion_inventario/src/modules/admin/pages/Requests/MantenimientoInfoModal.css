@@ -138,12 +138,19 @@
 
 /* Dar de baja */
 .mim__baja-btn {
-  background: rgba(52,72,240,.6); color: #fff; border: none; border-radius: 12px;
+  background: var(--moon-piccolo); color: #fff; border: none; border-radius: 12px;
   padding: 14px 45px; font-family: var(--moon-font-sans); font-size: 16px; font-weight: 600; line-height: 24px;
   cursor: pointer; transition: background .2s;
 }
-.mim__baja-btn:hover { background: rgba(52,72,240,.8); }
+.mim__baja-btn:hover { background: var(--moon-piccolo-60, #6366f1); }
 .mim__baja-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.mim__liberar-btn {
+  background: var(--moon-gohan, #f5f5f5);
+  color: var(--moon-content-text, #1e2939);
+  border: 1.5px solid var(--moon-beerus, #e2e2e2);
+}
+.mim__liberar-btn:hover { background: var(--moon-beerus, #e2e2e2); }
 
 /* Baja form */
 .mim__baja-form { padding: 4px 0; }

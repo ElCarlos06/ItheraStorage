@@ -30,11 +30,13 @@ import org.xml.sax.XMLReader;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 
 /**
  * Servicio especializado en la importación masiva de activos desde archivos Excel (.xlsx).
@@ -43,7 +45,9 @@ import java.time.LocalDate;
  *
  * <p><b>Formato esperado del archivo .xlsx (fila 1 = encabezados, datos desde fila 2):</b></p>
  * <pre>
- * Etiqueta*, Número de Serie*, Tipo(Nombre*, Marca*, Bien*, Modelo*)*, Campus*, Edificio*, Espacio*
+ * Número de Serie* | Campus* | Tipo de Activo* | Marca** | Bien** | Modelo** | Edificio* | Espacio*
+ * (* obligatorio siempre, ** obligatorio solo si el Tipo de Activo no existe en catálogo — se crea automáticamente)
+ * La Etiqueta se genera automáticamente con la misma lógica del alta manual.
  * </pre>
  *
  * @author Ithera Team
@@ -156,25 +160,34 @@ public class ImportService {
     }
 
     private int processBatch(List<String[]> batch, List<String> errores, Set<String> etiquetasVistas, Set<String> seriesVistas) {
-        Set<String> etiquetasLote = new HashSet<>();
-        Set<String> seriesLote    = new HashSet<>();
-        Set<String> campusLote    = new HashSet<>();
-        Set<String> tipoKeyLote   = new HashSet<>(); 
+        // Columnas: [0]=fila, [1]=Serie, [2]=Campus, [3]=TipoActivo,
+        //           [4]=Marca, [5]=Bien, [6]=Modelo, [7]=Edificio, [8]=Espacio
+        //           (Etiqueta se genera automáticamente)
+        Set<String> seriesLote  = new HashSet<>();
+        Set<String> campusLote  = new HashSet<>();
+        Set<String> nombresLote = new HashSet<>();
 
-        // Recolectar llaves foráneas y datos únicos de las filas de este lote 
-        // para hacer búsquedas masivas en la BD y evitar hacer 1000 iteraciones
+        // Guardamos datos de creación de tipo: nombre → {marca, bien, modelo}
+        // (primera aparición por nombre, ya que nombre es único)
+        Map<String, String[]> tipoCreacionDatos = new LinkedHashMap<>();
+
         for (String[] r : batch) {
-            if (!r[1].isEmpty()) etiquetasLote.add(r[1]);
-            if (!r[2].isEmpty()) seriesLote.add(r[2]);
-            if (!r[7].isEmpty()) campusLote.add(r[7]);
-            if (!r[3].isEmpty() && !r[4].isEmpty() && !r[5].isEmpty() && !r[6].isEmpty())
-                tipoKeyLote.add(r[3] + "-" + r[4] + "-" + r[5] + "-" + r[6]);
+            if (!r[1].isEmpty()) seriesLote.add(r[1]);
+            if (!r[2].isEmpty()) campusLote.add(r[2]);
+            if (!r[3].isEmpty()) {
+                nombresLote.add(r[3]);
+                tipoCreacionDatos.putIfAbsent(r[3], new String[]{r[4], r[5], r[6]});
+            }
         }
 
-        Set<String> etiquetasEnBD = etiquetasLote.isEmpty() ? new HashSet<>() :
-                assetsRepository.findEtiquetasExistentes(etiquetasLote);
+        // Solo series de activos ACTIVOS bloquean la importación
         Set<String> seriesEnBD = seriesLote.isEmpty() ? new HashSet<>() :
                 assetsRepository.findSeriesExistentes(seriesLote);
+
+        // Activos desactivados con esas series → se reactivarán en vez de rechazarse
+        Map<String, Assets> inactivosMap = seriesLote.isEmpty() ? new HashMap<>() :
+                assetsRepository.findInactivosByNumeroSerieIn(seriesLote).stream()
+                .collect(Collectors.toMap(Assets::getNumeroSerie, Function.identity()));
 
         Map<String, Campus> campusCache = campusRepository.findByNombreIn(campusLote)
                 .stream().collect(Collectors.toMap(Campus::getNombre, Function.identity()));
@@ -199,94 +212,119 @@ public class ImportService {
                         Function.identity()
                 ));
 
-        Map<String, TipoActivo> tipoCache = tipoKeyLote.isEmpty() ? new HashMap<>() :
-                tipoActivoRepository.findByCompositeKeys(tipoKeyLote).stream()
-                .collect(Collectors.toMap(
-                        tA -> tA.getNombre() + "-" + tA.getMarca() + "-" +
-                                tA.getTipoBien() + "-" + tA.getModelo(),
-                        Function.identity()
-                ));
+        // Buscar tipos existentes por nombre (único en BD)
+        Map<String, TipoActivo> tipoCache = new HashMap<>(
+                nombresLote.isEmpty() ? new HashMap<>() :
+                tipoActivoRepository.findByNombreIn(nombresLote).stream()
+                .collect(Collectors.toMap(TipoActivo::getNombre, Function.identity()))
+        );
 
-        List<Assets> activosGuardar = new ArrayList<>();
+        // Auto-crear tipos que no existen si se proporcionó Marca + Bien + Modelo
+        List<TipoActivo> nuevosTipos = new ArrayList<>();
+        for (Map.Entry<String, String[]> entry : tipoCreacionDatos.entrySet()) {
+            String nombre = entry.getKey();
+            if (tipoCache.containsKey(nombre)) continue;
+
+            String[] datos = entry.getValue();
+            String marca  = datos[0];
+            String bien   = datos[1];
+            String modelo = datos[2];
+
+            if (!marca.isEmpty() && !bien.isEmpty() && !modelo.isEmpty()) {
+                TipoActivo nuevo = new TipoActivo();
+                nuevo.setNombre(nombre);
+                nuevo.setMarca(marca);
+                nuevo.setTipoBien(bien);
+                nuevo.setModelo(modelo);
+                nuevo.setEsActivo(true);
+                nuevosTipos.add(nuevo);
+            }
+        }
+
+        if (!nuevosTipos.isEmpty()) {
+            tipoActivoRepository.saveAll(nuevosTipos);
+            nuevosTipos.forEach(t -> tipoCache.put(t.getNombre(), t));
+            log.info("Importación: {} tipo(s) de activo creado(s) automáticamente.", nuevosTipos.size());
+        }
+
+        List<Assets> activosNuevos      = new ArrayList<>();
+        List<Assets> activosReactivados = new ArrayList<>();
 
         for (String[] r : batch) {
             int rowNum = Integer.parseInt(r[0]) + 1;
+            String serie = r[1];
             try {
-                activosGuardar.add(buildAsset(r, etiquetasVistas, seriesVistas, etiquetasEnBD, seriesEnBD, tipoCache, campusCache, edificioCache, espacioCache));
+                if (!serie.isEmpty() && inactivosMap.containsKey(serie) && !seriesVistas.contains(serie)) {
+                    // Activo previamente desactivado → reactivar
+                    activosReactivados.add(reactivarAsset(inactivosMap.get(serie), r, tipoCache, campusCache, edificioCache, espacioCache));
+                    seriesVistas.add(serie);
+                } else {
+                    activosNuevos.add(buildAsset(r, seriesVistas, seriesEnBD, tipoCache, campusCache, edificioCache, espacioCache));
+                }
             } catch (ImportException e) {
                 log.error("Error en fila {}: {}", rowNum, e.getMessage());
                 errores.add("Fila " + rowNum + ": " + e.getMessage());
             }
         }
 
-        // ── FASE 5: PERSISTENCIA
-        // Terminamos de validar, ahora a guardar todo ya a la ñonga wn
-        // ──────────────────────────────────────────────────────────────────────
-        if (!activosGuardar.isEmpty()) {
-            assetsRepository.saveAll(activosGuardar);
-            bitacoraService.registrarEvento(activosGuardar);
-            
-            // Register successfully saved assets mapping tags to DB logic across batches if needed
-            // Registramos lo que se acaba de guardar para que el siguiente lote sepa que ya existe
-            for(Assets a: activosGuardar) {
-                etiquetasEnBD.add(a.getEtiqueta());
-                seriesEnBD.add(a.getNumeroSerie());
-            }
+        if (!activosNuevos.isEmpty()) {
+            assetsRepository.saveAll(activosNuevos);
+            bitacoraService.registrarEvento(activosNuevos);
+            activosNuevos.forEach(a -> seriesEnBD.add(a.getNumeroSerie()));
         }
-        
+
+        if (!activosReactivados.isEmpty()) {
+            assetsRepository.saveAll(activosReactivados);
+            log.info("Importación: {} activo(s) desactivado(s) reactivado(s).", activosReactivados.size());
+        }
+
         batch.clear();
-        return activosGuardar.size();
+        return activosNuevos.size() + activosReactivados.size();
     }
 
-    private Assets buildAsset(String[] r, 
-                              Set<String> etiquetasVistas, Set<String> seriesVistas, 
-                              Set<String> etiquetasEnBD, Set<String> seriesEnBD, 
-                              Map<String, TipoActivo> tipoCache, Map<String, Campus> campusCache, 
+    private Assets buildAsset(String[] r,
+                              Set<String> seriesVistas,
+                              Set<String> seriesEnBD,
+                              Map<String, TipoActivo> tipoCache, Map<String, Campus> campusCache,
                               Map<String, Edificio> edificioCache, Map<String, Espacio> espacioCache) throws ImportException {
-        
-        String etiqueta    = r[1];
-        String serie       = r[2];
-        String nombreStr   = r[3];
-        String marcaStr    = r[4];
-        String bienStr     = r[5];
-        String modeloStr   = r[6];
-        String campusStr   = r[7];
-        String edificioStr = r[8];
-        String espacioStr  = r[9];
 
-        if (etiqueta.isEmpty() || serie.isEmpty() || nombreStr.isEmpty() || marcaStr.isEmpty() || 
-            bienStr.isEmpty() || modeloStr.isEmpty() || campusStr.isEmpty() || edificioStr.isEmpty() || espacioStr.isEmpty())
-            throw new ImportException("Faltan campos obligatorios (*)");
+        // Columnas: [0]=fila, [1]=Serie, [2]=Campus, [3]=TipoActivo,
+        //           [4]=Marca*, [5]=Bien*, [6]=Modelo*, [7]=Edificio, [8]=Espacio
+        //           (Etiqueta se genera automáticamente como en el alta manual)
+        String serie       = r[1];
+        String campusStr   = r[2];
+        String tipoNombre  = r[3];
+        String edificioStr = r[7];
+        String espacioStr  = r[8];
 
-        if (!etiquetasVistas.add(etiqueta))
+        if (serie.isEmpty() || campusStr.isEmpty() || tipoNombre.isEmpty() ||
+            edificioStr.isEmpty() || espacioStr.isEmpty())
+            throw new ImportException("Faltan campos obligatorios (Serie, Campus, Tipo, Edificio, Espacio).");
 
-            throw new ImportException("La etiqueta '" + etiqueta + "' está repetida en el archivo.");
         if (!seriesVistas.add(serie))
             throw new ImportException("El número de serie '" + serie + "' está repetido en el archivo.");
-
-        if (etiquetasEnBD.contains(etiqueta))
-            throw new ImportException("La etiqueta '" + etiqueta + "' ya existe en el sistema.");
 
         if (seriesEnBD.contains(serie))
             throw new ImportException("El número de serie '" + serie + "' ya existe en el sistema.");
 
-        String tipoKey = nombreStr + "-" + marcaStr + "-" + bienStr + "-" + modeloStr;
-        TipoActivo tipoActivo = tipoCache.get(tipoKey);
+        TipoActivo tipoActivo = tipoCache.get(tipoNombre);
         if (tipoActivo == null)
-            throw new ImportException("No existe el TipoActivo con nombre '" + nombreStr + 
-                    "', marca '" + marcaStr + "', bien '" + bienStr + "' y modelo '" + modeloStr + "'.");
+            throw new ImportException("El tipo de activo '" + tipoNombre + "' no existe en el catálogo y no se proporcionaron Marca, Bien y Modelo para crearlo.");
 
         Campus campus = campusCache.get(campusStr);
         if (campus == null)
-            throw new ImportException("El Campus '" + campusStr + "' no existe.");
+            throw new ImportException("El campus '" + campusStr + "' no existe.");
 
         Edificio edificio = edificioCache.get(campus.getId() + "-" + edificioStr);
         if (edificio == null)
-            throw new ImportException("El Edificio '" + edificioStr + "' no existe en ese campus.");
+            throw new ImportException("El edificio '" + edificioStr + "' no existe en el campus '" + campusStr + "'.");
 
         Espacio espacio = espacioCache.get(edificio.getId() + "-" + espacioStr);
         if (espacio == null)
-            throw new ImportException("El Espacio '" + espacioStr + "' no existe en ese edificio.");
+            throw new ImportException("El espacio '" + espacioStr + "' no existe en el edificio '" + edificioStr + "'.");
+
+        // Generar etiqueta automáticamente con la misma lógica del alta manual
+        String etiqueta = generarEtiqueta(tipoActivo, campusStr, edificioStr, espacioStr);
 
         Assets asset = new Assets();
         asset.setEtiqueta(etiqueta);
@@ -299,6 +337,67 @@ public class ImportService {
         asset.setEstadoOperativo("OK");
 
         return asset;
+    }
+
+    /**
+     * Reactiva un activo que estaba desactivado (esActivo = false) actualizando su
+     * ubicación y tipo según los datos de la fila del Excel.
+     */
+    private Assets reactivarAsset(Assets activo, String[] r,
+                                   Map<String, TipoActivo> tipoCache,
+                                   Map<String, Campus> campusCache,
+                                   Map<String, Edificio> edificioCache,
+                                   Map<String, Espacio> espacioCache) throws ImportException {
+
+        String campusStr   = r[2];
+        String tipoNombre  = r[3];
+        String edificioStr = r[7];
+        String espacioStr  = r[8];
+
+        if (campusStr.isEmpty() || tipoNombre.isEmpty() || edificioStr.isEmpty() || espacioStr.isEmpty())
+            throw new ImportException("Faltan campos obligatorios (Campus, Tipo, Edificio, Espacio).");
+
+        TipoActivo tipo = tipoCache.get(tipoNombre);
+        if (tipo == null)
+            throw new ImportException("El tipo de activo '" + tipoNombre + "' no existe.");
+
+        Campus campus = campusCache.get(campusStr);
+        if (campus == null)
+            throw new ImportException("El campus '" + campusStr + "' no existe.");
+
+        Edificio edificio = edificioCache.get(campus.getId() + "-" + edificioStr);
+        if (edificio == null)
+            throw new ImportException("El edificio '" + edificioStr + "' no existe en el campus '" + campusStr + "'.");
+
+        Espacio espacio = espacioCache.get(edificio.getId() + "-" + espacioStr);
+        if (espacio == null)
+            throw new ImportException("El espacio '" + espacioStr + "' no existe en el edificio '" + edificioStr + "'.");
+
+        activo.setEsActivo(true);
+        activo.setTipoActivo(tipo);
+        activo.setEspacio(espacio);
+        activo.setFechaAlta(LocalDate.now());
+        activo.setEstadoCustodia("Disponible");
+        activo.setEstadoOperativo("OK");
+        return activo;
+    }
+
+    /**
+     * Genera la etiqueta del activo con la misma lógica que el alta manual:
+     * 2 chars del nombre + 2 chars de la marca + inicial de espacio + edificio + campus + UUID 6 chars.
+     */
+    private String generarEtiqueta(TipoActivo tipo, String campusStr, String edificioStr, String espacioStr) {
+        String nombre = tipo.getNombre() != null ? tipo.getNombre() : "";
+        String marca  = tipo.getMarca()  != null ? tipo.getMarca()  : "";
+
+        String tagNombre   = nombre.length() >= 2 ? nombre.substring(0, 2).toUpperCase() : (nombre + "X").toUpperCase();
+        String tagMarca    = marca.length()  >= 2 ? marca.substring(0, 2).toUpperCase()  : (marca  + "X").toUpperCase();
+        char   tagEspacio  = !espacioStr.isEmpty()  ? Character.toUpperCase(espacioStr.charAt(0))  : 'X';
+        char   tagEdificio = !edificioStr.isEmpty() ? Character.toUpperCase(edificioStr.charAt(0)) : 'X';
+        char   tagCampus   = !campusStr.isEmpty()   ? Character.toUpperCase(campusStr.charAt(0))   : 'X';
+
+        String uid = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+        return tagNombre + tagMarca + tagEspacio + tagEdificio + tagCampus + "-" + uid;
     }
 
 }

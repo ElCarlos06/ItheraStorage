@@ -1,15 +1,14 @@
 import { useMemo } from "react";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import { X } from "lucide-react";
+import Modal from "../../../../../components/Modal/Modal";
 import Button from "../../../../../components/Button/Button";
 import exitoSvg from "../../../../../assets/exito.svg";
-import fantasmitaSvg from "../../../../../assets/fantasmita.svg";
+import titeDodoriaSvg from "../../../../../assets/tite-dodoria.svg";
 import "./ImportResultModal.css";
 
 /**
  * Parsea el message del backend y extrae las filas de error.
  * Formato esperado: "Fila 4: La etiqueta 'ABC' ya existe."
- * @param {string} message
- * @returns {{ summary: string, rows: { fila: string, motivo: string }[] }}
  */
 function parseImportMessage(message) {
   if (!message) return { summary: "", rows: [] };
@@ -37,63 +36,67 @@ export default function ImportResultModal({
   message = "",
 }) {
   const isError = type === "error";
-  const icon = isError ? fantasmitaSvg : exitoSvg;
-  const title = isError ? "Importación con Errores" : "Importación Exitosa";
+  const icon = isError ? titeDodoriaSvg : exitoSvg;
+  const title = isError ? "Importación con errores" : "Importación exitosa";
 
   const { summary, rows } = useMemo(() => parseImportMessage(message), [message]);
   const hasTable = rows.length > 0;
 
   return (
-    <AlertDialog.Root open={open} onOpenChange={(o) => !o && onClose?.()}>
-      <AlertDialog.Portal>
-        <AlertDialog.Overlay className="import-result-modal__overlay" />
-        <AlertDialog.Content
-          className={`import-result-modal__content ${hasTable ? "import-result-modal__content--wide" : ""}`}
-        >
-          <div className="import-result-modal__inner d-flex flex-column align-items-center text-center gap-4">
-            <div className="import-result-modal__icon d-flex align-items-center justify-content-center flex-shrink-0">
-              <img src={icon} alt="" width={280} height={280} aria-hidden />
-            </div>
+    <Modal open={open} className={`import-result-modal ${hasTable ? "import-result-modal--wide" : ""}`}>
+      <div className="irm d-flex flex-column">
 
-            <AlertDialog.Title className="import-result-modal__title">
-              {title}
-            </AlertDialog.Title>
+        {/* Header */}
+        <header className="irm__header d-flex align-items-center justify-content-between flex-shrink-0">
+          <h2 className="irm__title m-0">{title}</h2>
+          <button
+            type="button"
+            className="irm__close d-flex align-items-center justify-content-center p-0 border-0 bg-transparent rounded-3"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
+            <X size={24} strokeWidth={2.5} />
+          </button>
+        </header>
 
-            <AlertDialog.Description asChild>
-              <p className="import-result-modal__message">{summary}</p>
-            </AlertDialog.Description>
+        {/* Scrollable body */}
+        <div className="irm__body d-flex flex-column align-items-center text-center gap-4">
 
-            {hasTable && (
-              <div className="import-result-modal__table-wrapper">
-                <table className="import-result-modal__table">
-                  <thead>
-                    <tr>
-                      <th>Fila</th>
-                      <th>Motivo del rechazo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r, i) => (
-                      <tr key={i}>
-                        <td className="import-result-modal__cell-fila">{r.fila}</td>
-                        <td>{r.motivo}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="import-result-modal__actions d-flex gap-3 justify-content-center align-items-center mt-2 w-100">
-              <AlertDialog.Cancel asChild>
-                <Button variant={isError ? "outline" : "primary"} size="medium" onClick={onClose}>
-                  Aceptar
-                </Button>
-              </AlertDialog.Cancel>
-            </div>
+          <div className="irm__icon flex-shrink-0">
+            <img src={icon} alt="" aria-hidden width={200} height={200} />
           </div>
-        </AlertDialog.Content>
-      </AlertDialog.Portal>
-    </AlertDialog.Root>
+
+          <p className="irm__message m-0">{summary}</p>
+
+          {hasTable && (
+            <div className="irm__table-wrapper">
+              <table className="irm__table">
+                <thead>
+                  <tr>
+                    <th>Fila</th>
+                    <th>Motivo del rechazo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i}>
+                      <td className="irm__cell-fila">{r.fila}</td>
+                      <td>{r.motivo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <footer className="irm__footer d-flex justify-content-end flex-shrink-0">
+          <Button variant="primary" size="medium" onClick={onClose}>
+            Aceptar
+          </Button>
+        </footer>
+      </div>
+    </Modal>
   );
 }

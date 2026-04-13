@@ -3,6 +3,7 @@ package mx.edu.utez.modules.core.tipo_activos;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,4 +34,6 @@ public interface TipoActivoRepository extends JpaRepository<TipoActivo, Long> {
 
     @Query("SELECT t FROM TipoActivo t WHERE CONCAT(t.nombre,'-',t.marca,'-',t.tipoBien,'-',t.modelo) IN :keys")
     List<TipoActivo> findByCompositeKeys(@Param("keys") Set<String> keys);
+
+    List<TipoActivo> findByNombreIn(Collection<String> nombres);
 }

@@ -77,7 +77,7 @@ function EvidenciasGrid({ imagenes }) {
   );
 }
 
-export default function MantenimientoInfoModal({ open, onClose, mantenimientoId, onBaja }) {
+export default function MantenimientoInfoModal({ open, onClose, mantenimientoId, onBaja, onLiberarTecnico }) {
   const [data, setData] = useState(null);
   const [imagenes, setImagenes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -200,6 +200,21 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
 
         {/* Footer */}
         <footer className="mim__footer border-top flex-shrink-0">
+          {m?.estadoMantenimiento === "Asignado" && !showBajaForm && (
+            <div className="d-flex align-items-center justify-content-end w-100 mb-2">
+              <button
+                type="button"
+                className="mim__baja-btn mim__liberar-btn"
+                onClick={() => {
+                  onLiberarTecnico?.(m);
+                  onClose?.();
+                }}
+              >
+                Liberar técnico
+              </button>
+            </div>
+          )}
+
           {esIrreparable && !showBajaForm && (
             <div className="d-flex align-items-center justify-content-end w-100">
               <button type="button" className="mim__baja-btn" onClick={() => setShowBajaForm(true)}>

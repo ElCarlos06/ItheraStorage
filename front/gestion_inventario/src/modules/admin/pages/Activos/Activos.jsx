@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import NewAssetModal from "./NewAssetModal";
 import AssignResguardoModal from "./components/AssignResguardoModal";
 import ReleaseResguardoModal from "./components/ReleaseResguardoModal";
@@ -24,6 +24,8 @@ import {
   NotificationsBell,
   GenericPlus,
   FilesImport,
+  GenericDownload,
+  ControlsChevronDown,
 } from "@heathmont/moon-icons";
 
 const STAT_ICONS = [ShopBag, NotificationsBell, GenericUser, GenericSettings];
@@ -57,6 +59,18 @@ export default function Activos({
   const [modalReleaseAsset, setModalReleaseAsset] = useState(null);
   const [modalHistorialAsset, setModalHistorialAsset] = useState(null);
   const [importResult, setImportResult] = useState(null);
+  const [importMenuOpen, setImportMenuOpen] = useState(false);
+  const importMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!importMenuOpen) return;
+    const handler = (e) => {
+      if (importMenuRef.current && !importMenuRef.current.contains(e.target))
+        setImportMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [importMenuOpen]);
 
   const activos = Array.isArray(activosProp) ? activosProp : [];
   const stats = Array.isArray(statsProp) ? statsProp : [];
@@ -171,15 +185,53 @@ export default function Activos({
               accept=".xlsx, .xls"
               onChange={handleUploadExcel}
             />
-            <Button
-              variant="secondary"
-              iconLeft={FilesImport}
-              iconSize={30}
-              title="Importar activos desde un archivo Excel (.xlsx, .xls)"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Importar Excel
-            </Button>
+            <div className="import-split" ref={importMenuRef}>
+              <button
+                type="button"
+                className="btn btn--secondary btn--medium import-split__main"
+                title="Importar activos desde un archivo Excel"
+                onClick={() => { fileInputRef.current?.click(); setImportMenuOpen(false); }}
+              >
+                <FilesImport fontSize={20} />
+                Importar Excel
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--medium import-split__chevron"
+                aria-label="Más opciones de importación"
+                onClick={() => setImportMenuOpen((o) => !o)}
+              >
+                <ControlsChevronDown
+                  fontSize={16}
+                  style={{ transition: "transform .2s", transform: importMenuOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                />
+              </button>
+              {importMenuOpen && (
+                <ul className="import-split__menu" role="menu">
+                  <li>
+                    <button
+                      type="button"
+                      className="import-split__item"
+                      onClick={() => { fileInputRef.current?.click(); setImportMenuOpen(false); }}
+                    >
+                      <FilesImport fontSize={18} />
+                      Importar
+                    </button>
+                  </li>
+                  <li>
+                    <a
+                      href="/plantilla-importacion.xlsx"
+                      download="Plantilla-Importacion-Activos.xlsx"
+                      className="import-split__item"
+                      onClick={() => setImportMenuOpen(false)}
+                    >
+                      <GenericDownload fontSize={18} />
+                      Descargar plantilla
+                    </a>
+                  </li>
+                </ul>
+              )}
+            </div>
             <Button
               variant="primary"
               iconLeft={GenericPlus}

@@ -33,14 +33,19 @@ public class RowCollectorHandler implements XSSFSheetXMLHandler.SheetContentsHan
     }
 
     /**
-     * Checa si la fila ha terminado y la agrega a la lista de filas, excepto la fila 0 que es la cabecera
+     * Checa si la fila ha terminado y la agrega a la lista de filas, excepto la fila 0 (cabecera)
+     * y filas completamente vacías (sin datos en ninguna columna).
      * @param rowNum Número de fila
      */
     @Override
     public void endRow(int rowNum) {
-        // Fila 0 = cabecera, la ignoramos
         if (rowNum == 0 || currentRow == null) return;
-        onRowEnd.accept(currentRow);
+        // Ignorar filas donde todos los campos de datos están vacíos
+        boolean tieneAlgunDato = false;
+        for (int i = 1; i < currentRow.length; i++) {
+            if (!currentRow[i].isEmpty()) { tieneAlgunDato = true; break; }
+        }
+        if (tieneAlgunDato) onRowEnd.accept(currentRow);
         currentRow = null;
     }
 

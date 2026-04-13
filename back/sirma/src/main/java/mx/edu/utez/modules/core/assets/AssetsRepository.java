@@ -113,13 +113,24 @@ public interface AssetsRepository extends JpaRepository<Assets, Long> {
     Set<String> findEtiquetasExistentes(@Param("etiquetas") Set<String> etiquetas);
 
     /**
-     * Localiza series filtrando por medio de una lista comparada.
+     * Localiza series de activos ACTIVOS filtrando por medio de una lista comparada.
+     * Solo retorna series de activos con esActivo = true.
      *
      * @param series Colección de series buscadas.
-     * @return Resumen de series encontradas dentro de la plataforma.
+     * @return Resumen de series encontradas dentro de la plataforma (solo activos).
      */
-    @Query("SELECT a.numeroSerie FROM Assets a WHERE a.numeroSerie IN :series")
+    @Query("SELECT a.numeroSerie FROM Assets a WHERE a.esActivo = true AND a.numeroSerie IN :series")
     Set<String> findSeriesExistentes(@Param("series") Set<String> series);
+
+    /**
+     * Encuentra activos DESACTIVADOS cuya serie esté en la colección dada.
+     * Usado en importación masiva para reactivar en vez de rechazar.
+     *
+     * @param series Colección de series a buscar.
+     * @return Lista de activos inactivos con esas series.
+     */
+    @Query("SELECT a FROM Assets a WHERE a.esActivo = false AND a.numeroSerie IN :series")
+    List<Assets> findInactivosByNumeroSerieIn(@Param("series") Set<String> series);
 
     /**
      * Ejecuta sumatorias SQL globales sobre los activos (Ej: Total en Mantenimiento, Reportes, Resguardos, etc).

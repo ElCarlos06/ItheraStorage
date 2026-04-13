@@ -10,9 +10,10 @@ import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/Confir
 import ReporteInfoModal from "./ReporteInfoModal";
 import MantenimientoInfoModal from "./MantenimientoInfoModal";
 import AssignTechnicianModal from "./AssignTechnicianModal";
+import ReleaseTechnicianModal from "./ReleaseTechnicianModal";
 import StatusBadge from "../../../../components/StatusBadge/StatusBadge";
 import Icon from "../../../../components/Icon/Icon";
-import { GenericUser, GenericDelete } from "@heathmont/moon-icons";
+import { GenericUser, GenericDelete, SecurityPassport } from "@heathmont/moon-icons";
 import { solicitudesApi } from "../../../../api/solicitudesApi";
 import { bajas } from "../../../../api/bajasApi";
 import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
@@ -164,6 +165,7 @@ export default function Requests() {
   const [modalReporte, setModalReporte] = useState(null);
   const [modalMantenimientoId, setModalMantenimientoId] = useState(null);
   const [assignReporte, setAssignReporte] = useState(null);
+  const [releaseTecnico, setReleaseTecnico] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const pageSize = 10;
 
@@ -419,6 +421,20 @@ export default function Requests() {
                           <Icon icon={GenericUser} size={30} />
                         </button>
                       )}
+                      {activeTab === "mantenimientos" && sol.estatus === "Asignado" && (
+                        <button
+                          type="button"
+                          className="requests-view__action-btn"
+                          title="Liberar técnico"
+                          aria-label="Liberar técnico"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReleaseTecnico(sol);
+                          }}
+                        >
+                          <Icon icon={SecurityPassport} size={30} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -446,6 +462,21 @@ export default function Requests() {
         open={!!modalMantenimientoId}
         onClose={() => setModalMantenimientoId(null)}
         mantenimientoId={modalMantenimientoId}
+        onLiberarTecnico={(m) => {
+          setReleaseTecnico({
+            id: m?.id,
+            idMantenimiento: m?.id,
+            tecnicoAsignado:
+              m?.usuarioTecnico?.nombreCompleto ??
+              m?.usuarioTecnico?.nombre ??
+              m?.usuarioTecnico?.correo ??
+              "—",
+            activoNombre:
+              m?.activo?.nombre ?? m?.activo?.codigoActivo ?? m?.activo?.codigo ?? "",
+            estatus: m?.estadoMantenimiento ?? "Asignado",
+          });
+          setModalMantenimientoId(null);
+        }}
         onBaja={async (data) => {
           console.log("[DEBUG BAJA Requests] onBaja llamado con:", JSON.stringify(data));
           try {
@@ -469,6 +500,24 @@ export default function Requests() {
           invalidateSolicitudes();
           setAssignReporte(null);
           setModalReporte(null);
+        }}
+      />
+
+      <ReleaseTechnicianModal
+        open={!!releaseTecnico}
+        onClose={() => setReleaseTecnico(null)}
+        mantenimiento={releaseTecnico}
+        onLiberar={async () => {
+          const id = releaseTecnico?.idMantenimiento ?? releaseTecnico?.id;
+          try {
+            await solicitudesApi.mantenimientos.deleteMantenimiento(id);
+            toast.success("Técnico liberado. El reporte volvió a la bandeja de pendientes.");
+            invalidateSolicitudes();
+            setReleaseTecnico(null);
+          } catch (err) {
+            toast.error(err.message || "No se pudo liberar el técnico");
+            throw err;
+          }
         }}
       />
 
