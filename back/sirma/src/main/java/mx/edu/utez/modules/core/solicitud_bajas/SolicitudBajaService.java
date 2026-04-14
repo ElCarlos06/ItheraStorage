@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.core.assets.Assets;
 import mx.edu.utez.modules.core.assets.AssetsRepository;
+import mx.edu.utez.modules.core.assets.AssetsService;
 import mx.edu.utez.modules.reporting.bitacora.BitacoraService;
 import mx.edu.utez.modules.maintenance.mantenimientos.Mantenimiento;
 import mx.edu.utez.modules.maintenance.mantenimientos.MantenimientoRepository;
@@ -33,6 +34,7 @@ public class SolicitudBajaService {
     private final MantenimientoRepository mantenimientoRepository;
     private final UserRepository userRepository;
     private final BitacoraService bitacoraService;
+    private final AssetsService assetsService;
 
     /**
      * Recupera una lista paginada general de todas las solicitudes de baja.
@@ -95,7 +97,7 @@ public class SolicitudBajaService {
         entity.setMantenimiento(mant.get());
         entity.setJustificacion(dto.getJustificacion());
         entity.setEstado("Pendiente");
-        entity.setFechaResolucion(LocalDateTime.now());
+
         solicitudBajaRepository.save(entity);
         Long activoId = activo.get().getId();
         bitacoraService.registrarEvento(activoId, dto.getIdUsuarioAdmin(), "Solicitud Baja",
@@ -113,21 +115,33 @@ public class SolicitudBajaService {
      */
     @Transactional
     public ApiResponse update(Long id, SolicitudBajaDTO dto) {
-        Optional<SolicitudBaja> found = solicitudBajaRepository.findById(id);
+        Optional<SolicitudBaja> found = solicitudBajaRepository.findByMantenimientoId(id);
+
         if (found.isEmpty())
             return new ApiResponse("Solicitud de baja no encontrada", true, HttpStatus.NOT_FOUND);
+
         SolicitudBaja entity = found.get();
+
         if (dto.getEstado() != null) {
             entity.setEstado(dto.getEstado());
+
             if ("Aprobada".equals(dto.getEstado()) || "Rechazada".equals(dto.getEstado()))
                 entity.setFechaResolucion(LocalDateTime.now());
+
         }
+
         if (dto.getObservacionesAdmin() != null) entity.setObservacionesAdmin(dto.getObservacionesAdmin());
         if (dto.getIdUsuarioAdmin() != null) {
             Optional<User> admin = userRepository.findById(dto.getIdUsuarioAdmin());
             admin.ifPresent(entity::setUsuarioAdmin);
         }
+
+        entity.setFechaResolucion(LocalDateTime.now());
         solicitudBajaRepository.save(entity);
+
+        if ("Aprobada".equals(dto.getEstado()))
+            assetsService.toggleStatus(entity.getActivo().getId());
+
         return new ApiResponse("Solicitud de baja actualizada", entity, HttpStatus.OK);
     }
 

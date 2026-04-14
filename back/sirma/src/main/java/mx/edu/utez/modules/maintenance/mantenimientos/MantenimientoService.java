@@ -8,6 +8,8 @@ import mx.edu.utez.modules.core.assets.utils.AssetEstados;
 import mx.edu.utez.modules.core.assets.Assets;
 import mx.edu.utez.modules.core.assets.AssetsRepository;
 import mx.edu.utez.modules.core.assets.AssetsService;
+import mx.edu.utez.modules.core.solicitud_bajas.SolicitudBajaDTO;
+import mx.edu.utez.modules.core.solicitud_bajas.SolicitudBajaService;
 import mx.edu.utez.modules.reporting.bitacora.BitacoraService;
 import mx.edu.utez.modules.media.imagen_mantenimiento.ImagenMantenimiento;
 import mx.edu.utez.modules.media.imagen_mantenimiento.ImagenMantenimientoRepository;
@@ -54,6 +56,7 @@ public class MantenimientoService {
     private final PrioridadRepository prioridadRepository;
     private final BitacoraService bitacoraService;
     private final AssetsService assetsService;
+    private final SolicitudBajaService solicitudBajaService;
 
     /**
      * Muestra todo el catálogo o historial general por defecto paginado.
@@ -245,6 +248,19 @@ public class MantenimientoService {
                     ? "Mantenimiento cerrado como Irreparable; activo permanece en Mantenimiento hasta baja aprobada"
                     : "Mantenimiento finalizado: " + (conclusion != null ? conclusion : "Concluido");
             try {
+
+                if (AssetEstadoHelper.esConclusionIrreparable(conclusion)) {
+
+                    SolicitudBajaDTO sbDto = new SolicitudBajaDTO();
+
+                    sbDto.setIdActivo(activoId);
+                    sbDto.setIdMantenimiento(id);
+                    sbDto.setIdUsuarioAdmin(entity.getUsuarioAdmin().getId());
+                    sbDto.setJustificacion("Generado automáticamente por mantenimiento irreparable. Diagnóstico: " + entity.getDiagnostico());
+
+                    solicitudBajaService.save(sbDto);
+                }
+
                 bitacoraService.registrarEvento(activoId, dto.getIdUsuarioTecnico(), "Cierre Mantenimiento",
                         msg, cust, cust, opAnt, nuevoOp);
             } catch (Exception e) {

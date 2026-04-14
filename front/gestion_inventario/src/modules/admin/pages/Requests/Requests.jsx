@@ -13,7 +13,11 @@ import AssignTechnicianModal from "./AssignTechnicianModal";
 import ReleaseTechnicianModal from "./ReleaseTechnicianModal";
 import StatusBadge from "../../../../components/StatusBadge/StatusBadge";
 import Icon from "../../../../components/Icon/Icon";
-import { GenericUser, GenericDelete, SecurityPassport } from "@heathmont/moon-icons";
+import {
+  GenericUser,
+  GenericDelete,
+  SecurityPassport,
+} from "@heathmont/moon-icons";
 import { solicitudesApi } from "../../../../api/solicitudesApi";
 import { bajas } from "../../../../api/bajasApi";
 import { usePaginatedQuery } from "../../../../hooks/usePaginatedQuery";
@@ -421,20 +425,21 @@ export default function Requests() {
                           <Icon icon={GenericUser} size={30} />
                         </button>
                       )}
-                      {activeTab === "mantenimientos" && sol.estatus === "Asignado" && (
-                        <button
-                          type="button"
-                          className="requests-view__action-btn"
-                          title="Liberar técnico"
-                          aria-label="Liberar técnico"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setReleaseTecnico(sol);
-                          }}
-                        >
-                          <Icon icon={SecurityPassport} size={30} />
-                        </button>
-                      )}
+                      {activeTab === "mantenimientos" &&
+                        sol.estatus === "Asignado" && (
+                          <button
+                            type="button"
+                            className="requests-view__action-btn"
+                            title="Liberar técnico"
+                            aria-label="Liberar técnico"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReleaseTecnico(sol);
+                            }}
+                          >
+                            <Icon icon={SecurityPassport} size={30} />
+                          </button>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -472,17 +477,20 @@ export default function Requests() {
               m?.usuarioTecnico?.correo ??
               "—",
             activoNombre:
-              m?.activo?.nombre ?? m?.activo?.codigoActivo ?? m?.activo?.codigo ?? "",
+              m?.activo?.nombre ??
+              m?.activo?.codigoActivo ??
+              m?.activo?.codigo ??
+              "",
             estatus: m?.estadoMantenimiento ?? "Asignado",
           });
           setModalMantenimientoId(null);
         }}
         onBaja={async (data) => {
-          console.log("[DEBUG BAJA Requests] onBaja llamado con:", JSON.stringify(data));
           try {
+            console.log(data);
+
             const result = await bajas.darDeBaja(data);
-            console.log("[DEBUG BAJA Requests] respuesta:", result);
-            toast.success("Solicitud de baja creada correctamente");
+            toast.success("Solicitud de baja aprobada correctamente");
             invalidateSolicitudes();
             setModalMantenimientoId(null);
           } catch (err) {
@@ -511,7 +519,9 @@ export default function Requests() {
           const id = releaseTecnico?.idMantenimiento ?? releaseTecnico?.id;
           try {
             await solicitudesApi.mantenimientos.deleteMantenimiento(id);
-            toast.success("Técnico liberado. El reporte volvió a la bandeja de pendientes.");
+            toast.success(
+              "Técnico liberado. El reporte volvió a la bandeja de pendientes.",
+            );
             invalidateSolicitudes();
             setReleaseTecnico(null);
           } catch (err) {

@@ -41,11 +41,6 @@ public class AssetsController {
     }
 
     /**
-     * Busca un activo por su ID.
-     * @param id Identificador del activo.
-     * @return ResponseEntity con el activo encontrado o error si no existe.
-     */
-    /**
      * Resuelve el token opaco del QR (campo {@code p}) al detalle del activo. Requiere sesión (mismo alcance que GET /api/activos/{id}).
      */
     @GetMapping("/qr/resolver")

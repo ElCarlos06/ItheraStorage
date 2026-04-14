@@ -16,17 +16,22 @@ function formatDuracion(inicio, fin) {
 function ConclusionBox({ conclusion }) {
   if (!conclusion) return null;
   const lower = conclusion.trim().toLowerCase();
-  const variant = lower.includes("reparado") ? "reparado"
-    : lower.includes("irreparable") ? "irreparable"
-    : "neutral";
-  const subTexto = variant === "reparado"
-    ? "El activo fue reparado exitosamente y está listo para su uso"
-    : variant === "irreparable"
-    ? "El activo no fue posible repararlo."
-    : "";
+  const variant = lower.includes("reparado")
+    ? "reparado"
+    : lower.includes("irreparable")
+      ? "irreparable"
+      : "neutral";
+  const subTexto =
+    variant === "reparado"
+      ? "El activo fue reparado exitosamente y está listo para su uso"
+      : variant === "irreparable"
+        ? "El activo no fue posible repararlo."
+        : "";
 
   return (
-    <div className={`mim__conclusion-card mim__conclusion-card--${variant} d-flex flex-column gap-1`}>
+    <div
+      className={`mim__conclusion-card mim__conclusion-card--${variant} d-flex flex-column gap-1`}
+    >
       <p className="mim__conclusion-titulo m-0">{conclusion}</p>
       {subTexto && <p className="mim__conclusion-sub m-0">{subTexto}</p>}
     </div>
@@ -64,10 +69,26 @@ function EvidenciasGrid({ imagenes }) {
       </section>
 
       {preview && (
-        <div className="mim__lightbox" role="dialog" aria-modal="true" onClick={() => setPreview(null)}>
-          <div className="mim__lightbox-frame" onClick={(e) => e.stopPropagation()}>
-            <img src={preview} alt="Vista completa" className="mim__lightbox-img" />
-            <button type="button" className="mim__lightbox-close" onClick={() => setPreview(null)}>
+        <div
+          className="mim__lightbox"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setPreview(null)}
+        >
+          <div
+            className="mim__lightbox-frame"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={preview}
+              alt="Vista completa"
+              className="mim__lightbox-img"
+            />
+            <button
+              type="button"
+              className="mim__lightbox-close"
+              onClick={() => setPreview(null)}
+            >
               Cerrar
             </button>
           </div>
@@ -77,7 +98,13 @@ function EvidenciasGrid({ imagenes }) {
   );
 }
 
-export default function MantenimientoInfoModal({ open, onClose, mantenimientoId, onBaja, onLiberarTecnico }) {
+export default function MantenimientoInfoModal({
+  open,
+  onClose,
+  mantenimientoId,
+  onBaja,
+  onLiberarTecnico,
+}) {
   const [data, setData] = useState(null);
   const [imagenes, setImagenes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -87,20 +114,32 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
   const [bajaLoading, setBajaLoading] = useState(false);
 
   useEffect(() => {
-    if (!open || !mantenimientoId) { setData(null); setImagenes([]); setError(null); setShowBajaForm(false); setJustificacion(""); return; }
+    if (!open || !mantenimientoId) {
+      setData(null);
+      setImagenes([]);
+      setError(null);
+      setShowBajaForm(false);
+      setJustificacion("");
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    solicitudesApi.mantenimientos.getMantenimientoById(mantenimientoId)
+    solicitudesApi.mantenimientos
+      .getMantenimientoById(mantenimientoId)
       .then(async (resData) => {
         if (cancelled) return;
         const mtn = resData?.data ?? resData;
         setData(mtn);
         const reporteId = mtn?.reporte?.id ?? mtn?.idReporte ?? null;
         const [resMtnImgs, resRptImgs] = await Promise.all([
-          solicitudesApi.mantenimientos.getImagenes(mantenimientoId).catch(() => null),
-          reporteId ? solicitudesApi.reportes.getImagenes(reporteId).catch(() => null) : Promise.resolve(null),
+          solicitudesApi.mantenimientos
+            .getImagenes(mantenimientoId)
+            .catch(() => null),
+          reporteId
+            ? solicitudesApi.reportes.getImagenes(reporteId).catch(() => null)
+            : Promise.resolve(null),
         ]);
         if (cancelled) return;
         setImagenes([
@@ -108,10 +147,19 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
           ...(Array.isArray(resMtnImgs?.data) ? resMtnImgs.data : []),
         ]);
       })
-      .catch((e) => { if (!cancelled) { setError(e.message || "Error al cargar"); setData(null); } })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e.message || "Error al cargar");
+          setData(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [open, mantenimientoId]);
 
   if (!open) return null;
@@ -121,18 +169,30 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
   const tecnico = m?.usuarioTecnico ?? {};
   const tipoAsignado = m?.tipoEjecutado ?? m?.tipoAsignado ?? "—";
   const esIrreparable = m?.conclusion?.toLowerCase().includes("irreparable");
-  console.log("[DEBUG BAJA] conclusion:", m?.conclusion, "| esIrreparable:", esIrreparable, "| activo.id:", activo?.id, "| m.id:", m?.id);
 
   return (
     <Modal open={open} className="modal-content--mantenimiento">
       <div className="mim d-flex flex-column">
-
         {/* Header */}
         <header className="d-flex align-items-center justify-content-between mim__header flex-shrink-0">
           <h2 className="mim__title m-0">Detalles del mantenimiento</h2>
-          <button type="button" className="mim__close" onClick={onClose} aria-label="Cerrar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          <button
+            type="button"
+            className="mim__close"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </header>
@@ -149,20 +209,30 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
                 <div className="row g-3 row-cols-2 row-cols-md-4">
                   <div className="col d-flex flex-column gap-1">
                     <p className="mim__label m-0">Activo</p>
-                    <p className="mim__value mim__value--strong m-0">{activo.nombre ?? activo.numeroSerie ?? "—"}</p>
-                    <p className="mim__sub m-0">{activo.codigoActivo ?? activo.codigo ?? "—"}</p>
+                    <p className="mim__value mim__value--strong m-0">
+                      {activo.nombre ?? activo.numeroSerie ?? "—"}
+                    </p>
+                    <p className="mim__sub m-0">
+                      {activo.codigoActivo ?? activo.codigo ?? "—"}
+                    </p>
                   </div>
                   <div className="col d-flex flex-column gap-1">
                     <p className="mim__label m-0">Técnico</p>
-                    <p className="mim__value mim__value--strong m-0">{tecnico.nombreCompleto ?? tecnico.nombre ?? "—"}</p>
+                    <p className="mim__value mim__value--strong m-0">
+                      {tecnico.nombreCompleto ?? tecnico.nombre ?? "—"}
+                    </p>
                   </div>
                   <div className="col d-flex flex-column gap-1">
                     <p className="mim__label m-0">Duración</p>
-                    <p className="mim__value mim__value--strong m-0">{formatDuracion(m.fechaInicio, m.fechaFin)}</p>
+                    <p className="mim__value mim__value--strong m-0">
+                      {formatDuracion(m.fechaInicio, m.fechaFin)}
+                    </p>
                   </div>
                   <div className="col d-flex flex-column gap-1">
                     <p className="mim__label m-0">Tipo de mantenimiento</p>
-                    <span className={`mim__tipo-badge mim__tipo-badge--${tipoAsignado === "Preventivo" ? "preventivo" : "correctivo"}`}>
+                    <span
+                      className={`mim__tipo-badge mim__tipo-badge--${tipoAsignado === "Preventivo" ? "preventivo" : "correctivo"}`}
+                    >
                       {tipoAsignado}
                     </span>
                   </div>
@@ -174,11 +244,13 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
                 {[
                   { title: "Diagnóstico técnico", text: m.diagnostico },
                   { title: "Acciones realizadas", text: m.accionesRealizadas },
-                  { title: "Piezas utilizadas",   text: m.piezasUtilizadas },
+                  { title: "Piezas utilizadas", text: m.piezasUtilizadas },
                 ].map(({ title, text }) => (
                   <section key={title} className="d-flex flex-column gap-2">
                     <h3 className="mim__section-title m-0">{title}</h3>
-                    <div className="mim__box"><p className="mim__text m-0">{text ?? "—"}</p></div>
+                    <div className="mim__box">
+                      <p className="mim__text m-0">{text ?? "—"}</p>
+                    </div>
                   </section>
                 ))}
 
@@ -191,7 +263,9 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
 
                 <section className="d-flex flex-column gap-2">
                   <h3 className="mim__section-title m-0">Observaciones</h3>
-                  <div className="mim__box"><p className="mim__text m-0">{m.observaciones ?? "—"}</p></div>
+                  <div className="mim__box">
+                    <p className="mim__text m-0">{m.observaciones ?? "—"}</p>
+                  </div>
                 </section>
               </div>
             </>
@@ -217,7 +291,11 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
 
           {esIrreparable && !showBajaForm && (
             <div className="d-flex align-items-center justify-content-end w-100">
-              <button type="button" className="mim__baja-btn" onClick={() => setShowBajaForm(true)}>
+              <button
+                type="button"
+                className="mim__baja-btn"
+                onClick={() => setShowBajaForm(true)}
+              >
                 Dar de baja
               </button>
             </div>
@@ -241,7 +319,10 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
                 <button
                   type="button"
                   className="mim__baja-cancel"
-                  onClick={() => { setShowBajaForm(false); setJustificacion(""); }}
+                  onClick={() => {
+                    setShowBajaForm(false);
+                    setJustificacion("");
+                  }}
                   disabled={bajaLoading}
                 >
                   Cancelar
@@ -254,9 +335,9 @@ export default function MantenimientoInfoModal({ open, onClose, mantenimientoId,
                     const payload = {
                       idActivo: m.activo?.id,
                       idMantenimiento: m.id,
-                      justificacion: justificacion.trim(),
+                      estado: "Aprobada",
+                      observacionesAdmin: justificacion.trim(),
                     };
-                    console.log("[DEBUG BAJA] payload a enviar:", JSON.stringify(payload));
                     setBajaLoading(true);
                     try {
                       await onBaja?.(payload);
