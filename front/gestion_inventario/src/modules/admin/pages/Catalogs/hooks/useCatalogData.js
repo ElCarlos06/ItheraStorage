@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ubicacionesApi } from "../../../../../api/ubicacionesApi";
 import { tipoActivosApi } from "../../../../../api/tipoActivosApi";
 import { usePaginatedQuery } from "../../../../../hooks/usePaginatedQuery";
@@ -9,6 +9,7 @@ import { mapCampusItems, mapEdificioItems, mapAulaItems } from "../utils/catalog
 const PAGE_SIZE = 10;
 
 export function useCatalogData(mainTab, subTab) {
+  const queryClient = useQueryClient();
   const catalogQueryFn = async (page, size) => {
     if (mainTab === "tipos-activos") {
       return fetchWithErrorCheck(
@@ -88,8 +89,15 @@ export function useCatalogData(mainTab, subTab) {
     return [];
   }, [items, subTab]);
 
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["catalogs"] });
+    queryClient.invalidateQueries({ queryKey: ["campus-list"] });
+    queryClient.invalidateQueries({ queryKey: ["edificios-list"] });
+  }, [queryClient]);
+
   return {
     ...paginated,
+    invalidate,
     items,
     tiposActivosItems,
     campusList,
