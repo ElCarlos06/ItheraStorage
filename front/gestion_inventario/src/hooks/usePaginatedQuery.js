@@ -39,6 +39,8 @@ export function usePaginatedQuery({
   staleTime = DEFAULT_STALE_TIME,
   pageSize = DEFAULT_PAGE_SIZE,
   retry = 1,
+  // Polling de respaldo en caso de que SSE falle (30 s por defecto)
+  refetchInterval = 30_000,
 }) {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(0);
@@ -58,6 +60,7 @@ export function usePaginatedQuery({
     staleTime,
     placeholderData: keepPreviousData,
     retry,
+    refetchInterval,
   });
 
   const body = data?.data ?? data ?? {};

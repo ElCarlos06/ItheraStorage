@@ -37,7 +37,8 @@ object ReporteRepository {
             idUsuarioReporta = (data["usuarioReporta"].asMap())?.long("id") ?: data.long("idUsuarioReporta") ?: return,
             idTipoFalla      = (data["tipoFalla"].asMap())?.long("id") ?: data.long("idTipoFalla") ?: return,
             idPrioridad      = (data["prioridad"].asMap())?.long("id") ?: data.long("idPrioridad") ?: return,
-            descripcionFalla = data.string("descripcionFalla") ?: "",
+            // @NotBlank en el backend: nunca enviar cadena vacía
+            descripcionFalla = data.string("descripcionFalla")?.takeIf { it.isNotBlank() } ?: "-",
             estadoReporte    = "Resuelto"
         )
         try { ApiProvider.reporteApi.update6(reporteId, dto) } catch (_: Exception) { }

@@ -57,6 +57,7 @@ public class MantenimientoService {
     private final BitacoraService bitacoraService;
     private final AssetsService assetsService;
     private final SolicitudBajaService solicitudBajaService;
+    private final mx.edu.utez.kernel.sse.SseEmitterService sseEmitterService;
 
     /**
      * Muestra todo el catálogo o historial general por defecto paginado.
@@ -287,6 +288,7 @@ public class MantenimientoService {
             mantenimientoRepository.save(entity);
         }
 
+        sseEmitterService.notificar("inventario");
         return new ApiResponse("Mantenimiento actualizado", entity, HttpStatus.OK);
     }
 

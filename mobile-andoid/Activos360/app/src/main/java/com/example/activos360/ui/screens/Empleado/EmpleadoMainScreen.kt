@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.core.util.QrParse
@@ -28,7 +29,6 @@ import com.example.activos360.ui.screens.Empleado.details.ConfirmarResguardoScre
 import com.example.activos360.ui.screens.Empleado.details.DevolverActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.DetallesActivoScreen
 import com.example.activos360.ui.screens.Empleado.details.ReportarDanoScreen
-import com.example.activos360.ui.screens.Login.ScreeanChangePassword
 import com.example.activos360.ui.viewmodel.QrScanResult
 import com.example.activos360.ui.viewmodel.QrScanViewModel
 import kotlinx.coroutines.launch
@@ -41,6 +41,8 @@ fun EmpleadoMainScreen(
     val bottomNavController = rememberNavController()
     val context             = LocalContext.current
     val qrState             = qrScanViewModel.uiState
+
+    val currentRoute = bottomNavController.currentBackStackEntryAsState().value?.destination?.route
 
     var showModal       by remember { mutableStateOf(false) }
     var codigoEscaneado by remember { mutableStateOf("") }
@@ -68,10 +70,12 @@ fun EmpleadoMainScreen(
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            BottomCustomBar(
-                navController = bottomNavController,
-                onQrScanned   = { codigo -> qrScanViewModel.procesarEmpleado(codigo) }
-            )
+            if (currentRoute != "change_password") {
+                BottomCustomBar(
+                    navController = bottomNavController,
+                    onQrScanned   = { codigo -> qrScanViewModel.procesarEmpleado(codigo) }
+                )
+            }
         }
     ) { paddingValues ->
 
@@ -130,10 +134,9 @@ fun EmpleadoMainScreen(
             }
 
             composable("change_password") {
-                ScreeanChangePassword(
-                    correoFromFirstLogin = TokenManager.getCorreoFromToken(),
-                    onBackClick          = { bottomNavController.popBackStack() },
-                    onPasswordUpdated    = { bottomNavController.popBackStack() }
+                CambiarContrasenaPerfilScreen(
+                    onBack    = { bottomNavController.popBackStack() },
+                    onSuccess = { bottomNavController.popBackStack() }
                 )
             }
 

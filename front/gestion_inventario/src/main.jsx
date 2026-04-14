@@ -13,8 +13,8 @@ import App from "./App.jsx";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,        // 5 min → no refetch automático mientras sea "fresh"
-      refetchOnWindowFocus: false,      // no recargar al volver a la pestaña
+      staleTime: 1000 * 30,            // 30 s → los datos se consideran frescos poco tiempo
+      refetchOnWindowFocus: true,       // recarga al volver a la pestaña (respaldo al SSE)
       retry: 1,                         // solo 1 reintento en caso de error
     },
   },

@@ -119,11 +119,6 @@ class GenerarReporteViewModel : ViewModel() {
                     ActivoRepository.subirImagenes(_activoId, fotos, context)
                 }
 
-                // Resetear estadoOperativo para que futuros reportes no reciban 409
-                if (resultado == "Reparado") {
-                    ActivoRepository.resetEstadoOperativo(_activoId, "Disponible")
-                }
-
                 // Marcar como baja si es irreparable
                 if (resultado == "Irreparable" && _idTipoActivo > 0L && _idModelo > 0L && _idEspacio > 0L) {
                     val activoDto = AssetsDTO(

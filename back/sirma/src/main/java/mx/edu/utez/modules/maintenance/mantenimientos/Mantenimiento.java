@@ -37,9 +37,9 @@ public class Mantenimiento extends BaseEntity {
     @JoinColumn(name = "id_activo", nullable = false)
     private Assets activo;
 
-    /** Técnico asignado para ejecutar el mantenimiento. */
+    /** Técnico asignado para ejecutar el mantenimiento. Puede ser null si el técnico fue desactivado. */
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_usuario_tecnico", nullable = false)
+    @JoinColumn(name = "id_usuario_tecnico", nullable = true)
     private User usuarioTecnico;
 
     /** Administrador que autorizó o supervisó el mantenimiento. */

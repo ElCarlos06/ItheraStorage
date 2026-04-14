@@ -47,7 +47,7 @@ public class MainSecurity {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/auth/**").permitAll() // Permite el login y la doc
                         .requestMatchers("/api/prioridades", "/api/prioridades/**").permitAll()
-                        .requestMatchers("/", "/error", "/email/**", "/preview/**").permitAll()
+                        .requestMatchers("/", "/error", "/email/**", "/preview/**", "/api/eventos").permitAll()
                         .requestMatchers("/api/mantenimientos", "/api/mantenimientos/**").permitAll() // Permite el acceso a mantenimientos para todos los roles
                         .requestMatchers("/api/auth/login", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
                         .requestMatchers("/api/register", "/api/register/**").hasAnyAuthority("ROLE_Administrador") // Solo el admin puede crear usuarios

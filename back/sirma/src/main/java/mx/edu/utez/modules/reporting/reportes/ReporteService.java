@@ -55,6 +55,7 @@ public class ReporteService {
     private final ResguardoRepository resguardoRepository;
     private final ImagenReporteRepository imagenReporteRepository;
     private final ImagenReporteService imagenReporteService;
+    private final mx.edu.utez.kernel.sse.SseEmitterService sseEmitterService;
 
     // sinAsignar=true: bandeja admin sin técnico; false: todos (ej. móvil)
     /**
@@ -192,6 +193,7 @@ public class ReporteService {
                 "Reporte: " + descCorta,
                 cust, cust, opAnt, AssetEstados.OPERATIVO_REPORTADO);
 
+        sseEmitterService.notificar("inventario");
         return new ApiResponse("Reporte enviado correctamente", entity, HttpStatus.CREATED);
     }
 
@@ -219,6 +221,7 @@ public class ReporteService {
             p.ifPresent(entity::setPrioridad);
         }
         reporteRepository.save(entity);
+        sseEmitterService.notificar("inventario");
         return new ApiResponse("Reporte actualizado", entity, HttpStatus.OK);
     }
 

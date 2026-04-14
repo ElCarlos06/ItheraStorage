@@ -31,6 +31,9 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final AreaRepository areaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final mx.edu.utez.modules.core.resguardos.ResguardoRepository resguardoRepository;
+    private final mx.edu.utez.modules.core.assets.AssetsRepository assetsRepository;
+    private final mx.edu.utez.modules.maintenance.mantenimientos.MantenimientoRepository mantenimientoRepository;
 
     @Transactional(readOnly = true)
     public ApiResponse findAll(Pageable pageable) {
@@ -113,8 +116,24 @@ public class UserService {
         if (found.isEmpty())
             return new ApiResponse("Usuario no encontrado", true, HttpStatus.NOT_FOUND);
         User entity = found.get();
-        entity.setEsActivo(!entity.getEsActivo());
+        boolean nuevoEstado = !entity.getEsActivo();
+        entity.setEsActivo(nuevoEstado);
         userRepository.save(entity);
+
+        // Al desactivar un usuario, liberar los recursos que tenía asignados
+        if (!nuevoEstado) {
+            String rol = entity.getRole() != null ? entity.getRole().getNombre() : "";
+            if (rol.equalsIgnoreCase("Empleado")) {
+                // 1. Poner en Disponible los activos que estaban bajo su custodia
+                assetsRepository.liberarCustodiaDeEmpleado(id);
+                // 2. Marcar sus resguardos activos como Devuelto
+                resguardoRepository.devolverPorEmpleado(id);
+            } else if (rol.toLowerCase().contains("tecnico") || rol.toLowerCase().contains("técnico")) {
+                // Desasignar sus mantenimientos pendientes para que el admin los reasigne
+                mantenimientoRepository.liberarPorTecnico(id);
+            }
+        }
+
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
     }
 

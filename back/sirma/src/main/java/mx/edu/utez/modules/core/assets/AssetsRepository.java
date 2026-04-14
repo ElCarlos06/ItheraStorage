@@ -56,6 +56,30 @@ public interface AssetsRepository extends JpaRepository<Assets, Long> {
     void updateEstadoOperativo(Long id, String estado);
 
     /**
+     * Desactiva (o reactiva) en bloque todos los activos de un tipo de activo.
+     * Se usa al ocultar un tipo para que sus activos queden también ocultos.
+     *
+     * @param tipoActivoId ID del tipo de activo.
+     * @param esActivo     Nuevo valor de esActivo para los activos del tipo.
+     */
+    @Modifying
+    @Query("UPDATE Assets a SET a.esActivo = :esActivo WHERE a.tipoActivo.id = :tipoActivoId")
+    void updateEsActivoByTipoActivoId(@org.springframework.data.repository.query.Param("tipoActivoId") Long tipoActivoId,
+                                      @org.springframework.data.repository.query.Param("esActivo") Boolean esActivo);
+
+    /**
+     * Libera la custodia de los activos que un empleado tiene en estado Pendiente o Confirmado.
+     * Debe llamarse ANTES de actualizar los resguardos a "Devuelto".
+     */
+    @Modifying
+    @Query("UPDATE Assets a SET a.estadoCustodia = 'Disponible' " +
+           "WHERE a.id IN (" +
+           "  SELECT r.activo.id FROM Resguardo r " +
+           "  WHERE r.usuarioEmpleado.id = :empleadoId " +
+           "  AND r.estadoResguardo IN ('Pendiente', 'Confirmado'))")
+    void liberarCustodiaDeEmpleado(@Param("empleadoId") Long empleadoId);
+
+    /**
      * Busca un activo utilizando su etiqueta única.
      *
      * @param etiqueta Cadena de etiqueta a buscar.

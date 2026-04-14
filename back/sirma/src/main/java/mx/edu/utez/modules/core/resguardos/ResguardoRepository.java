@@ -25,4 +25,15 @@ public interface ResguardoRepository extends JpaRepository<Resguardo, Long> {
     // empleado + activo + estado_resguardo (ej. Confirmado)
     boolean existsByUsuarioEmpleado_IdAndActivo_IdAndEstadoResguardo(
             Long usuarioEmpleadoId, Long activoId, String estadoResguardo);
+
+    /**
+     * Marca como "Devuelto" todos los resguardos activos de un empleado.
+     * Se usa al desactivar al empleado para liberar los activos bajo su custodia.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query(
+        "UPDATE Resguardo r SET r.estadoResguardo = 'Devuelto' " +
+        "WHERE r.usuarioEmpleado.id = :empleadoId " +
+        "AND r.estadoResguardo IN ('Pendiente', 'Confirmado')")
+    void devolverPorEmpleado(@org.springframework.data.repository.query.Param("empleadoId") Long empleadoId);
 }

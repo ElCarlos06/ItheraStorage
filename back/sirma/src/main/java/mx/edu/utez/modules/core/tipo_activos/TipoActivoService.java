@@ -142,8 +142,15 @@ public class TipoActivoService {
         if (found.isEmpty())
             return new ApiResponse("Tipo de activo no encontrado", true, HttpStatus.NOT_FOUND);
         TipoActivo entity = found.get();
-        entity.setEsActivo(!entity.getEsActivo());
+        boolean nuevoEstado = !entity.getEsActivo();
+        entity.setEsActivo(nuevoEstado);
         tipoActivoRepository.save(entity);
+
+        // Al desactivar el tipo, también se ocultan todos sus activos
+        if (!nuevoEstado) {
+            assetsRepository.updateEsActivoByTipoActivoId(id, false);
+        }
+
         return new ApiResponse("Estado actualizado", entity, HttpStatus.OK);
     }
 

@@ -127,5 +127,16 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
             LocalDate end
     );
 
+    /**
+     * Desasigna al técnico de todos sus mantenimientos no finalizados y los
+     * regresa a estado "Asignado" para que el administrador pueda reasignarlos.
+     * Se usa al desactivar un técnico.
+     */
+    @Modifying
+    @Query("UPDATE Mantenimiento m SET m.usuarioTecnico = null, m.estadoMantenimiento = 'Asignado' " +
+           "WHERE m.usuarioTecnico.id = :tecnicoId " +
+           "AND m.estadoMantenimiento NOT IN ('Finalizado')")
+    void liberarPorTecnico(@Param("tecnicoId") Long tecnicoId);
+
 }
 

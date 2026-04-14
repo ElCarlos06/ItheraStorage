@@ -18,11 +18,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.activos360.core.auth.TokenManager
 import com.example.activos360.core.util.QrParse
 import com.example.activos360.ui.components.BottomCustomBar
 import com.example.activos360.ui.modals.AssetDetailModal
+import com.example.activos360.ui.screens.Empleado.CambiarContrasenaPerfilScreen
 import com.example.activos360.ui.screens.Empleado.TecnicoHome
 import com.example.activos360.ui.screens.Empleado.UserProfile
 import com.example.activos360.ui.viewmodel.QrScanResult
@@ -37,6 +39,8 @@ fun TecnicoMainScreen(
     val bottomNavController = rememberNavController()
     val context             = LocalContext.current
     val qrState             = qrScanViewModel.uiState
+
+    val currentRoute = bottomNavController.currentBackStackEntryAsState().value?.destination?.route
 
     var showModal       by remember { mutableStateOf(false) }
     var codigoEscaneado by remember { mutableStateOf("") }
@@ -68,10 +72,12 @@ fun TecnicoMainScreen(
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            BottomCustomBar(
-                navController = bottomNavController,
-                onQrScanned   = { codigo -> qrScanViewModel.procesarTecnico(codigo) }
-            )
+            if (currentRoute != "change_password") {
+                BottomCustomBar(
+                    navController = bottomNavController,
+                    onQrScanned   = { codigo -> qrScanViewModel.procesarTecnico(codigo) }
+                )
+            }
         }
     ) { paddingValues ->
         NavHost(
@@ -88,6 +94,13 @@ fun TecnicoMainScreen(
                         TokenManager.clear()
                         navControllerPrincipal.navigate("login") { popUpTo(0) }
                     }
+                )
+            }
+
+            composable("change_password") {
+                CambiarContrasenaPerfilScreen(
+                    onBack    = { bottomNavController.popBackStack() },
+                    onSuccess = { bottomNavController.popBackStack() }
                 )
             }
         }
