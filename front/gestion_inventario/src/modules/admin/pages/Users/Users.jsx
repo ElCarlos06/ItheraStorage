@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import PageHeader from "../../components/dashboard/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
+import ActionLoader from "../../../../components/ActionLoader/ActionLoader";
 import Button from "../../../../components/Button/Button";
 import Pagination from "../../components/layout/Pagination";
 import {
@@ -62,12 +63,15 @@ export default function Users({
   const [modalUser, setModalUser] = useState(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
   const [errors, setErrors] = useState(null);
+  const [mutating, setMutating] = useState("");
+  const mutatingRef = useRef(false);
   const pageSize = 10;
   const stats = Array.isArray(statsProp) ? statsProp : [];
   const currentUserCorreo = getCurrentUserCorreo();
 
   const {
     isLoading: queryLoading,
+    isFetching: queryFetching,
     error: queryError,
     invalidate,
     currentPage,
@@ -94,6 +98,18 @@ export default function Users({
   const loading =
     usersProp !== undefined ? (loadingProp ?? false) : queryLoading;
   const error = usersProp !== undefined ? errorProp : queryError;
+
+  useEffect(() => {
+    if (!queryFetching && mutatingRef.current) {
+      mutatingRef.current = false;
+      setMutating("");
+    }
+  }, [queryFetching]);
+
+  const startMutation = (message) => {
+    mutatingRef.current = true;
+    setMutating(message);
+  };
 
   const refreshUsers = () => {
     if (usersProp !== undefined) return;
@@ -139,7 +155,7 @@ export default function Users({
 
   return (
     <div
-      className={`users-page ${showEmptyState || loading ? "d-flex flex-column" : ""} ${showEmptyState ? "users-page--empty" : ""} ${loading ? "users-page--loading" : ""}`}
+      className={`users-page ${showEmptyState || loading || mutating ? "d-flex flex-column" : ""} ${showEmptyState ? "users-page--empty" : ""} ${loading || mutating ? "users-page--loading" : ""}`}
     >
       <PageHeader
         overline="PANEL DE CONTROL"
@@ -189,112 +205,116 @@ export default function Users({
           <div className="users-view__list users-view__list--loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
             <LoadingState message="Cargando usuarios…" />
           </div>
+        ) : mutating ? (
+          <div className="users-view__list users-view__list--loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
+            <ActionLoader message={mutating} />
+          </div>
         ) : (
           <div className="users-view__list d-flex flex-column gap-3 min-vh-0">
-            {showEmptyState ? (
-              <EmptyState
-                message="No hay usuarios para mostrar"
-                hasSearch={!!search.trim()}
-                searchMessage="No hay usuarios o no coinciden con la búsqueda."
-              />
-            ) : (
-              paginatedUsers.map((user, idx) => (
-                <div
-                  key={user?.id ?? `user-${idx}`}
-                  className="users-view__card-wrap"
-                >
-                  <div className="users-view__card">
-                    <div
-                      className="users-view__card-inner d-flex align-items-center gap-4"
-                      title="Abre el panel con información completa del usuario"
-                    >
+              {showEmptyState ? (
+                <EmptyState
+                  message="No hay usuarios para mostrar"
+                  hasSearch={!!search.trim()}
+                  searchMessage="No hay usuarios o no coinciden con la búsqueda."
+                />
+              ) : (
+                paginatedUsers.map((user, idx) => (
+                  <div
+                    key={user?.id ?? `user-${idx}`}
+                    className="users-view__card-wrap"
+                  >
+                    <div className="users-view__card">
                       <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setModalUser(user)}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" && setModalUser(user)
-                        }
-                        aria-label="Ver información completa del usuario"
-                        className="users-view__card-body users-view__card-body--clickable"
+                        className="users-view__card-inner d-flex align-items-center gap-4"
+                        title="Abre el panel con información completa del usuario"
                       >
-                        <div className="users-view__card-body-inner">
-                          <p className="users-view__numero">
-                            {user.numeroEmpleado}
-                          </p>
-                          <div className="users-view__data-row d-flex flex-wrap align-items-center">
-                            <div className="users-view__data-col">
-                              <p className="users-view__label">Rol</p>
-                              <p className="users-view__value">
-                                {user.rol ?? "—"}
-                              </p>
-                            </div>
-                            <div className="users-view__data-col">
-                              <p className="users-view__label">
-                                Nombre Completo
-                              </p>
-                              <p className="users-view__value">
-                                {user.nombre ?? "—"}
-                              </p>
-                            </div>
-                            <div className="users-view__data-col">
-                              <p className="users-view__label">Curp</p>
-                              <p className="users-view__value">
-                                {user.curp ?? "—"}
-                              </p>
-                            </div>
-                            <div className="users-view__data-col">
-                              <p className="users-view__label">Correo</p>
-                              <p className="users-view__value">
-                                {user.correo ?? "—"}
-                              </p>
-                            </div>
-                            <div className="users-view__data-col">
-                              <p className="users-view__label">Área</p>
-                              <p className="users-view__value">
-                                {user.area ?? "—"}
-                              </p>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setModalUser(user)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && setModalUser(user)
+                          }
+                          aria-label="Ver información completa del usuario"
+                          className="users-view__card-body users-view__card-body--clickable"
+                        >
+                          <div className="users-view__card-body-inner">
+                            <p className="users-view__numero">
+                              {user.numeroEmpleado}
+                            </p>
+                            <div className="users-view__data-row d-flex flex-wrap align-items-center">
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Rol</p>
+                                <p className="users-view__value">
+                                  {user.rol ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">
+                                  Nombre Completo
+                                </p>
+                                <p className="users-view__value">
+                                  {user.nombre ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Curp</p>
+                                <p className="users-view__value">
+                                  {user.curp ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Correo</p>
+                                <p className="users-view__value">
+                                  {user.correo ?? "—"}
+                                </p>
+                              </div>
+                              <div className="users-view__data-col">
+                                <p className="users-view__label">Área</p>
+                                <p className="users-view__value">
+                                  {user.area ?? "—"}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="users-view__card-actions d-flex align-items-center flex-shrink-0">
-                        <button
-                          type="button"
-                          className="users-view__action-btn users-view__action-btn--delete"
-                          title="Eliminar"
-                          onClick={() => setConfirmDeleteUser(user)}
-                        >
-                          <Icon icon={GenericDelete} size={30} />
-                        </button>
-                        <button
-                          type="button"
-                          className="users-view__action-btn"
-                          title="Editar"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setModalEditUser(user);
-                          }}
-                        >
-                          <Icon icon={GenericEdit} size={30} />
-                        </button>
+                        <div className="users-view__card-actions d-flex align-items-center flex-shrink-0">
+                          <button
+                            type="button"
+                            className="users-view__action-btn users-view__action-btn--delete"
+                            title="Eliminar"
+                            onClick={() => setConfirmDeleteUser(user)}
+                          >
+                            <Icon icon={GenericDelete} size={30} />
+                          </button>
+                          <button
+                            type="button"
+                            className="users-view__action-btn"
+                            title="Editar"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalEditUser(user);
+                            }}
+                          >
+                            <Icon icon={GenericEdit} size={30} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-
-            {!showEmptyState && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={Math.ceil(filtered.length / pageSize)}
-                totalElements={filtered.length}
-                pageSize={pageSize}
-                onPageChange={(page) => setCurrentPage(page)}
-              />
-            )}
+                ))
+              )}
           </div>
+        )}
+
+        {!loading && !mutating && !showEmptyState && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filtered.length / pageSize)}
+            totalElements={filtered.length}
+            pageSize={pageSize}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         )}
       </section>
 
@@ -302,8 +322,10 @@ export default function Users({
         open={modalNuevoOpen}
         onClose={() => setModalNuevoOpen(false)}
         onGuardar={() => {
+          startMutation("Guardando usuario…");
           refreshUsers();
           onNuevo?.();
+          setModalNuevoOpen(false);
           toast.success("Usuario guardado correctamente");
         }}
       />
@@ -312,6 +334,7 @@ export default function Users({
         onClose={() => setModalEditUser(null)}
         initialData={modalEditUser}
         onGuardar={() => {
+          startMutation("Actualizando usuario…");
           refreshUsers();
           onEditar?.(modalEditUser);
           setModalEditUser(null);
@@ -323,23 +346,18 @@ export default function Users({
         open={!!confirmDeleteUser}
         onClose={() => setConfirmDeleteUser(null)}
         onConfirm={async () => {
-          console.log("Eliminando usuario con id:", confirmDeleteUser?.id);
           if (!confirmDeleteUser?.id) return;
           try {
             await usersApi.toggleStatusUser(confirmDeleteUser.id);
             setErrors(null);
             setConfirmDeleteUser(null);
             onEliminar?.(confirmDeleteUser);
-            const deletedCorreo = (
-              confirmDeleteUser.correo ?? ""
-            ).toLowerCase();
-            if (
-              currentUserCorreo &&
-              deletedCorreo === currentUserCorreo.toLowerCase()
-            ) {
+            const deletedCorreo = (confirmDeleteUser.correo ?? "").toLowerCase();
+            if (currentUserCorreo && deletedCorreo === currentUserCorreo.toLowerCase()) {
               toast.success("Tu cuenta fue eliminada");
               logout();
             } else {
+              startMutation("Eliminando usuario…");
               refreshUsers();
               toast.success("Usuario eliminado correctamente");
             }

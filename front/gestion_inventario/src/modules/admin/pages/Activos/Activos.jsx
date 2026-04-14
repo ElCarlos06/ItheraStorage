@@ -9,6 +9,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import Buscador from "../../../../components/Buscador/Buscador";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
+import ActionLoader from "../../../../components/ActionLoader/ActionLoader";
 import Button from "../../../../components/Button/Button";
 import { toast } from "../../../../utils/toast.jsx";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
@@ -35,6 +36,7 @@ export default function Activos({
   stats: statsProp = [],
   loading: loadingProp = false,
   fetching: fetchingProp = false,
+  actionLoading: actionLoadingProp = false,
   error: errorProp = null,
   currentPage = 0,
   totalPages = 1,
@@ -76,7 +78,9 @@ export default function Activos({
   const stats = Array.isArray(statsProp) ? statsProp : [];
   const loading = loadingProp;
   const fetching = fetchingProp;
+  const actionLoading = actionLoadingProp; // string con mensaje o ""
   const error = errorProp;
+  const showActionLoader = !loading && !!actionLoading;
 
   // Filtrado local solo para búsqueda en la página actual
   const filtered = useMemo(
@@ -148,7 +152,7 @@ export default function Activos({
 
   return (
     <div
-      className={`activos-page ${showEmptyState ? "activos-page--empty d-flex flex-column" : ""} ${loading ? "activos-page--loading d-flex flex-column" : ""}`}
+      className={`activos-page ${showEmptyState ? "activos-page--empty d-flex flex-column" : ""} ${loading || showActionLoader ? "activos-page--loading d-flex flex-column" : ""}`}
     >
       <PageHeader
         overline="GESTIÓN DE INVENTARIO"
@@ -250,12 +254,12 @@ export default function Activos({
           <div className="activos-view__list activos-view__list--loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
             <LoadingState message="Cargando activos…" />
           </div>
+        ) : showActionLoader ? (
+          <div className="activos-view__list activos-view__list--loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
+            <ActionLoader message={actionLoading || "Actualizando activos…"} />
+          </div>
         ) : (
-          <div
-            className={`activos-view__list d-flex flex-column gap-3 min-vh-0 ${
-              fetching ? "activos-view__list--fetching" : ""
-            }`}
-          >
+          <div className="activos-view__list d-flex flex-column gap-3 min-vh-0">
             {showEmptyState ? (
               <EmptyState
                 message="No hay activos para mostrar"

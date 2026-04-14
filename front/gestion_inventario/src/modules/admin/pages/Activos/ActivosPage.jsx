@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Activos from "./Activos";
 import { activosApi } from "../../../../api/activosApi";
 import { resguardosApi } from "../../../../api/resguardosApi";
@@ -34,6 +35,8 @@ function mapActivoToDisplay(item) {
 const PAGE_SIZE = 10;
 
 export default function ActivosPage() {
+  const [actionLoading, setActionLoading] = useState("");
+
   const {
     isLoading,
     isFetching,
@@ -57,6 +60,7 @@ export default function ActivosPage() {
     .map(mapActivoToDisplay);
 
   const handleNuevo = async (formData) => {
+    setActionLoading("Guardando activo…");
     try {
       const res = await activosApi.save(formData);
       if (res?.error) throw new Error(res.message ?? "Error al guardar");
@@ -64,11 +68,14 @@ export default function ActivosPage() {
     } catch (err) {
       toast.error(err.message ?? "Error al guardar el activo");
       throw err;
+    } finally {
+      setActionLoading("");
     }
   };
 
   const handleEditar = async (asset, formData) => {
     if (!asset?.id) return;
+    setActionLoading("Actualizando activo…");
     try {
       const res = await activosApi.update(asset.id, formData);
       if (res?.error) throw new Error(res.message ?? "Error al actualizar");
@@ -76,11 +83,14 @@ export default function ActivosPage() {
     } catch (err) {
       toast.error(err.message ?? "Error al actualizar el activo");
       throw err;
+    } finally {
+      setActionLoading("");
     }
   };
 
   const handleEliminar = async (asset) => {
     if (!asset?.id) return;
+    setActionLoading("Eliminando activo…");
     try {
       const res = await activosApi.toggleStatus(asset.id);
       if (res?.error) throw new Error(res.message ?? "Error al eliminar");
@@ -89,6 +99,8 @@ export default function ActivosPage() {
       toast.error(err.message ?? "Error al eliminar");
       invalidate();
       throw err;
+    } finally {
+      setActionLoading("");
     }
   };
 
@@ -98,6 +110,7 @@ export default function ActivosPage() {
       toast.error("No se pudo identificar tu usuario administrador.");
       return;
     }
+    setActionLoading("Asignando resguardo…");
     try {
       const res = await resguardosApi.save({
         idActivo: asset.id,
@@ -112,10 +125,13 @@ export default function ActivosPage() {
     } catch (err) {
       toast.error(err.message ?? "Error al asignar resguardo");
       throw err;
+    } finally {
+      setActionLoading("");
     }
   };
 
   const handleLiberarResguardo = async (resguardo, formData) => {
+    setActionLoading("Liberando resguardo…");
     try {
       const payload = {
         idActivo: resguardo.activo?.id ?? resguardo.idActivo,
@@ -124,7 +140,7 @@ export default function ActivosPage() {
         estadoResguardo: "Devuelto",
         observacionesDev: formData.observaciones || null,
       };
-      
+
       const res = await resguardosApi.update(resguardo.id, payload);
       if (res?.error)
         throw new Error(res.message ?? "Error al liberar resguardo");
@@ -133,6 +149,8 @@ export default function ActivosPage() {
     } catch (err) {
       toast.error(err.message ?? "Error al liberar resguardo");
       throw err;
+    } finally {
+      setActionLoading("");
     }
   };
 
@@ -141,6 +159,7 @@ export default function ActivosPage() {
       activos={activos}
       loading={isLoading}
       fetching={isFetching}
+      actionLoading={actionLoading}
       error={errorMessage}
       currentPage={currentPage}
       totalPages={totalPages ?? 1}

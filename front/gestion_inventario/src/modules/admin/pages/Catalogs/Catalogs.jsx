@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "../../../../utils/toast.jsx";
 import PageHeader from "../../components/dashboard/PageHeader";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
@@ -25,8 +25,12 @@ export default function Catalogs() {
   const [confirmDeleteLocation, setConfirmDeleteLocation] = useState(null);
   const [confirmDeleteTipoActivo, setConfirmDeleteTipoActivo] = useState(null);
 
+  const [actionLoading, setActionLoading] = useState("");
+  const mutatingRef = useRef(false);
+
   const {
     isLoading: loading,
+    isFetching,
     error,
     invalidate,
     currentPage,
@@ -39,6 +43,18 @@ export default function Catalogs() {
     edificiosList,
     hasLocations,
   } = useCatalogData(mainTab, subTab);
+
+  useEffect(() => {
+    if (!isFetching && mutatingRef.current) {
+      mutatingRef.current = false;
+      setActionLoading("");
+    }
+  }, [isFetching]);
+
+  const startMutation = (message) => {
+    mutatingRef.current = true;
+    setActionLoading(message);
+  };
 
   const config = SECTIONS[subTab] ?? {};
   const isLocations = mainTab === "ubicaciones";
@@ -83,6 +99,7 @@ export default function Catalogs() {
   }, []);
 
   const handleGuardarCampus = useCallback(async (data) => {
+    startMutation(editLocation?.id ? "Actualizando campus…" : "Registrando campus…");
     try {
       if (editLocation?.id) {
         await ubicacionesApi.updateCampus(editLocation.id, data);
@@ -93,12 +110,15 @@ export default function Catalogs() {
       }
       refreshLocations();
     } catch (err) {
+      mutatingRef.current = false;
+      setActionLoading("");
       toast.error(err?.message ?? "Error al guardar");
       throw err;
     }
   }, [editLocation, refreshLocations]);
 
   const handleGuardarEdificio = useCallback(async (data) => {
+    startMutation(editLocation?.id ? "Actualizando edificio…" : "Registrando edificio…");
     try {
       if (editLocation?.id) {
         await ubicacionesApi.updateEdificio(editLocation.id, data);
@@ -109,12 +129,15 @@ export default function Catalogs() {
       }
       refreshLocations();
     } catch (err) {
+      mutatingRef.current = false;
+      setActionLoading("");
       toast.error(err?.message ?? "Error al guardar");
       throw err;
     }
   }, [editLocation, refreshLocations]);
 
   const handleGuardarAula = useCallback(async (data) => {
+    startMutation(editLocation?.id ? "Actualizando aula…" : "Registrando aula…");
     try {
       if (editLocation?.id) {
         await ubicacionesApi.updateEspacio(editLocation.id, data);
@@ -125,6 +148,8 @@ export default function Catalogs() {
       }
       refreshLocations();
     } catch (err) {
+      mutatingRef.current = false;
+      setActionLoading("");
       toast.error(err?.message ?? "Error al guardar");
       throw err;
     }
@@ -132,6 +157,8 @@ export default function Catalogs() {
 
   const handleConfirmDeleteLocation = useCallback(async () => {
     if (!confirmDeleteLocation?.id) return;
+    const labels = { campus: "campus", edificios: "edificio", aulas: "aula" };
+    startMutation(`Eliminando ${labels[subTab] ?? "elemento"}…`);
     try {
       if (subTab === "campus") {
         await ubicacionesApi.toggleStatusCampus(confirmDeleteLocation.id);
@@ -146,23 +173,29 @@ export default function Catalogs() {
       setConfirmDeleteLocation(null);
       refreshLocations();
     } catch (err) {
+      mutatingRef.current = false;
+      setActionLoading("");
       toast.error(err?.message ?? "Error al eliminar");
     }
   }, [confirmDeleteLocation, subTab, refreshLocations]);
 
   const handleConfirmDeleteTipoActivo = useCallback(async () => {
     if (!confirmDeleteTipoActivo?.id) return;
+    startMutation("Eliminando tipo de activo…");
     try {
       await tipoActivosApi.toggleStatusTipoActivo(confirmDeleteTipoActivo.id);
       toast.success("Tipo de activo eliminado correctamente");
       setConfirmDeleteTipoActivo(null);
       invalidate();
     } catch (err) {
+      mutatingRef.current = false;
+      setActionLoading("");
       toast.error(err?.message ?? "Error al eliminar");
     }
   }, [confirmDeleteTipoActivo, invalidate]);
 
   const handleGuardarTipoActivo = useCallback(async (data) => {
+    startMutation(editTipoActivo?.id ? "Actualizando tipo de activo…" : "Guardando tipo de activo…");
     try {
       if (editTipoActivo?.id) {
         await tipoActivosApi.actualizarTipoActivo(editTipoActivo.id, data);
@@ -175,6 +208,8 @@ export default function Catalogs() {
       setModalTipoActivoOpen(false);
       setEditTipoActivo(null);
     } catch (error) {
+      mutatingRef.current = false;
+      setActionLoading("");
       toast.error(error?.message ?? "Error al guardar tipo de activo");
       throw error;
     }
@@ -191,7 +226,7 @@ export default function Catalogs() {
 
   return (
     <div
-      className={`catalogs-page ${loading ? "catalogs-page--loading d-flex flex-column" : ""}`}
+      className={`catalogs-page ${loading || actionLoading ? "catalogs-page--loading d-flex flex-column" : ""}`}
     >
       <PageHeader
         overline="GESTIÓN DE CATÁLOGOS"
@@ -253,6 +288,7 @@ export default function Catalogs() {
         loadingMessage={mainTab === "tipos-activos" ? "Cargando tipos de activos…" : "Cargando ubicaciones…"}
         items={isLocations ? items : tiposActivosItems}
         loading={loading}
+        actionLoading={actionLoading}
         search={search}
         onSearchChange={setSearch}
         countLabel={config.countLabel}

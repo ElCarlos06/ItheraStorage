@@ -54,6 +54,10 @@
   font-size: 14px;
 }
 
+.users-view__list-wrap {
+  position: relative;
+}
+
 .users-view__list--loading {
   flex: 1;
   min-height: 0;

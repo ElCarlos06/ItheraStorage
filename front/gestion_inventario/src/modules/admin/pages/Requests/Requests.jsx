@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import PageHeader from "../../components/dashboard/PageHeader";
 import Pagination from "../../components/layout/Pagination";
 import Buscador from "../../../../components/Buscador/Buscador";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
+import ActionLoader from "../../../../components/ActionLoader/ActionLoader";
 import ErrorBanner from "../../../../components/ErrorBanner/ErrorBanner";
 import ConfirmDeleteModal from "../../../../components/ConfirmDeleteModal/ConfirmDeleteModal";
 import ReporteInfoModal from "./ReporteInfoModal";
@@ -171,6 +172,8 @@ export default function Requests() {
   const [assignReporte, setAssignReporte] = useState(null);
   const [releaseTecnico, setReleaseTecnico] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [mutating, setMutating] = useState("");
+  const mutatingRef = useRef(false);
   const pageSize = 10;
 
   const {
@@ -229,7 +232,19 @@ export default function Requests() {
   }, [filtered, currentPage]);
 
   const isTabLoading = loading || isPlaceholderData;
-  const showEmpty = !isTabLoading && !isFetching && filtered.length === 0;
+  const showEmpty = !isTabLoading && !mutating && filtered.length === 0;
+
+  useEffect(() => {
+    if (!isFetching && mutatingRef.current) {
+      mutatingRef.current = false;
+      setMutating("");
+    }
+  }, [isFetching]);
+
+  const startMutation = (message) => {
+    mutatingRef.current = true;
+    setMutating(message);
+  };
 
   const openDetail = (sol) => {
     if (sol.rowKind === "mantenimiento") {
@@ -243,7 +258,7 @@ export default function Requests() {
 
   return (
     <div
-      className={`requests-page pb-4 ${isTabLoading || isFetching ? "requests-page--loading d-flex flex-column" : ""} ${showEmpty ? "requests-page--empty d-flex flex-column" : ""}`}
+      className={`requests-page pb-4 ${isTabLoading || mutating ? "requests-page--loading d-flex flex-column" : ""} ${showEmpty ? "requests-page--empty d-flex flex-column" : ""}`}
     >
       <PageHeader
         overline="SOLICITUDES"
@@ -286,9 +301,13 @@ export default function Requests() {
           />
         )}
 
-        {isTabLoading || isFetching ? (
+        {isTabLoading ? (
           <div className="requests-view__list requests-view__list--loading d-flex flex-column flex-grow-1 min-vh-0 overflow-hidden">
             <LoadingState message="Cargando solicitudes…" />
+          </div>
+        ) : mutating ? (
+          <div className="requests-view__list requests-view__list--loading d-flex flex-column flex-grow-1 min-vh-0 overflow-hidden">
+            <ActionLoader message={mutating} />
           </div>
         ) : showEmpty ? (
           <div className="requests-view__list requests-view__list--empty d-flex flex-column flex-grow-1 min-vh-0 overflow-hidden">
@@ -300,160 +319,162 @@ export default function Requests() {
           </div>
         ) : (
           <div className="requests-view__list d-flex flex-column gap-3">
-            {paginatedItems.map((sol, idx) => (
-              <div
-                key={sol.id ?? `sol-${idx}`}
-                className="requests-view__card-wrap"
-                role="presentation"
-              >
-                <div className="requests-view__card">
-                  <div
-                    className="requests-view__card-inner d-flex align-items-center gap-4"
-                    title="Abre el panel con información completa de la solicitud"
-                  >
+              {paginatedItems.map((sol, idx) => (
+                <div
+                  key={sol.id ?? `sol-${idx}`}
+                  className="requests-view__card-wrap"
+                  role="presentation"
+                >
+                  <div className="requests-view__card">
                     <div
-                      role="button"
-                      tabIndex={0}
-                      className="requests-view__card-body requests-view__card-body--clickable"
-                      onClick={() => openDetail(sol)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          openDetail(sol);
-                        }
-                      }}
-                      aria-label="Ver detalles de la solicitud"
+                      className="requests-view__card-inner d-flex align-items-center gap-4"
+                      title="Abre el panel con información completa de la solicitud"
                     >
-                      <div className="requests-view__card-body-inner">
-                        <p className="requests-view__numero">{sol.codigo}</p>
-                        <p
-                          className="requests-view__activo-nombre"
-                          title={sol.activoNombre}
-                        >
-                          {sol.activoNombre}
-                        </p>
-                        <div className="requests-view__data-row d-flex flex-wrap align-items-center">
-                          <div className="requests-view__data-col">
-                            <p className="requests-view__label">
-                              Reportado por
-                            </p>
-                            <p className="requests-view__value">
-                              {sol.nombreUsuario}
-                            </p>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        className="requests-view__card-body requests-view__card-body--clickable"
+                        onClick={() => openDetail(sol)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openDetail(sol);
+                          }
+                        }}
+                        aria-label="Ver detalles de la solicitud"
+                      >
+                        <div className="requests-view__card-body-inner">
+                          <p className="requests-view__numero">{sol.codigo}</p>
+                          <p
+                            className="requests-view__activo-nombre"
+                            title={sol.activoNombre}
+                          >
+                            {sol.activoNombre}
+                          </p>
+                          <div className="requests-view__data-row d-flex flex-wrap align-items-center">
+                            <div className="requests-view__data-col">
+                              <p className="requests-view__label">
+                                Reportado por
+                              </p>
+                              <p className="requests-view__value">
+                                {sol.nombreUsuario}
+                              </p>
+                            </div>
+                            <div className="requests-view__data-col">
+                              <p className="requests-view__label">
+                                Tipo de falla
+                              </p>
+                              <p className="requests-view__value">
+                                {sol.tipoFalla}
+                              </p>
+                            </div>
+                            <div className="requests-view__data-col requests-view__data-col--desc">
+                              <p className="requests-view__label">
+                                {activeTab === "reportes"
+                                  ? "Descripción"
+                                  : "Acciones realizadas"}
+                              </p>
+                              <p className="requests-view__value requests-view__value--truncate">
+                                {activeTab === "reportes"
+                                  ? sol.descripcion
+                                  : sol.accionesRealizadas}
+                              </p>
+                            </div>
+                            <div className="requests-view__data-col">
+                              <p className="requests-view__label">Campus</p>
+                              <p className="requests-view__value">{sol.campus}</p>
+                            </div>
+                            <div className="requests-view__data-col">
+                              <p className="requests-view__label">Edificio</p>
+                              <p className="requests-view__value">
+                                {sol.edificio}
+                              </p>
+                            </div>
+                            <div className="requests-view__data-col">
+                              <p className="requests-view__label">Aula</p>
+                              <p className="requests-view__value">{sol.aula}</p>
+                            </div>
+                            <div className="requests-view__data-col requests-view__data-col--prioridad">
+                              <p className="requests-view__label">Prioridad</p>
+                              <StatusBadge
+                                status={prioridadToBadgeStatus(sol.prioridad)}
+                                size="small"
+                              >
+                                {sol.prioridad ?? "—"}
+                              </StatusBadge>
+                            </div>
+                            {sol.tecnicoAsignado &&
+                              sol.tecnicoAsignado !== "—" && (
+                                <div className="requests-view__data-col">
+                                  <p className="requests-view__label">
+                                    Técnico asignado
+                                  </p>
+                                  <p className="requests-view__value">
+                                    {sol.tecnicoAsignado}
+                                  </p>
+                                </div>
+                              )}
                           </div>
-                          <div className="requests-view__data-col">
-                            <p className="requests-view__label">
-                              Tipo de falla
-                            </p>
-                            <p className="requests-view__value">
-                              {sol.tipoFalla}
-                            </p>
-                          </div>
-                          <div className="requests-view__data-col requests-view__data-col--desc">
-                            <p className="requests-view__label">
-                              {activeTab === "reportes"
-                                ? "Descripción"
-                                : "Acciones realizadas"}
-                            </p>
-                            <p className="requests-view__value requests-view__value--truncate">
-                              {activeTab === "reportes"
-                                ? sol.descripcion
-                                : sol.accionesRealizadas}
-                            </p>
-                          </div>
-                          <div className="requests-view__data-col">
-                            <p className="requests-view__label">Campus</p>
-                            <p className="requests-view__value">{sol.campus}</p>
-                          </div>
-                          <div className="requests-view__data-col">
-                            <p className="requests-view__label">Edificio</p>
-                            <p className="requests-view__value">
-                              {sol.edificio}
-                            </p>
-                          </div>
-                          <div className="requests-view__data-col">
-                            <p className="requests-view__label">Aula</p>
-                            <p className="requests-view__value">{sol.aula}</p>
-                          </div>
-                          <div className="requests-view__data-col requests-view__data-col--prioridad">
-                            <p className="requests-view__label">Prioridad</p>
-                            <StatusBadge
-                              status={prioridadToBadgeStatus(sol.prioridad)}
-                              size="small"
-                            >
-                              {sol.prioridad ?? "—"}
-                            </StatusBadge>
-                          </div>
-                          {sol.tecnicoAsignado &&
-                            sol.tecnicoAsignado !== "—" && (
-                              <div className="requests-view__data-col">
-                                <p className="requests-view__label">
-                                  Técnico asignado
-                                </p>
-                                <p className="requests-view__value">
-                                  {sol.tecnicoAsignado}
-                                </p>
-                              </div>
-                            )}
                         </div>
                       </div>
-                    </div>
-                    <div className="requests-view__card-actions d-flex align-items-center flex-shrink-0">
-                      <button
-                        type="button"
-                        className="requests-view__action-btn requests-view__action-btn--delete"
-                        title="Eliminar"
-                        aria-label="Eliminar solicitud"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmDelete(sol);
-                        }}
-                      >
-                        <Icon icon={GenericDelete} size={30} />
-                      </button>
-                      {activeTab === "reportes" && (
+                      <div className="requests-view__card-actions d-flex align-items-center flex-shrink-0">
                         <button
                           type="button"
-                          className="requests-view__action-btn"
-                          title="Asignar técnico"
-                          aria-label="Asignar técnico"
+                          className="requests-view__action-btn requests-view__action-btn--delete"
+                          title="Eliminar"
+                          aria-label="Eliminar solicitud"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setAssignReporte(sol);
+                            setConfirmDelete(sol);
                           }}
                         >
-                          <Icon icon={GenericUser} size={30} />
+                          <Icon icon={GenericDelete} size={30} />
                         </button>
-                      )}
-                      {activeTab === "mantenimientos" &&
-                        sol.estatus === "Asignado" && (
+                        {activeTab === "reportes" && (
                           <button
                             type="button"
                             className="requests-view__action-btn"
-                            title="Liberar técnico"
-                            aria-label="Liberar técnico"
+                            title="Asignar técnico"
+                            aria-label="Asignar técnico"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setReleaseTecnico(sol);
+                              setAssignReporte(sol);
                             }}
                           >
-                            <Icon icon={SecurityPassport} size={30} />
+                            <Icon icon={GenericUser} size={30} />
                           </button>
                         )}
+                        {activeTab === "mantenimientos" &&
+                          sol.estatus === "Asignado" && (
+                            <button
+                              type="button"
+                              className="requests-view__action-btn"
+                              title="Liberar técnico"
+                              aria-label="Liberar técnico"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReleaseTecnico(sol);
+                              }}
+                            >
+                              <Icon icon={SecurityPassport} size={30} />
+                            </button>
+                          )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(filtered.length / pageSize)}
-              totalElements={filtered.length}
-              pageSize={pageSize}
-              onPageChange={setCurrentPage}
-            />
+              ))}
           </div>
+        )}
+
+        {!isTabLoading && !mutating && !showEmpty && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filtered.length / pageSize)}
+            totalElements={filtered.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
         )}
       </section>
 
@@ -487,9 +508,8 @@ export default function Requests() {
         }}
         onBaja={async (data) => {
           try {
-            console.log(data);
-
-            const result = await bajas.darDeBaja(data);
+            await bajas.darDeBaja(data);
+            startMutation("Procesando baja…");
             toast.success("Solicitud de baja aprobada correctamente");
             invalidateSolicitudes();
             setModalMantenimientoId(null);
@@ -505,6 +525,7 @@ export default function Requests() {
         onClose={() => setAssignReporte(null)}
         reporte={assignReporte}
         onAssigned={() => {
+          startMutation("Asignando técnico…");
           invalidateSolicitudes();
           setAssignReporte(null);
           setModalReporte(null);
@@ -519,9 +540,8 @@ export default function Requests() {
           const id = releaseTecnico?.idMantenimiento ?? releaseTecnico?.id;
           try {
             await solicitudesApi.mantenimientos.deleteMantenimiento(id);
-            toast.success(
-              "Técnico liberado. El reporte volvió a la bandeja de pendientes.",
-            );
+            startMutation("Liberando técnico…");
+            toast.success("Técnico liberado. El reporte volvió a la bandeja de pendientes.");
             invalidateSolicitudes();
             setReleaseTecnico(null);
           } catch (err) {
@@ -551,6 +571,7 @@ export default function Requests() {
               const id = row.idReporte ?? row.id;
               await solicitudesApi.reportes.deleteReporte(id);
             }
+            startMutation("Eliminando solicitud…");
             toast.success("Eliminado correctamente");
             invalidateSolicitudes();
             setModalReporte(null);

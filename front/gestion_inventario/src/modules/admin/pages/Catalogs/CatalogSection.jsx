@@ -13,6 +13,7 @@ import { getTipoActivoIcon } from "../../../../utils/tipoActivoIcons";
 import EmptyState from "../../../../components/EmptyState/EmptyState";
 import Pagination from "../../components/layout/Pagination";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
+import ActionLoader from "../../../../components/ActionLoader/ActionLoader";
 import "./CatalogSection.css";
 
 export default function CatalogSection({
@@ -23,6 +24,7 @@ export default function CatalogSection({
   sectionKey = "campus",
   items = [],
   loading = false,
+  actionLoading = false,
   search: searchProp = "",
   onSearchChange,
   countLabel = "registros",
@@ -85,7 +87,7 @@ export default function CatalogSection({
 
   return (
     <div
-      className={`catalog-section ${showEmptyState && !loading ? "catalog-section--empty" : ""} ${loading ? "catalog-section--loading" : ""}`}
+      className={`catalog-section ${showEmptyState && !loading && !actionLoading ? "catalog-section--empty" : ""} ${loading || actionLoading ? "catalog-section--loading" : ""}`}
     >
       <section className="catalog-section__view d-flex flex-column min-vh-0" aria-label={title}>
         {showToolbar && (
@@ -118,6 +120,10 @@ export default function CatalogSection({
               <LoadingState
                 message={loadingMessage ?? (sectionKey === "muebles" || sectionKey === "vehiculos" ? "Cargando tipos de activos…" : "Cargando ubicaciones…")}
               />
+            </div>
+          ) : actionLoading ? (
+            <div className="catalog-section__list-loading flex-grow-1 d-flex flex-column min-vh-0 overflow-hidden">
+              <ActionLoader message={actionLoading} />
             </div>
           ) : showEmptyState ? (
             <EmptyState

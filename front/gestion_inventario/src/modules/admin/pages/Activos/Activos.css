@@ -64,10 +64,8 @@
   min-height: 0;
 }
 
-.activos-view__list--fetching {
-  opacity: 0.5;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
+.activos-view__list-wrap {
+  position: relative;
 }
 
 .activos-view__list:has(.empty-state) {

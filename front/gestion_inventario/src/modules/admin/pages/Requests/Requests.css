@@ -28,6 +28,10 @@
   min-height: 0;
 }
 
+.requests-view__list-wrap {
+  position: relative;
+}
+
 .requests-view__list--loading {
   flex: 1;
   min-height: 0;

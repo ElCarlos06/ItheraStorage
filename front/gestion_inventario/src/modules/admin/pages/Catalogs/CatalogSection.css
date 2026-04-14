@@ -1,3 +1,7 @@
+.catalog-section__list-wrap {
+  position: relative;
+}
+
 .catalog-section__toolbar {
   flex-shrink: 0;
   background: var(--moon-goku);
