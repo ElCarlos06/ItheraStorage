@@ -15,14 +15,57 @@ object ReporteRepository {
 
     suspend fun save(dto: ReporteDTO): Long? {
         val resp = ApiProvider.reporteApi.save6(dto)
-        if (!resp.isSuccessful)
-            throw IllegalStateException("Error ${resp.code()}: No se pudo registrar el reporte")
+        if (!resp.isSuccessful) {
+            val errorMsg = try {
+                val body = resp.errorBody()?.string()
+                ApiProvider.parseModelApiResponse(body ?: "")?.message
+            } catch (_: Exception) { null }
+            throw IllegalStateException(errorMsg ?: "Error ${resp.code()}: No se pudo registrar el reporte")
+        }
         return resp.body()?.data.asMap()?.long("id")
     }
 
     suspend fun findById(reporteId: Long): Map<String, Any?>? {
         val resp = ApiProvider.reporteApi.findById6(reporteId)
         return if (resp.isSuccessful) resp.body()?.data.asMap() else null
+    }
+
+    suspend fun resolver(reporteId: Long) {
+        val data = findById(reporteId) ?: return
+        val dto = ReporteDTO(
+            idActivo         = (data["activo"].asMap())?.long("id") ?: data.long("idActivo") ?: return,
+            idUsuarioReporta = (data["usuarioReporta"].asMap())?.long("id") ?: data.long("idUsuarioReporta") ?: return,
+            idTipoFalla      = (data["tipoFalla"].asMap())?.long("id") ?: data.long("idTipoFalla") ?: return,
+            idPrioridad      = (data["prioridad"].asMap())?.long("id") ?: data.long("idPrioridad") ?: return,
+            descripcionFalla = data.string("descripcionFalla") ?: "",
+            estadoReporte    = "Resuelto"
+        )
+        try { ApiProvider.reporteApi.update6(reporteId, dto) } catch (_: Exception) { }
+    }
+
+    /**
+     * Resuelve cualquier reporte abierto (no terminal) de un activo cuyo mantenimiento
+     * ya esté finalizado. Se llama antes de crear un nuevo reporte para limpiar
+     * reportes que quedaron "colgados" cuando el técnico cerró el mantenimiento.
+     */
+    suspend fun resolverAbiertos(activoId: Long) {
+        try {
+            val resp = ApiProvider.reporteApi.findByActivo1(activoId)
+            if (!resp.isSuccessful) return
+            val terminales = setOf("resuelto", "cancelado")
+            val lista: List<Map<String, Any?>> = when (val data = resp.body()?.data) {
+                is List<*>   -> data.filterIsInstance<Map<String, Any?>>()
+                is Map<*, *> -> (data["content"] as? List<*>)
+                    ?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
+                else         -> emptyList()
+            }
+            for (reporte in lista) {
+                val estado = (reporte["estadoReporte"] as? String)?.lowercase() ?: continue
+                if (estado in terminales) continue
+                val id = (reporte["id"] as? Number)?.toLong() ?: continue
+                resolver(id)
+            }
+        } catch (_: Exception) { }
     }
 
     suspend fun listarImagenes(reporteId: Long): List<String> {

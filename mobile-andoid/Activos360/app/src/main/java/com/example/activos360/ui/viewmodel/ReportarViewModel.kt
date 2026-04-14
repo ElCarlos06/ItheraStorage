@@ -80,6 +80,9 @@ class ReportarViewModel : ViewModel() {
                     descripcionFalla = descripcionFalla
                 )
 
+                // Resuelve reportes colgados de mantenimientos ya finalizados
+                ReporteRepository.resolverAbiertos(activoId)
+
                 Log.d("REPORTE_DEBUG", "Enviando DTO: $dto")
 
                 val reporteId = ReporteRepository.save(dto)

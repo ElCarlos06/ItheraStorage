@@ -36,6 +36,22 @@ object ActivoRepository {
         try { ApiProvider.assetsApi.update15(activoId, dto) } catch (_: Exception) { }
     }
 
+    suspend fun resetEstadoOperativo(activoId: Long, nuevoEstado: String = "Disponible") {
+        val activo = findById(activoId) ?: return
+        val dto = AssetsDTO(
+            etiqueta        = activo.string("etiqueta") ?: return,
+            numeroSerie     = activo.string("numeroSerie") ?: "",
+            idTipoActivo    = (activo["tipoActivo"].asMap())?.long("id") ?: activo.long("idTipoActivo") ?: return,
+            idModelo        = (activo["modelo"].asMap())?.long("id") ?: activo.long("idModelo") ?: return,
+            idEspacio       = (activo["espacio"].asMap())?.long("id") ?: activo.long("idEspacio") ?: return,
+            estadoCustodia  = activo.string("estadoCustodia"),
+            estadoOperativo = nuevoEstado,
+            descripcion     = activo.string("descripcion"),
+            esActivo        = true
+        )
+        try { ApiProvider.assetsApi.update15(activoId, dto) } catch (_: Exception) { }
+    }
+
     suspend fun subirImagenes(activoId: Long, fotos: List<Uri>, context: Context) {
         fotos.forEachIndexed { index, uri ->
             try {

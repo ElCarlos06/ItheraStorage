@@ -11,6 +11,7 @@ import com.example.activos360.back.model.AssetsDTO
 import com.example.activos360.back.model.MantenimientoDTO
 import com.example.activos360.core.repository.ActivoRepository
 import com.example.activos360.core.repository.MantenimientoRepository
+import com.example.activos360.core.repository.ReporteRepository
 import com.example.activos360.core.util.asMap
 import com.example.activos360.core.util.long
 import com.example.activos360.core.util.string
@@ -109,8 +110,18 @@ class GenerarReporteViewModel : ViewModel() {
                 )
                 MantenimientoRepository.update(_mantenimientoId, dto)
 
+                // Cerrar el reporte asociado para que el activo pueda recibir nuevos reportes
+                if (_idReporte > 0L) {
+                    ReporteRepository.resolver(_idReporte)
+                }
+
                 if (fotos.isNotEmpty() && context != null) {
                     ActivoRepository.subirImagenes(_activoId, fotos, context)
+                }
+
+                // Resetear estadoOperativo para que futuros reportes no reciban 409
+                if (resultado == "Reparado") {
+                    ActivoRepository.resetEstadoOperativo(_activoId, "Disponible")
                 }
 
                 // Marcar como baja si es irreparable
