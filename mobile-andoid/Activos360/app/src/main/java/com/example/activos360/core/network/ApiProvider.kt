@@ -33,7 +33,7 @@ object ApiProvider {
     //private const val BASE_URL = "http://10.193.124.244:8080/"
     //private const val BASE_URL = "http://192.168.0.82:8080/"
     //private const val BASE_URL = "http://192.168.0.36:8080/"
-    private const val BASE_URL = "http://192.168.106.138:8080/" //mena
+    private const val BASE_URL = "http://192.168.52.112:8080/" //mena
     //private const val BASE_URL = "http://10.212.144.46:8080/"
     //private const val BASE_URL = "http://10.11.201.46:8080/"
     //private const val BASE_URL = "http://192.168.56.1:8080/" //toni
