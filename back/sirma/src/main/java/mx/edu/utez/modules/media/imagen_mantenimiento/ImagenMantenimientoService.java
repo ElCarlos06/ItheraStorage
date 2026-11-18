@@ -4,8 +4,8 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.media.imagen.BaseImagenService;
 import mx.edu.utez.modules.maintenance.mantenimientos.Mantenimiento;
 import mx.edu.utez.modules.maintenance.mantenimientos.MantenimientoRepository;
-import mx.edu.utez.util.CloudinaryPaths;
-import mx.edu.utez.util.CloudinaryService;
+import mx.edu.utez.util.S3Service;
+import mx.edu.utez.util.StoragePaths;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * Servicio de negocio para gestionar imágenes de Mantenimientos.
- * Coordina la persistencia de datos y el almacenamiento de archivos en la nube.
+ * Coordina la persistencia de datos y el almacenamiento de archivos en AWS S3.
  *
  * @author Ithera Team
  */
@@ -27,8 +27,8 @@ public class ImagenMantenimientoService extends BaseImagenService<ImagenMantenim
 
     private final MantenimientoRepository mantenimientoRepository;
 
-    public ImagenMantenimientoService(ImagenMantenimientoRepository repository, MantenimientoRepository mantenimientoRepository, CloudinaryService cloudinaryService) {
-        super(repository, cloudinaryService);
+    public ImagenMantenimientoService(ImagenMantenimientoRepository repository, MantenimientoRepository mantenimientoRepository, S3Service s3Service) {
+        super(repository, s3Service);
         this.mantenimientoRepository = mantenimientoRepository;
     }
 
@@ -45,11 +45,11 @@ public class ImagenMantenimientoService extends BaseImagenService<ImagenMantenim
         if (found.isEmpty())
             return new ApiResponse("Mantenimiento no encontrado", true, HttpStatus.NOT_FOUND);
         try {
-            Map<String, Object> resultado = cloudinaryService.upload(file, CloudinaryPaths.mantenimientos(mantenimientoId));
+            Map<String, Object> resultado = s3Service.upload(file, StoragePaths.mantenimientos(mantenimientoId));
 
             ImagenMantenimiento img = new ImagenMantenimiento();
             img.setMantenimiento(found.get());
-            img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+            img.llenarDesdeStorage(resultado, file.getOriginalFilename());
             repository.save(img);
 
             return new ApiResponse("Imagen subida correctamente", true, HttpStatus.CREATED);

@@ -14,8 +14,8 @@ import mx.edu.utez.modules.core.assets.Assets;
 import mx.edu.utez.modules.media.imagen.BaseImagen;
 
 /**
- * Entidad que representa la asociación entre una imagen almacenada en Cloudinary y un Activo.
- * Almacena la URL pública y el ID para gestionar el archivo en la nube.
+ * Entidad que representa la asociación entre una imagen almacenada en AWS S3 y un Activo.
+ * Almacena la URL pública y el storageKey para gestionar el archivo en la nube.
  *
  * @author Ithera Team
  */

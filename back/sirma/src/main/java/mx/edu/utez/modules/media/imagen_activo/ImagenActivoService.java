@@ -4,8 +4,8 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.core.assets.Assets;
 import mx.edu.utez.modules.core.assets.AssetsRepository;
 import mx.edu.utez.modules.media.imagen.BaseImagenService;
-import mx.edu.utez.util.CloudinaryPaths;
-import mx.edu.utez.util.CloudinaryService;
+import mx.edu.utez.util.S3Service;
+import mx.edu.utez.util.StoragePaths;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * Servicio encargado de la lógica de negocio para las imágenes de Activos.
- * Gestiona la interacción con la base de datos (ImagenActivoRepository) y el servicio de almacenamiento (CloudinaryService).
+ * Gestiona la interacción con la base de datos (ImagenActivoRepository) y el servicio de almacenamiento (S3Service).
  *
  * @author Ithera Team
  */
@@ -27,14 +27,14 @@ public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenA
 
     private final AssetsRepository assetsRepository;
 
-    public ImagenActivoService(ImagenActivoRepository repository, AssetsRepository assetsRepository, CloudinaryService cloudinaryService) {
-        super(repository, cloudinaryService);
+    public ImagenActivoService(ImagenActivoRepository repository, AssetsRepository assetsRepository, S3Service s3Service) {
+        super(repository, s3Service);
         this.assetsRepository = assetsRepository;
     }
 
     /**
      * Guarda una imagen asociada a un activo.
-     * Sube el archivo a Cloudinary y registra los metadatos en la base de datos.
+     * Sube el archivo a S3 y registra los metadatos en la base de datos.
      *
      * @param activoId ID del activo al que pertenece la imagen.
      * @param file     Archivo MultipartFile con la imagen.
@@ -48,15 +48,14 @@ public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenA
 
         Map<String, Object> resultado;
         try {
-            // Usamos la nueva constante centralizada
-            resultado = cloudinaryService.upload(file, CloudinaryPaths.activos(activoId));
+            resultado = s3Service.upload(file, StoragePaths.activos(activoId));
         } catch (IOException e) {
-            return new ApiResponse("Error al subir imagen a Cloudinary", true, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ApiResponse("Error al subir imagen a S3: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         ImagenActivo img = new ImagenActivo();
         img.setActivo(found.get());
-        img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+        img.llenarDesdeStorage(resultado, file.getOriginalFilename());
         repository.save(img);
 
         return new ApiResponse("Imagen registrada correctamente", img, HttpStatus.CREATED);

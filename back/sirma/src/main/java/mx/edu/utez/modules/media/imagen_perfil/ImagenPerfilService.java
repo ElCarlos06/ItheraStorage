@@ -5,8 +5,8 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.media.imagen.BaseImagenService;
 import mx.edu.utez.modules.security.users.User;
 import mx.edu.utez.modules.security.users.UserRepository;
-import mx.edu.utez.util.CloudinaryPaths;
-import mx.edu.utez.util.CloudinaryService;
+import mx.edu.utez.util.S3Service;
+import mx.edu.utez.util.StoragePaths;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * Servicio para la administración de imágenes de perfil de Usuario.
- * Permite a los usuarios tener una foto de perfil personalizada almacenada en la nube.
+ * Permite a los usuarios tener una foto de perfil personalizada almacenada en AWS S3.
  *
  * @author Ithera Team
  */
@@ -28,8 +28,8 @@ public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenP
 
 	private final UserRepository userRepository;
 
-	public ImagenPerfilService(ImagenPerfilRepository repository, UserRepository userRepository, CloudinaryService cloudinaryService) {
-		super(repository, cloudinaryService);
+	public ImagenPerfilService(ImagenPerfilRepository repository, UserRepository userRepository, S3Service s3Service) {
+		super(repository, s3Service);
 		this.userRepository = userRepository;
 	}
 
@@ -47,28 +47,27 @@ public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenP
 			return new ApiResponse("Usuario no encontrado", true, HttpStatus.NOT_FOUND);
 
 		User usuario = found.get();
-		String carpetaUsuario = CloudinaryPaths.PERFILES + "/" + usuario.getNumeroEmpleado();
+		String carpetaUsuario = StoragePaths.PERFILES + "/" + usuario.getNumeroEmpleado();
 
 		// 1. Eliminar foto anterior si existe (para mantener solo una activa y limpia)
 		Optional<ImagenPerfil> imagenPrevia = repository.findByUsuarioId(usuario.getId());
 		if (imagenPrevia.isPresent()) {
 			ImagenPerfil img = imagenPrevia.get();
 			try {
-				cloudinaryService.delete(img.getPublicIdCloudinary());
+				s3Service.delete(img.getStorageKey());
 				repository.delete(img);
-			} catch (IOException e) {
-				// Loggear error pero continuar con la subida si es posible, o retornar error
-				log.error("Error al eliminar imagen previa de Cloudinary: {}", e.getMessage());
+			} catch (Exception e) {
+				log.error("Error al eliminar imagen previa de S3: {}", e.getMessage());
 			}
 		}
 
 		try {
 			// 2. Subir nueva foto a la carpeta del usuario (usando su número de empleado)
-			Map<String, Object> resultado = cloudinaryService.upload(file, carpetaUsuario);
+			Map<String, Object> resultado = s3Service.upload(file, carpetaUsuario);
 
 			ImagenPerfil img = new ImagenPerfil();
 			img.setUsuario(usuario);
-			img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
+			img.llenarDesdeStorage(resultado, file.getOriginalFilename());
 			repository.save(img);
 
 			return new ApiResponse("Imagen de perfil actualizada correctamente", img, HttpStatus.CREATED);

@@ -14,8 +14,8 @@ import mx.edu.utez.modules.core.assets.Assets;
 import mx.edu.utez.modules.core.assets.AssetsRepository;
 import mx.edu.utez.modules.media.imagen_activo.ImagenActivo;
 import mx.edu.utez.modules.media.imagen_activo.ImagenActivoRepository;
-import mx.edu.utez.util.CloudinaryPaths;
-import mx.edu.utez.util.CloudinaryService;
+import mx.edu.utez.util.S3Service;
+import mx.edu.utez.util.StoragePaths;
 import mx.edu.utez.util.QrPayloadCodec;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -58,7 +58,7 @@ public class QRService {
 
     private final AssetsRepository assetsRepository;
     private final ImagenActivoRepository imagenActivoRepository;
-    private final CloudinaryService cloudinaryService;
+    private final S3Service s3Service;
     private final QrPayloadCodec qrPayloadCodec;
 
     // -------------------------------------------------------------------------
@@ -258,7 +258,7 @@ public class QRService {
 
     /**
      * Resuelve (o genera) el contenido del QR para un activo,
-     * subiéndolo a Cloudinary si aún no existe.
+     * subiéndolo a AWS S3 si aún no existe.
      */
     @Transactional
     public String resolveQrContent(Long assetId) {
@@ -277,22 +277,22 @@ public class QRService {
 
                 // Carpeta por activo: sirma/activos/{ID}/qr
                 // El usuario solicitó: "por cada activo, haya una carpeta de qro q el qr este peggado a la carpeta del activo"
-                String dynamicFolder = CloudinaryPaths.ACTIVOS + "/" + asset.getId() + "/qr";
+                String dynamicFolder = StoragePaths.ACTIVOS + "/" + asset.getId() + "/qr";
                 
-                var uploadResult = cloudinaryService.upload(qrBytes, dynamicFolder);
-                String url      = (String) uploadResult.get("secure_url");
-                String publicId = (String) uploadResult.get("public_id");
+                var uploadResult = s3Service.upload(qrBytes, dynamicFolder, QR_FILENAME + ".png", "image/png");
+                String url      = (String) uploadResult.get("url");
+                String publicId = (String) uploadResult.get("key");
 
                 ImagenActivo qrImg = new ImagenActivo();
                 qrImg.setActivo(asset);
                 qrImg.setNombreArchivo(QR_FILENAME);
-                qrImg.setUrlCloudinary(url);
-                qrImg.setPublicIdCloudinary(publicId);
+                qrImg.setUrlImagen(url);
+                qrImg.setStorageKey(publicId);
                 imagenActivoRepository.save(qrImg);
 
-                log.info("Imagen QR generada y guardada para activo ID: {}", assetId);
+                log.info("Imagen QR generada y guardada en S3 para activo ID: {}", assetId);
             } catch (Exception e) {
-                log.error("Error al subir imagen QR a Cloudinary", e);
+                log.error("Error al subir imagen QR a S3", e);
             }
         }
 
@@ -330,7 +330,7 @@ public class QRService {
     }
 
     /**
-     * Elimina la imagen QR asociada al activo de Cloudinary y de la base de datos.
+     * Elimina la imagen QR asociada al activo de AWS S3 y de la base de datos.
      * Útil cuando se baja/oculta un activo.
      * @param assetId ID del activo del cual se desea eliminar el QR.
      */
@@ -344,10 +344,10 @@ public class QRService {
         if (qrImgOpt.isPresent()) {
             ImagenActivo qrImg = qrImgOpt.get();
             try {
-                // Borrar de Cloudinary
-                if (qrImg.getPublicIdCloudinary() != null) {
-                    cloudinaryService.delete(qrImg.getPublicIdCloudinary());
-                    log.info("Imagen QR borrada de Cloudinary para activo ID: {}", assetId);
+                // Borrar de S3
+                if (qrImg.getStorageKey() != null) {
+                    s3Service.delete(qrImg.getStorageKey());
+                    log.info("Imagen QR borrada de S3 para activo ID: {}", assetId);
                 }
                 // Borrar de BD
                 imagenActivoRepository.delete(qrImg);

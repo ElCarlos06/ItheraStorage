@@ -111,7 +111,7 @@ public class AssetsService {
         // Imágenes Activo (excluyendo QR)
         List<String> perfilImgs = imagenActivoRepository.findByActivoId(dto.getId()).stream()
                 .filter(img -> !QR_FILENAME.equals(img.getNombreArchivo()))
-                .map(ImagenActivo::getUrlCloudinary)
+                .map(ImagenActivo::getUrlImagen)
                 .toList();
         dto.setImagenesPerfil(perfilImgs);
     }

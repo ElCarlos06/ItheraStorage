@@ -4,8 +4,8 @@ import mx.edu.utez.kernel.ApiResponse;
 import mx.edu.utez.modules.media.imagen.BaseImagenService;
 import mx.edu.utez.modules.reporting.reportes.Reporte;
 import mx.edu.utez.modules.reporting.reportes.ReporteRepository;
-import mx.edu.utez.util.CloudinaryPaths;
-import mx.edu.utez.util.CloudinaryService;
+import mx.edu.utez.util.S3Service;
+import mx.edu.utez.util.StoragePaths;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * Servicio para la gestión de imágenes de Reportes (evidencias).
- * Maneja el flujo de subida a Cloudinary y guardado en base de datos.
+ * Maneja el flujo de subida a AWS S3 y guardado en base de datos.
  *
  * @author Ithera Team
  */
@@ -27,8 +27,8 @@ public class ImagenReporteService extends BaseImagenService<ImagenReporte, Image
 
     private final ReporteRepository reporteRepository;
 
-    public ImagenReporteService(ImagenReporteRepository repository, ReporteRepository reporteRepository, CloudinaryService cloudinaryService) {
-        super(repository, cloudinaryService);
+    public ImagenReporteService(ImagenReporteRepository repository, ReporteRepository reporteRepository, S3Service s3Service) {
+        super(repository, s3Service);
         this.reporteRepository = reporteRepository;
     }
 
@@ -45,13 +45,13 @@ public class ImagenReporteService extends BaseImagenService<ImagenReporte, Image
         if (found.isEmpty())
             return new ApiResponse("Reporte no encontrado", true, HttpStatus.NOT_FOUND);
         try {
-            String folder = CloudinaryPaths.reportes(reporteId);
-            Map<String, Object> resultado = cloudinaryService.upload(file, folder);
+            String folder = StoragePaths.reportes(reporteId);
+            Map<String, Object> resultado = s3Service.upload(file, folder);
 
             ImagenReporte img = new ImagenReporte();
             img.setReporte(found.get());
-            img.llenarDesdeCloudinary(resultado, file.getOriginalFilename());
-            repository.save(img); // Use 'repository' from base
+            img.llenarDesdeStorage(resultado, file.getOriginalFilename());
+            repository.save(img);
 
             return new ApiResponse("Imagen subida correctamente", img, HttpStatus.CREATED);
         } catch (IOException e) {
@@ -67,9 +67,7 @@ public class ImagenReporteService extends BaseImagenService<ImagenReporte, Image
      */
     @Transactional(readOnly = true)
     public ApiResponse listarImagenes(Long reporteId) {
-        List<ImagenReporte> lista = repository.findByReporteId(reporteId); // Use 'repository' from base
+        List<ImagenReporte> lista = repository.findByReporteId(reporteId);
         return new ApiResponse("OK", lista, HttpStatus.OK);
     }
-
-    // eliminarImagen method removed as it is inherited as 'delete'
 }

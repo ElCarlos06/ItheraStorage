@@ -1,5 +1,6 @@
 package mx.edu.utez.modules.media.imagen;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 /**
  * Clase base para las entidades que representan una imagen en el sistema.
- * Contiene los atributos comunes para Cloudinary y la fecha de subida.
+ * Contiene los atributos comunes para almacenamiento en la nube (AWS S3) y la fecha de subida.
  *
  * @author Ithera Team
  */
@@ -23,13 +24,13 @@ import java.util.Map;
 @NoArgsConstructor
 public abstract class BaseImagen extends BaseEntity {
 
-    /** URL pública de la imagen en Cloudinary. */
-    @Column(name = "url_cloudinary", nullable = false, length = 500)
-    private String urlCloudinary;
+    /** URL pública de la imagen en S3 / CDN. */
+    @Column(name = "url_imagen", nullable = false, length = 500)
+    private String urlImagen;
 
-    /** Public ID asignado por Cloudinary (necesario para eliminar/transformar). */
-    @Column(name = "public_id_cloudinary", nullable = false, length = 255)
-    private String publicIdCloudinary;
+    /** Clave única del objeto dentro del bucket de S3. */
+    @Column(name = "storage_key", nullable = false, length = 255)
+    private String storageKey;
 
     /** Nombre original del archivo subido por el usuario. */
     @Column(name = "nombre_archivo", length = 255)
@@ -45,14 +46,51 @@ public abstract class BaseImagen extends BaseEntity {
     }
 
     /**
-     * Llena los atributos comunes de la imagen a partir del resultado de Cloudinary.
+     * Llena los atributos comunes de la imagen a partir del resultado de S3 o Storage.
      *
-     * @param resultado Mapa con la respuesta de Cloudinary.
+     * @param resultado Mapa con la respuesta del servicio de almacenamiento.
      * @param nombreArchivo Nombre original del archivo.
      */
-    public void llenarDesdeCloudinary(Map<?, ?> resultado, String nombreArchivo) {
-        this.urlCloudinary = (String) resultado.get("secure_url");
-        this.publicIdCloudinary = (String) resultado.get("public_id");
+    public void llenarDesdeStorage(Map<?, ?> resultado, String nombreArchivo) {
+        String url = (String) (resultado.containsKey("url") ? resultado.get("url") : resultado.get("secure_url"));
+        String key = (String) (resultado.containsKey("key") ? resultado.get("key") : resultado.get("public_id"));
+        this.urlImagen = url;
+        this.storageKey = key;
         this.nombreArchivo = nombreArchivo;
+    }
+
+    /**
+     * Alias de compatibilidad para código anterior.
+     */
+    @Deprecated
+    public void llenarDesdeCloudinary(Map<?, ?> resultado, String nombreArchivo) {
+        llenarDesdeStorage(resultado, nombreArchivo);
+    }
+
+    // =========================================================================
+    // Getters y Setters de compatibilidad con Frontend React y Android
+    // =========================================================================
+
+    @JsonProperty("urlCloudinary")
+    public String getUrlCloudinary() {
+        return urlImagen;
+    }
+
+    public void setUrlCloudinary(String url) {
+        this.urlImagen = url;
+    }
+
+    @JsonProperty("publicIdCloudinary")
+    public String getPublicIdCloudinary() {
+        return storageKey;
+    }
+
+    public void setPublicIdCloudinary(String key) {
+        this.storageKey = key;
+    }
+
+    @JsonProperty("url")
+    public String getUrl() {
+        return urlImagen;
     }
 }
