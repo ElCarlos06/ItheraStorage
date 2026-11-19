@@ -280,7 +280,11 @@ public class QRService {
                 String dynamicFolder = StoragePaths.ACTIVOS + "/" + asset.getId() + "/qr";
                 
                 var uploadResult = s3Service.upload(qrBytes, dynamicFolder, QR_FILENAME + ".png", "image/png");
-                String url      = (String) uploadResult.get("url");
+                // canonical_url es corta; "url" puede ser presignada (>500 chars) y rompe url_imagen
+                String url = (String) uploadResult.getOrDefault(
+                        "canonical_url",
+                        uploadResult.get("url")
+                );
                 String publicId = (String) uploadResult.get("key");
 
                 ImagenActivo qrImg = new ImagenActivo();
