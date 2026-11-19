@@ -52,11 +52,22 @@ public abstract class BaseImagen extends BaseEntity {
      * @param nombreArchivo Nombre original del archivo.
      */
     public void llenarDesdeStorage(Map<?, ?> resultado, String nombreArchivo) {
-        String url = (String) (resultado.containsKey("url") ? resultado.get("url") : resultado.get("secure_url"));
         String key = (String) (resultado.containsKey("key") ? resultado.get("key") : resultado.get("public_id"));
+        // Preferir URL canónica en BD; la firmada (presign) se usa solo al responder al cliente.
+        String url = (String) resultado.get("canonical_url");
+        if (url == null || url.isBlank()) {
+            url = (String) (resultado.containsKey("url") ? resultado.get("url") : resultado.get("secure_url"));
+        }
         this.urlImagen = url;
         this.storageKey = key;
         this.nombreArchivo = nombreArchivo;
+    }
+
+    /** Reemplaza urlImagen por una URL firmada temporal (no persistir después de esto). */
+    public void aplicarUrlTemporal(String urlFirmada) {
+        if (urlFirmada != null && !urlFirmada.isBlank()) {
+            this.urlImagen = urlFirmada;
+        }
     }
 
     /**

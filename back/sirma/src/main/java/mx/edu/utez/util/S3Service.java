@@ -8,9 +8,14 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,6 +32,7 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -62,11 +68,14 @@ public class S3Service {
 
         s3Client.putObject(putRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
+        // Guardamos URL canónica en BD; al responder al front usamos URL firmada (bucket privado).
         String publicUrl = buildPublicUrl(key);
+        String viewUrl = presignGetUrl(key);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("url", publicUrl);
-        result.put("secure_url", publicUrl);
+        result.put("url", viewUrl);
+        result.put("secure_url", viewUrl);
+        result.put("canonical_url", publicUrl);
         result.put("key", key);
         result.put("public_id", key);
         result.put("nombreArchivo", originalFilename);
@@ -96,10 +105,12 @@ public class S3Service {
         s3Client.putObject(putRequest, RequestBody.fromBytes(fileBytes));
 
         String publicUrl = buildPublicUrl(key);
+        String viewUrl = presignGetUrl(key);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("url", publicUrl);
-        result.put("secure_url", publicUrl);
+        result.put("url", viewUrl);
+        result.put("secure_url", viewUrl);
+        result.put("canonical_url", publicUrl);
         result.put("key", key);
         result.put("public_id", key);
         result.put("nombreArchivo", filename);
@@ -149,5 +160,31 @@ public class S3Service {
 
     private String buildPublicUrl(String key) {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+    }
+
+    /**
+     * URL temporal firmada para que el navegador pueda ver objetos de un bucket privado.
+     * Por defecto válida 1 hora.
+     */
+    public String presignGetUrl(String key) {
+        return presignGetUrl(key, Duration.ofHours(1));
+    }
+
+    public String presignGetUrl(String key, Duration ttl) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(ttl)
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignRequest);
+        return presigned.url().toString();
     }
 }

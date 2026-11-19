@@ -32,5 +32,11 @@ build/
 ### VS Code ###
 .vscode/
 
-# Exclude .env
+# Secretos locales (nunca versionar)
 .env
+.env.local
+.env.*.local
+!.env.example
+
+# Scripts/ops locales de EC2 (no necesarios para el equipo)
+/deploy/

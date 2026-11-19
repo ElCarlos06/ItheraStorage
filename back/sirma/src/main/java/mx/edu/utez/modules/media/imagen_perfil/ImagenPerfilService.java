@@ -70,7 +70,7 @@ public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenP
 			img.llenarDesdeStorage(resultado, file.getOriginalFilename());
 			repository.save(img);
 
-			return new ApiResponse("Imagen de perfil actualizada correctamente", img, HttpStatus.CREATED);
+			return new ApiResponse("Imagen de perfil actualizada correctamente", conUrlFirmada(img), HttpStatus.CREATED);
 		} catch (IOException e) {
 			return new ApiResponse("Error al subir imagen: " + e.getMessage(), true, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -95,7 +95,7 @@ public class ImagenPerfilService extends BaseImagenService<ImagenPerfil, ImagenP
 		Optional<ImagenPerfil> imagen = repository.findByUsuarioId(usuario.getId());
 
 		if (imagen.isPresent())
-			return new ApiResponse("OK", imagen.get(), HttpStatus.OK);
+			return new ApiResponse("OK", conUrlFirmada(imagen.get()), HttpStatus.OK);
 
 		else
 			return new ApiResponse("El usuario no tiene foto de perfil", null, HttpStatus.NOT_FOUND);

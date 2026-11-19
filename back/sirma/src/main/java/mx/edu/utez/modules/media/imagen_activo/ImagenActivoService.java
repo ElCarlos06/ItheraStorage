@@ -58,7 +58,7 @@ public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenA
         img.llenarDesdeStorage(resultado, file.getOriginalFilename());
         repository.save(img);
 
-        return new ApiResponse("Imagen registrada correctamente", img, HttpStatus.CREATED);
+        return new ApiResponse("Imagen registrada correctamente", conUrlFirmada(img), HttpStatus.CREATED);
     }
 
     /**
@@ -70,6 +70,7 @@ public class ImagenActivoService extends BaseImagenService<ImagenActivo, ImagenA
     @Transactional(readOnly = true)
     public ApiResponse findAll(Long activoId) {
         List<ImagenActivo> lista = repository.findByActivoId(activoId);
+        lista.forEach(this::conUrlFirmada);
         return new ApiResponse("OK", lista, HttpStatus.OK);
     }
 }

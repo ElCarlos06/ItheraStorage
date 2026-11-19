@@ -23,6 +23,14 @@ public abstract class BaseImagenService<T extends BaseImagen, R extends JpaRepos
     protected final R repository;
     protected final S3Service s3Service;
 
+    /** Prepara la entidad para el front: URL firmada de S3 (bucket privado). */
+    protected T conUrlFirmada(T imagen) {
+        if (imagen != null && imagen.getStorageKey() != null) {
+            imagen.aplicarUrlTemporal(s3Service.presignGetUrl(imagen.getStorageKey()));
+        }
+        return imagen;
+    }
+
     /**
      * Elimina una imagen por su ID, borrándola de la BD y de AWS S3.
      *

@@ -236,6 +236,9 @@ CREATE TABLE BITACORA (
     tipo_evento VARCHAR(50) NOT NULL,
     descripcion TEXT NOT NULL,
     estado_custodia_anterior VARCHAR(50),
+    estado_custodia_nuevo VARCHAR(50),
+    estado_operativo_anterior VARCHAR(50),
+    estado_operativo_nuevo VARCHAR(50),
     fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_bitacora_activo FOREIGN KEY (id_activo) REFERENCES ACTIVO(id_activo),
     CONSTRAINT fk_bitacora_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)

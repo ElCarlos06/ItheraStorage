@@ -1,0 +1,27 @@
+# Secretos
+.env
+**/.env
+**/.env.local
+**/.env.*.local
+!.env.example
+!**/.env.example
+# Front: estos sí se versionan (solo URL de API, sin secretos)
+!front/gestion_inventario/.env.development
+!front/gestion_inventario/.env.production
+
+# Scripts locales de deploy / basura de laboratorio
+back/sirma/deploy/
+**/*.class
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# Build
+**/target/
+**/node_modules/
+**/dist/
+**/build/
